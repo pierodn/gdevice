@@ -1,0 +1,81 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <PropertyPageSchema
+      Include="$(MSBuildThisFileDirectory)$(MSBuildThisFileName).xml" />
+    <AvailableItemName
+      Include="BIN2C">
+      <Targets>_BIN2C</Targets>
+    </AvailableItemName>
+  </ItemGroup>
+  <UsingTask
+    TaskName="BIN2C"
+    TaskFactory="XamlTaskFactory"
+    AssemblyName="Microsoft.Build.Tasks.v4.0">
+    <Task>$(MSBuildThisFileDirectory)$(MSBuildThisFileName).xml</Task>
+  </UsingTask>
+  <Target
+    Name="_BIN2C"
+    BeforeTargets="$(BIN2CBeforeTargets)"
+    AfterTargets="$(BIN2CAfterTargets)"
+    Condition="'@(BIN2C)' != ''"
+    DependsOnTargets="$(BIN2CDependsOn);ComputeBIN2COutput"
+    Outputs="%(BIN2C.Outputs)"
+    Inputs="%(BIN2C.Identity);%(BIN2C.AdditionalDependencies);$(MSBuildProjectFile)">
+    <ItemGroup
+      Condition="'@(SelectedFiles)' != ''">
+      <BIN2C
+        Remove="@(BIN2C)"
+        Condition="'%(Identity)' != '@(SelectedFiles)'" />
+    </ItemGroup>
+    <ItemGroup>
+      <BIN2C_tlog
+        Include="%(BIN2C.Outputs)"
+        Condition="'%(BIN2C.Outputs)' != '' and '%(BIN2C.ExcludedFromBuild)' != 'true'">
+        <Source>@(BIN2C, '|')</Source>
+      </BIN2C_tlog>
+    </ItemGroup>
+    <Message
+      Importance="High"
+      Text="%(BIN2C.ExecutionDescription)" />
+    <WriteLinesToFile
+      Condition="'@(BIN2C_tlog)' != '' and '%(BIN2C_tlog.ExcludedFromBuild)' != 'true'"
+      File="$(IntDir)$(ProjectName).write.1.tlog"
+      Lines="^%(BIN2C_tlog.Source);@(BIN2C_tlog-&gt;'%(Fullpath)')" />
+    <BIN2C
+      Condition="'@(BIN2C)' != '' and '%(BIN2C.ExcludedFromBuild)' != 'true'"
+      CommandLineTemplate="%(BIN2C.CommandLineTemplate)"
+      AdditionalOptions="%(BIN2C.AdditionalOptions)"
+      Inputs="%(BIN2C.Identity)" />
+  </Target>
+  <PropertyGroup>
+    <ComputeLinkInputsTargets>
+            $(ComputeLinkInputsTargets);
+            ComputeBIN2COutput;
+          </ComputeLinkInputsTargets>
+    <ComputeLibInputsTargets>
+            $(ComputeLibInputsTargets);
+            ComputeBIN2COutput;
+          </ComputeLibInputsTargets>
+  </PropertyGroup>
+  <Target
+    Name="ComputeBIN2COutput"
+    Condition="'@(BIN2C)' != ''">
+    <ItemGroup>
+      <BIN2CDirsToMake
+        Condition="'@(BIN2C)' != '' and '%(BIN2C.ExcludedFromBuild)' != 'true'"
+        Include="%(BIN2C.Outputs)" />
+      <Link
+        Include="%(BIN2CDirsToMake.Identity)"
+        Condition="'%(Extension)'=='.obj' or '%(Extension)'=='.res' or '%(Extension)'=='.rsc' or '%(Extension)'=='.lib'" />
+      <Lib
+        Include="%(BIN2CDirsToMake.Identity)"
+        Condition="'%(Extension)'=='.obj' or '%(Extension)'=='.res' or '%(Extension)'=='.rsc' or '%(Extension)'=='.lib'" />
+      <ImpLib
+        Include="%(BIN2CDirsToMake.Identity)"
+        Condition="'%(Extension)'=='.obj' or '%(Extension)'=='.res' or '%(Extension)'=='.rsc' or '%(Extension)'=='.lib'" />
+    </ItemGroup>
+    <MakeDir
+      Directories="@(BIN2CDirsToMake-&gt;'%(RootDir)%(Directory)')" />
+  </Target>
+</Project>

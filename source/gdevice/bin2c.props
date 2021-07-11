@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup
+    Condition="'$(BIN2CBeforeTargets)' == '' and '$(BIN2CAfterTargets)' == '' and '$(ConfigurationType)' != 'Makefile'">
+    <BIN2CBeforeTargets>Midl</BIN2CBeforeTargets>
+    <BIN2CAfterTargets>CustomBuild</BIN2CAfterTargets>
+  </PropertyGroup>
+  <PropertyGroup>
+    <BIN2CDependsOn
+      Condition="'$(ConfigurationType)' != 'Makefile'">_SelectedFiles;$(BIN2CDependsOn)</BIN2CDependsOn>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <BIN2C>
+      <CommandLineTemplate>$(OutDir)bin2c "%(FullPath)" "%(FullPath).h"</CommandLineTemplate>
+      <Outputs>%(FullPath).h</Outputs>
+      <ExecutionDescription>Converting %(Filename)%(Extension) to %(Filename)%(Extension).h</ExecutionDescription>
+    </BIN2C>
+  </ItemDefinitionGroup>
+</Project>

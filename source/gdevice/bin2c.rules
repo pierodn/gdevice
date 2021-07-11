@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<VisualStudioToolFile
+	Name="Binary to C converter"
+	Version="8,00"
+	>
+	<Rules>
+		<CustomBuildRule
+			Name="BIN2C"
+			DisplayName="Binary to C converter"
+			CommandLine="$(OutDir)\bin2c &quot;$(InputPath)&quot; &quot;$(InputPath).h&quot;"
+			Outputs="$(InputPath).h"
+			FileExtensions="*.vert;*.frag;*.glsl;*.vs;*.fs"
+			ExecutionDescription="Converting $(InputFileName) to $(InputFileName).h"
+			>
+			<Properties>
+			</Properties>
+		</CustomBuildRule>
+	</Rules>
+</VisualStudioToolFile>

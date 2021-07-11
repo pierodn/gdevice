@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+*.suo
+*.user
+*.ncb
+*output.bmp
