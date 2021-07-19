@@ -15,7 +15,7 @@
 	</Platforms>
 	<ToolFiles>
 		<ToolFile
-			RelativePath=".\bin2c.rules"
+			RelativePath="..\bin2c\bin2c.rules"
 		/>
 	</ToolFiles>
 	<Configurations>
@@ -64,7 +64,6 @@
 				OpenMP="true"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="3"
 			/>
 			<Tool
@@ -159,7 +158,6 @@
 				UsePrecompiledHeader="0"
 				AssemblerOutput="0"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="0"
 				CallingConvention="0"
 			/>
@@ -566,11 +564,7 @@
 			>
 		</File>
 		<File
-			RelativePath=".\engines\graphic\opengl\shaders\generate_gradientmap.glsl"
-			>
-		</File>
-		<File
-			RelativePath=".\main.cpp"
+			RelativePath=".\test.cpp"
 			>
 		</File>
 	</Files>

@@ -14,3 +14,4 @@
 *.user
 *.ncb
 asset/textures/terrain/output.bmp
+*.glsl.h

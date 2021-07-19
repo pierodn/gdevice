@@ -1,16 +1,21 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gdevice", "gdevice/gdevice.vcproj", "{4C5E1C57-34D7-46A4-AD34-2D86D74176E9}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bin2c", "bin2c\bin2c.vcproj", "{D7D13141-3B21-4A7F-B57B-79B7BBF0404B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gdevice", "gdevice\gdevice.vcproj", "{4C5E1C57-34D7-46A4-AD34-2D86D74176E9}"
 	ProjectSection(ProjectDependencies) = postProject
 		{D7D13141-3B21-4A7F-B57B-79B7BBF0404B} = {D7D13141-3B21-4A7F-B57B-79B7BBF0404B}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bin2c", "bin2c/bin2c.vcproj", "{D7D13141-3B21-4A7F-B57B-79B7BBF0404B}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vertigo", "vertigo\vertigo.vcproj", "{E10C1350-102D-47B9-942C-E73047567DF0}"
 	ProjectSection(ProjectDependencies) = postProject
 		{4C5E1C57-34D7-46A4-AD34-2D86D74176E9} = {4C5E1C57-34D7-46A4-AD34-2D86D74176E9}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zen", "zen\zen.vcproj", "{366DD5C0-6B5B-44A7-AA73-75A189B839C6}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D7D13141-3B21-4A7F-B57B-79B7BBF0404B} = {D7D13141-3B21-4A7F-B57B-79B7BBF0404B}
 	EndProjectSection
 EndProject
 Global
@@ -31,6 +36,10 @@ Global
 		{E10C1350-102D-47B9-942C-E73047567DF0}.Debug|Win32.Build.0 = Debug|Win32
 		{E10C1350-102D-47B9-942C-E73047567DF0}.Release|Win32.ActiveCfg = Release|Win32
 		{E10C1350-102D-47B9-942C-E73047567DF0}.Release|Win32.Build.0 = Release|Win32
+		{366DD5C0-6B5B-44A7-AA73-75A189B839C6}.Debug|Win32.ActiveCfg = Debug|Win32
+		{366DD5C0-6B5B-44A7-AA73-75A189B839C6}.Debug|Win32.Build.0 = Debug|Win32
+		{366DD5C0-6B5B-44A7-AA73-75A189B839C6}.Release|Win32.ActiveCfg = Release|Win32
+		{366DD5C0-6B5B-44A7-AA73-75A189B839C6}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
