@@ -2,14 +2,16 @@
 
 #define DEBUG_SHOW_GLSL_SOURCE	
 
-#include "engines/graphic/heightmap.h" 
-#include "platforms/platform.h"
-#include "platforms/application.h"
-#include "libraries/math/algebra.h"
-#include "engines/graphic/node.h"
+#include "os/platform.h"
+#include "os/application.h"
+#include "os/keyboard.h"
+
+#include "type/terrain/heightmap.h" 
+#include "type/glsl.h"
+#include "type/node.h"
 
 #include "parameters.h"
-#include "platforms/keyboard.h"
+
 
 
 class GDevice : public Application<GDevice>

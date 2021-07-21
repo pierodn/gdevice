@@ -2,14 +2,14 @@
 
 #define DEBUG_SHOW_GLSL_SOURCE	
 
-#include "engines/graphic/heightmap.h" 
-#include "platforms/platform.h"
-#include "platforms/application.h"
-#include "libraries/math/algebra.h"
-#include "engines/graphic/node.h"
+#include "type/terrain/heightmap.h" 
+#include "os/platform.h"
+#include "os/application.h"
+#include "type/glsl.h"
+#include "type/node.h"
 
 #include "parameters.h"
-#include "platforms/keyboard.h"
+#include "os/keyboard.h"
 
 
 class Zen : public Application<Zen>

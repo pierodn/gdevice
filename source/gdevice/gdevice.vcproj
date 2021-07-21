@@ -219,151 +219,51 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\engines\graphic\opengl\__extensions\__ARB_multitexture.h"
+				RelativePath=".\type\__noise.h"
 				>
 			</File>
 			<File
-				RelativePath=".\utils\__array.h"
+				RelativePath=".\os\application.h"
 				>
 			</File>
 			<File
-				RelativePath=".\engines\graphic\opengl\__extensions\__extensions.h"
+				RelativePath=".\type\array.h"
 				>
 			</File>
 			<File
-				RelativePath=".\engines\graphic\__frustum.h"
+				RelativePath=".\asset\asset.h"
 				>
 			</File>
 			<File
-				RelativePath=".\engines\graphic\opengl\__frustum.h"
+				RelativePath=".\gpu\cacheable.h"
 				>
 			</File>
 			<File
-				RelativePath=".\engines\graphic\__mesh.h"
+				RelativePath=".\asset\charset.h"
 				>
 			</File>
 			<File
-				RelativePath=".\engines\graphic\__vertex.h"
+				RelativePath=".\type\terrain\clipmap.h"
 				>
 			</File>
 			<File
-				RelativePath=".\engines\graphic\__vertexbuffer.h"
+				RelativePath=".\gpu\controls.h"
 				>
 			</File>
 			<File
-				RelativePath=".\libraries\math\algebra.h"
+				RelativePath=".\type\functors.h"
 				>
 			</File>
 			<File
-				RelativePath=".\framework\application.h"
+				RelativePath=".\type\geometry.h"
 				>
 			</File>
 			<File
-				RelativePath=".\platforms\application.h"
+				RelativePath=".\gpu\opengl\gl.h"
 				>
 			</File>
 			<File
-				RelativePath=".\engines\graphic\opengl\__extensions\ARB_fragment_program.h"
-				>
-			</File>
-			<File
-				RelativePath=".\engines\graphic\opengl\__extensions\ARB_fragment_shader.h"
-				>
-			</File>
-			<File
-				RelativePath=".\engines\graphic\opengl\__extensions\ARB_geometry_shader4.h"
-				>
-			</File>
-			<File
-				RelativePath=".\engines\graphic\opengl\__extensions\ARB_pixel_buffer_object.h"
-				>
-			</File>
-			<File
-				RelativePath=".\engines\graphic\opengl\__extensions\ARB_shader_objects.h"
-				>
-			</File>
-			<File
-				RelativePath=".\engines\graphic\opengl\__extensions\ARB_shading_language_100.h"
-				>
-			</File>
-			<File
-				RelativePath=".\engines\graphic\opengl\__extensions\ARB_texture_env_combine.h"
-				>
-			</File>
-			<File
-				RelativePath=".\engines\graphic\opengl\__extensions\ARB_texture_env_dot3.h"
-				>
-			</File>
-			<File
-				RelativePath=".\engines\graphic\opengl\__extensions\ARB_texture_non_power_of_two.h"
-				>
-			</File>
-			<File
-				RelativePath=".\engines\graphic\opengl\__extensions\ARB_vertex_buffer_object.h"
-				>
-			</File>
-			<File
-				RelativePath=".\engines\graphic\opengl\__extensions\ARB_vertex_program.h"
-				>
-			</File>
-			<File
-				RelativePath=".\engines\graphic\opengl\__extensions\ARB_vertex_shader.h"
-				>
-			</File>
-			<File
-				RelativePath=".\engines\graphic\array.h"
-				>
-			</File>
-			<File
-				RelativePath=".\engines\graphic\asset.h"
-				>
-			</File>
-			<File
-				RelativePath=".\engines\graphic\cacheable.h"
-				>
-			</File>
-			<File
-				RelativePath=".\engines\graphic\charset.h"
-				>
-			</File>
-			<File
-				RelativePath=".\engines\graphic\clipmap.h"
-				>
-			</File>
-			<File
-				RelativePath=".\engines\graphic\controls.h"
-				>
-			</File>
-			<File
-				RelativePath=".\libraries\debug\debug.h"
-				>
-			</File>
-			<File
-				RelativePath=".\engines\graphic\opengl\__extensions\EXT_framebuffer_object.h"
-				>
-			</File>
-			<File
-				RelativePath=".\engines\graphic\opengl\__extensions\EXT_transform_feedback.h"
-				>
-			</File>
-			<File
-				RelativePath=".\engines\graphic\font.h"
-				>
-			</File>
-			<File
-				RelativePath=".\libraries\math\functors.h"
-				>
-			</File>
-			<File
-				RelativePath=".\engines\graphic\opengl\shaders\generate_terrain.glsl"
-				>
-			</File>
-			<File
-				RelativePath=".\libraries\math\geometry.h"
-				>
-			</File>
-			<File
-				RelativePath=".\engines\graphic\opengl\gl.h"
+				RelativePath=".\type\glsl.h"
 				>
 			</File>
 			<File
@@ -371,19 +271,15 @@
 				>
 			</File>
 			<File
-				RelativePath=".\engines\graphic\heightmap.h"
+				RelativePath=".\type\terrain\heightmap.h"
 				>
 			</File>
 			<File
-				RelativePath=".\engines\procedural\human.h"
+				RelativePath=".\os\io\image.h"
 				>
 			</File>
 			<File
-				RelativePath=".\libraries\io\image.h"
-				>
-			</File>
-			<File
-				RelativePath=".\engines\graphic\indexbuffer.h"
+				RelativePath=".\gpu\indexbuffer.h"
 				>
 			</File>
 			<File
@@ -391,55 +287,35 @@
 				>
 			</File>
 			<File
-				RelativePath=".\libraries\math\interpolation.h"
+				RelativePath=".\type\interpolation.h"
 				>
 			</File>
 			<File
-				RelativePath=".\platforms\keyboard.h"
+				RelativePath=".\os\win32\keyboard.h"
 				>
 			</File>
 			<File
-				RelativePath=".\platforms\win32\keyboard.h"
+				RelativePath=".\os\keyboard.h"
 				>
 			</File>
 			<File
-				RelativePath=".\scene\layer.h"
+				RelativePath=".\__temp\light.h"
 				>
 			</File>
 			<File
-				RelativePath=".\engines\graphic\light.h"
+				RelativePath=".\os\listener.h"
 				>
 			</File>
 			<File
-				RelativePath=".\platforms\listener.h"
+				RelativePath=".\os\win32\mutex.h"
 				>
 			</File>
 			<File
-				RelativePath=".\framework\listener.h"
+				RelativePath=".\os\mutex.h"
 				>
 			</File>
 			<File
-				RelativePath=".\engines\graphic\material.h"
-				>
-			</File>
-			<File
-				RelativePath=".\platforms\mutex.h"
-				>
-			</File>
-			<File
-				RelativePath=".\platforms\win32\mutex.h"
-				>
-			</File>
-			<File
-				RelativePath=".\framework\mutex.h"
-				>
-			</File>
-			<File
-				RelativePath=".\engines\graphic\node.h"
-				>
-			</File>
-			<File
-				RelativePath=".\libraries\math\noise.h"
+				RelativePath=".\type\node.h"
 				>
 			</File>
 			<File
@@ -447,103 +323,59 @@
 				>
 			</File>
 			<File
-				RelativePath=".\framework\platform.h"
+				RelativePath=".\os\platform.h"
 				>
 			</File>
 			<File
-				RelativePath=".\platforms\platform.h"
+				RelativePath=".\os\profiler.h"
 				>
 			</File>
 			<File
-				RelativePath=".\engines\procedural\primitive.h"
+				RelativePath=".\gpu\program.h"
 				>
 			</File>
 			<File
-				RelativePath=".\platforms\profiler.h"
+				RelativePath=".\gpu\opengl\renderer.h"
 				>
 			</File>
 			<File
-				RelativePath=".\engines\graphic\program.h"
+				RelativePath=".\gpu\renderer.h"
 				>
 			</File>
 			<File
-				RelativePath=".\engines\graphic\opengl\shaders\render_sky.glsl"
+				RelativePath=".\__temp\texture.h"
 				>
 			</File>
 			<File
-				RelativePath=".\engines\graphic\opengl\shaders\render_terrain.glsl"
+				RelativePath=".\os\thread.h"
 				>
 			</File>
 			<File
-				RelativePath=".\engines\graphic\opengl\renderer.h"
+				RelativePath=".\os\win32\thread.h"
 				>
 			</File>
 			<File
-				RelativePath=".\engines\graphic\renderer.h"
+				RelativePath=".\os\timer.h"
 				>
 			</File>
 			<File
-				RelativePath=".\scene\sea.h"
+				RelativePath=".\os\win32\timer.h"
 				>
 			</File>
 			<File
-				RelativePath=".\scene\sky.h"
+				RelativePath=".\type\transformations.h"
 				>
 			</File>
 			<File
-				RelativePath=".\engines\graphic\skybox.h"
+				RelativePath=".\__temp\vertexbuffer.h"
 				>
 			</File>
 			<File
-				RelativePath=".\scene\sun.h"
+				RelativePath=".\os\win32\window.h"
 				>
 			</File>
 			<File
-				RelativePath=".\engines\procedural\terrain.h"
-				>
-			</File>
-			<File
-				RelativePath=".\engines\graphic\texture.h"
-				>
-			</File>
-			<File
-				RelativePath=".\framework\thread.h"
-				>
-			</File>
-			<File
-				RelativePath=".\platforms\thread.h"
-				>
-			</File>
-			<File
-				RelativePath=".\platforms\win32\thread.h"
-				>
-			</File>
-			<File
-				RelativePath=".\platforms\win32\timer.h"
-				>
-			</File>
-			<File
-				RelativePath=".\platforms\timer.h"
-				>
-			</File>
-			<File
-				RelativePath=".\libraries\math\transformations.h"
-				>
-			</File>
-			<File
-				RelativePath=".\engines\procedural\tree.h"
-				>
-			</File>
-			<File
-				RelativePath=".\engines\graphic\vertexbuffer.h"
-				>
-			</File>
-			<File
-				RelativePath=".\platforms\window.h"
-				>
-			</File>
-			<File
-				RelativePath=".\platforms\win32\window.h"
+				RelativePath=".\os\window.h"
 				>
 			</File>
 		</Filter>
@@ -560,11 +392,11 @@
 			>
 		</Filter>
 		<File
-			RelativePath=".\gdevice.h"
+			RelativePath=".\gdevice.cpp"
 			>
 		</File>
 		<File
-			RelativePath=".\test.cpp"
+			RelativePath=".\gdevice.h"
 			>
 		</File>
 	</Files>
