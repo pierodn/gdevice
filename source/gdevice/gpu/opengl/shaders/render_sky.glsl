@@ -64,7 +64,7 @@ FRAGMENT:
 		vec3 sunColor	  = mix(vec3(0.80, 0.24, 0.20), vec3(1.00, 0.90, 0.74), smoothstep( 0.0, 0.4, L.z));
 		vec3 zenithColor  = mix(vec3(0.01, 0.02, 0.04), vec3(0.35, 0.48, 0.60), smoothstep(-0.8, 0.0, L.z));
 		vec3 horizonColor = mix(vec3(0.02, 0.03, 0.04), sunColor,               smoothstep(-0.4, 0.5, L.z));
-		vec3 groundColor  = mix(0.1*zenithColor, 1.4*zenithColor, smoothstep(0.0, 0.4, L.z));
+		vec3 groundColor  = vec3( dot( mix(0.03*zenithColor, 1.4*zenithColor, smoothstep(0.0, 0.4, L.z)), vec3(0.33)) );
 		
 		vec3 color  = mix(zenithColor, horizonColor, pow(1.0-E.z, 4.0));
 		

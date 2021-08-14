@@ -384,7 +384,7 @@ FRAGMENT:
 	 
 // UNIFORMS:
 uniform int Wireframe   = 0;
-uniform int DebugMode   = 0; const int ColorView = 1, HeightBlendView = 2, LightView = 3, NormalView = 4, FresnelView = 5; 
+uniform int DebugMode   = 0; const int ColorView = 1, HeightBlendView = 2, NormalView = 3, LightView = 4, FresnelView = 5; 
 uniform int Bumps       = 1; //const int BumpsNormal = 1, BumpsMicro = 2;
 uniform int Tessellator	= 1; // TEMP 
 uniform int Diffuse		= 1;
@@ -589,7 +589,7 @@ void main()
 	vec3 sunColor	  = mix(vec3(0.80, 0.24, 0.20), vec3(1.00, 0.90, 0.74), smoothstep( 0.0, 0.4, LL.z));
 	vec3 zenithColor  = mix(vec3(0.01, 0.02, 0.04), vec3(0.35, 0.48, 0.60), smoothstep(-0.8, 0.0, LL.z));
 	vec3 horizonColor = mix(vec3(0.02, 0.03, 0.04), sunColor,               smoothstep(-0.4, 0.5, LL.z));
-	vec3 groundColor  = mix(0.1*zenithColor, 1.4*zenithColor, smoothstep(0.0, 0.4, LL.z));
+	vec3 groundColor  = vec3( dot( mix(0.03*zenithColor, 1.4*zenithColor, smoothstep(0.0, 0.4, LL.z)), vec3(0.33)) );
 	vec3 skyColorByEE = getSkyDomeColor(EE, LL, sunColor, zenithColor, horizonColor, groundColor);
 	
 	//
@@ -604,39 +604,47 @@ void main()
 	vec3 R = reflect(L,N);
 	
 	float shadowing = clamp(20.0*dot(normalize(gVertex.N0),L), 1.0 - Shadows, 1.0);
-	float ambience  = smoothstep(-0.5, 0.5, LL.z);
+	float indirectL  = smoothstep(-0.5, 0.5, LL.z);
     float occlusion = pow(luma, 1.0);
 	float glossmap  = smoothstep(0.2, 0.7, luma); // TODO add sub glossmap for sand
 	float fresnmap  = smoothstep(0.2, 0.7, luma);
 	
-	float diffuse   = shadowing * occlusion * max(0.0, dot(N,L));//smoothstep(0.0, 1.4, log(1+1.0*max(0.0, dot(N,L)))); // What BRDF is this?
-	float indirect  = ambience  * occlusion * max(0.0, dot(NN,LI)); 
-	float sky       = 1.0       * occlusion * clamp(0.5 + 0.5*N.z, 0.0, 1.0);
+	float diffuse   = shadowing * occlusion * max(0.0, dot(N,L));
 	float specular  = shadowing * glossmap  * dot(mixmap, specmap) * pow(max(0.0, dot(E,R)), dot(mixmap, specpow));
+	float indirect  = indirectL * occlusion * max(0.0, dot(NN,LI)); 
+	float zenith    = 1.0       * occlusion * clamp(0.5 + 0.5*N.z, 0.0, 1.0);
 	float fresnel   = 1.0       * fresnmap  * mix( 1.0, pow(1.0-abs(dot(E,N)), 4.0), 0.9 );
 
     // Energy conservation (?)
     //float reflectivity = 0.40; // reflectivity
     light  = 0.60 * Diffuse  * diffuse  * sunColor;
     light += 0.40 * Specular * specular * sunColor; //getSkyDomeColor(RR, LL, sunColor, zenithColor, horizonColor, groundColor);
+    
     // Ambient
     light += 0.04 * Indirect * indirect * sunColor;
-    light += 0.08 * Sky	     * sky      * zenithColor;
+    light += 0.12 * Sky	     * zenith   * zenithColor;
     light = mix(light, getSkyDomeColor(reflect(EE,NN), LL, sunColor, zenithColor, horizonColor, groundColor), 0.10 * Fresnel * fresnel);
+    
     // Tone mapping
-	col = light * mix(color.rgb, sunColor*vec3(1.2,1.1,1.0), 0.70*Desaturate*smoothstep(0.1, 0.4, LL.z)*tone(vec3(diffuse + specular), 0.02));
-    col  = tone(col, 0.2); 
+    vec3 desaturate = 0.70 * Desaturate * smoothstep(0.1, 0.4, LL.z) * tone(vec3(diffuse + specular), 0.02);
+	col = light * mix(color.rgb, sunColor, desaturate);
+    col = tone(col, 0.2); 
 
     //
 	// Scattering (halo and fog)
 	//
 	if( Scattering > 0 ) {
 	    float EdotL = max(0.0, dot(E,L));
-	    float dayTime = smoothstep(-0.1, 0.5, LL.z);
+	    float dayTime = smoothstep(-0.05, 0.5, LL.z);
 	    float scattering = dayTime*(1.0-exp(-0.0030*dist))*pow(EdotL, 8.0); // TODO: and visibileDistance?
 		col += 8.0 * scattering * zenithColor;
-		col = mix(col, groundColor, smoothstep(visibileDistance*0.2, visibileDistance, dist));
+		
+		float volumetric = 100.0 * Bumps * pow(0.01*gVertex.position.z, 6.0); // TODO
+		col = mix(col, groundColor, smoothstep(visibileDistance*0.2, visibileDistance, dist + 0.0*volumetric));
 	}
+	
+	// FIXME: unsaturate a bit at dawn because of too much red light.
+	col = mix(col, vec3(dot(col,vec3(0.33))), 0.5 * (1.0 - smoothstep(-0.1, 0.5, LL.z)) );
 
 	//
 	// Postprocessing
