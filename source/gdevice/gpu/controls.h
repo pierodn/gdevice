@@ -34,7 +34,7 @@ struct Controls
 {
 	static const unsigned char* Bindings; 
 
-	enum constants {	DEBUGMODE, BUMPS, WIREFRAME, TESSELLATOR, 
+	enum constants {	WIREFRAME, DEBUGMODE, BUMPS, TESSELLATOR, 
 						DIFFUSE, SPECULAR, INDIRECT, SKY, FRESNEL, 
                         SHADOWS, DESATURATE, SCATTERING,
 						GAMMA, CONTRAST, UNSATURATE, TINT, VIGNETTING, 
@@ -47,9 +47,9 @@ struct Controls
 	{	
 		// NOTE first value is the name of the uniform
 		// NOTE "light0" stands for the main light source and is normally the sun
-        literals[DEBUGMODE]	    .push("DebugMode").push("Color").push("HeightBlend").push("Light").push("Normal").push("Fresnel");
+		literals[WIREFRAME]	    .push("Wireframe");
+        literals[DEBUGMODE]	    .push("DebugMode").push("Color").push("HeightBlend").push("Normal").push("Light").push("Fresnel");
 		literals[BUMPS]	        .push("Bumps");//.push("Bumpmapping").push("Microbumps"); // TODO Remove Microbumps
-        literals[WIREFRAME]	    .push("Wireframe");//.push("Wireframe").push("Tileframe"); // TODO Remove Tileframe
 		literals[TESSELLATOR]	.push("Tessellator");   // TODO
 		literals[DIFFUSE]		.push("Diffuse");		// Lambertian
         literals[SPECULAR]		.push("Specular");	
@@ -66,9 +66,9 @@ struct Controls
 		literals[VIGNETTING]	.push("Vignetting");
 
 		// default values
+		values[Bindings[WIREFRAME]]	    = 0; // 0
         values[Bindings[DEBUGMODE]]	    = 0; // 0
 		values[Bindings[BUMPS]]         = 1; // 1
-        values[Bindings[WIREFRAME]]	    = 0; // 0
 		values[Bindings[TESSELLATOR]]	= 0;
 		values[Bindings[DIFFUSE]]		= 1;
         values[Bindings[SPECULAR]]		= 1;
