@@ -672,7 +672,7 @@ void main()
 	} else if( DebugMode == LightView ) {
 		col = 3.0 * light; // NOTE: Fresnel is not included.
 	} else if( DebugMode == NormalView ) {
-		col = normalize(vec3(normal.xy/scale, normal.z));
+		col = normalize(vec3(normal.xy/scale, normal.z))*0.5 + 0.5;
 	} else if( DebugMode == FresnelView ) {
 		col.xyz = mix(col.xyz, vec3(0.0,1.0,1.0), fresnel);
 	} 

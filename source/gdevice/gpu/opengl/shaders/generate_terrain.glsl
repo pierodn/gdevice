@@ -121,6 +121,8 @@ vec4 smoothStep(float h0, float h1, vec4 n) { n = vec4(n.xy, n.z - h0, 0.0)/(h1 
 vec4 absolute(vec4 n, float zero)   { return n.z >= zero ? n : -n; }    
 vec4 invert(vec4 n)                 { float z = 1.0/(n.z + 1.0); return vec4(-z*z*n.xy, z, 0.0); }
 vec4 invert2(vec4 n)			    { return vec4(-n.xy, 1.0 - n.z, 00); }
+vec4 tone(vec4 n, float t)			{ return smoothStep(0.0, 1.0, multiply(n, invert(bias(n,t))))*(1.0 + t); }
+
 
 vec4 smoothFloor(vec4 n, float c) 
 {
@@ -268,9 +270,9 @@ Substance getSubstance(vec4 t, vec4 maxima)
 */
 #if 1
 	Substance substance = 
-	    maxima.z <= 0.0 ? SAND :
+	    maxima.z < 0.15 ? SAND :
         maxima.z > 0.80 ? BRAN : // BRAN
-        maxima.z > 0.05 ? ROCK : // stone side => eroding
+        maxima.z > 0.40 ? ROCK : // stone side => eroding
                           GRIT ; // dump zone  => rolling cobs around some stone boulders
 #else
     Substance substance = 
@@ -294,9 +296,9 @@ Substance getSubstance(vec4 t, vec4 maxima)
 /// Erosion debug
     substance.color = 
         maxima.z <= 0.0 ? substance.color :       // gentle steep or plateau
-        maxima.z > 0.80 ? vec4(1.0,1.0,0.0,0.0) : // stone top  => solid
-        maxima.z > 0.10 ? vec4(1.0,0.5,0.0,0.0) : // stone side => eroding
-                          vec4(1.0,0.0,0.0,0.0) ; // dump zone  => rolling cobs around some stone boulders
+        maxima.z > 0.80 ? vec4(1.0,0.0,0.0,0.0) : // stone top  => solid
+        maxima.z > 0.10 ? vec4(1.0,0.8,0.0,0.0) : // stone side => eroding
+                          vec4(1.0,0.8,0.4,0.0) ; // dump zone  => rolling cobs around some stone boulders
 #endif
 
 #if 0
@@ -351,7 +353,7 @@ Vertex getVertex(ivec2 ij)
 
     int octaves = 13; 
     int lodOctaveBudget = int(octaves - 0.0*log2(size)); // TODO: enable
-    int shadowfreq = int(lodOctaveBudget*0.50); // 0.40
+    int shadowfreq = int(lodOctaveBudget*0.40); // 0.40
     int spikesfreq = int(lodOctaveBudget*0.20); // 0.20
     int terrainFreq = lodOctaveBudget - shadowfreq - spikesfreq;
 
@@ -386,7 +388,8 @@ Vertex getVertex(ivec2 ij)
 #if 1
     // Erosion map
     // This is a sort of local maxima distance given by derivating T with respect to octave.
-    vec4 maxima = smoothStep(0.015, 0.04, invert2(power(invert2(t1-t0), 4.0)));
+    //vec4 maxima = smoothStep(0.015, 0.040, invert2(power(invert2(t1-t0), 4.0)));
+		vec4 maxima = smoothStep(0.020, 0.200, invert2(power(invert2(t1-t0), 4.0)));
     //vec4 tri = triangular(point, 8.0, 0.00, 0.46);
     float tr1scale = 12.0;
     float tr2scale = 37.0;
@@ -397,8 +400,15 @@ Vertex getVertex(ivec2 ij)
         float hardness = 7.0;
         tri = smoothFloor((tri + t1*1.3-t0)*stepHeight, hardness)/stepHeight;
     }*/
-    t1 = lerp( maxima, t1, t0 + bias(0.01*tr1 + 0.01*tr2, +0.01) + (t1-t0)*0.00 );
+    //t1 = lerp( 0.2*maxima, t1, t0 + bias(0.012*tr1 + 0.018*tr2, + 0.000) + (t1-t0)*0.02 );
+        
+        // TEST
         //t0 = t1 = 0.00*tr1 + 0.11*tr2;
+        //t0 = t1; // = saturate(t1, 0.0, 0.9*maxima.z);
+        //t1 = t0 + multiply(invert2(t0), power(multiply(t1-t0, invert2(t0)), 0.1) ) * 0.2;	// low erosion with no spikes
+        //vec4 t01 = multiply(invert2(t0), power(multiply(t1-t0, invert2(t0)), 2.0)) * 50.0; // high erosion but spikes
+        //t1 = 0.0*t0 + t01;
+        //t1 = saturate(t1, 0.0, 0.5);
     
     // TODO layers?
     //float stepHeight = 723.0;
@@ -438,7 +448,22 @@ Vertex getVertex(ivec2 ij)
     t0.xy *= scale.z;
     t1.xy *= scale.z;
     
+	
+	
+	// TEMP
+	bool clipping_spikes = false;
+	vec4 t01 = multiply(invert2(t0), power(multiply(t1-t0, invert2(t0)), 2.0)) * 50.0;
+	if( t01.z > 0.02 ) { 
+		t01 = saturate(t01, 0.00, 0.02) ;//+ t01*0.02 + (t1-t0)*0.02; 
+		clipping_spikes = true;
+	}
+	t1 = t0 + t01;
+	
 	Substance substance = getSubstance(t1, maxima);
+	if(clipping_spikes) {
+		substance.color.rgb = vec3(1.0, 0.0, 0.0);
+	}
+	
     t1.z *= scale.z; 
     
 	vec4 position = t1; // Here only z is actually used.
