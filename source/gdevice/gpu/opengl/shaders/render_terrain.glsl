@@ -631,7 +631,7 @@ void main()
     col = tone(col, 0.2); 
 
     //
-	// Scattering (halo and fog)
+	// Scattering
 	//
 	if( Scattering > 0 ) {
 	    float EdotL = max(0.0, dot(E,L));

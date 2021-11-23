@@ -451,13 +451,16 @@ Vertex getVertex(ivec2 ij)
 	
 	
 	// TEMP
-	bool clipping_spikes = false;
 	vec4 t01 = multiply(invert2(t0), power(multiply(t1-t0, invert2(t0)), 2.0)) * 50.0;
-	if( t01.z > 0.02 ) { 
-		t01 = saturate(t01, 0.00, 0.02) ;//+ t01*0.02 + (t1-t0)*0.02; 
+	//vec4 t01 = t1-t0;
+	
+	bool clipping_spikes = false;
+	if( t01.z > 0.015 ) { // 0.02
+		//t01 = saturate(t01, 0.00, 0.02) ;//+ t01*0.02 + (t1-t0)*0.02; 
 		clipping_spikes = true;
 	}
-	t1 = t0 + t01;
+	//t1 = t0 + 0.04*saturate(30.0*t01, 0.25, 1.20); // + t01
+	t1 = t0 + 1.0*saturate(1.0*t01, 0.0, 1.0); 
 	
 	Substance substance = getSubstance(t1, maxima);
 	if(clipping_spikes) {
