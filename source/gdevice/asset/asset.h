@@ -26,7 +26,7 @@ Texture<vec4> detailsDy[MAX_MIPMAPS];
 void initializeTerrainDetails()
 {
     Texture<byte> rock = Texture<byte>(TEXTURE_PATH "terrain/rock16b.bmp"); // rock1b
-    Texture<byte> grit = Texture<byte>(TEXTURE_PATH "terrain/cobs2b.bmp");  // soil01b cobs12b
+    Texture<byte> grit = Texture<byte>(TEXTURE_PATH "terrain/cobs1b.bmp");  // soil01b cobs12b
 	Texture<byte> bone = Texture<byte>(TEXTURE_PATH "terrain/rock1b.bmp");  // rock1b rock11
     Texture<byte> sand = Texture<byte>(TEXTURE_PATH "terrain/sand1c.bmp");  // sand1c sand11
 

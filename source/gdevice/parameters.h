@@ -26,7 +26,7 @@
 // Rendering
 #define TARGET_FPS          60
 #define TESSELLATION		0.15	//0.15
-#define NEAR_CLIP_PLANE		(POV_HEIGHT/100)
+#define NEAR_CLIP_PLANE		(POV_HEIGHT / 1000.0)
 #define TEXTURE_RANGE		0.002
 
 // Control parameters

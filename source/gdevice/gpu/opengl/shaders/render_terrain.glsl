@@ -170,10 +170,10 @@ int tileSize = textureSize(mixmapsTU, 0).x;
     uniform float kernelSize; //
     uniform float displacementRange = 1.0; //
     
-uniform vec4 defaultColorR = vec4(0.36, 0.30, 0.26, 0.0); // Light stone
-uniform vec4 defaultColorG = vec4(0.28, 0.24, 0.20, 0.0); // Pebbles
-uniform vec4 defaultColorB = vec4(0.34, 0.26, 0.22, 0.0); // Brownish stone
-uniform vec4 defaultColorA = vec4(0.50, 0.38, 0.30, 0.0); // Dirty sand
+uniform vec4 defaultColorR;
+uniform vec4 defaultColorG;
+uniform vec4 defaultColorB;
+uniform vec4 defaultColorA;
 
 // INPUT:
 layout(quads, fractional_odd_spacing, ccw) in;	
@@ -200,7 +200,7 @@ vec3 getTriplanarWeightVector(vec3 N) {
     return w / dot(w, vec3(1.0));
 }
 
-vec4 textureTriplanar(sampler2D detailsTU, vec3 position, vec3 weight, float lodBias)
+vec4 textureTriplanar(sampler2D detailsTU, in vec3 position, in vec3 weight, in float lodBias)
 {
     return weight.x*textureLod(detailsTU, position.zy, lodBias) 
          + weight.y*textureLod(detailsTU, position.zx, lodBias) 
@@ -253,30 +253,32 @@ void main()
     float povDistance = length((ModelViewMatrix * vec4(position,1)).xyz);
 		
 #if 1   // Displace position along the normal in LOD zero.
+        vec3 dH = vec3(gradient.xy, 0.0);
 	    float displacement = 1.0 - smoothstep(0.0, displacementRange*(kernelSize-1), povDistance);
-	    if( displacement > 0.0 // Only within the 1st LOD (otherwise you get cracks).
-           && color.a == 0.0 ) // Only for non water surfaces
+	    if( displacement > 0.0 // NOTE: Only within the 1st LOD (otherwise you get cracks).
+           /*&& color.a == 0.0*/ ) // Only for non water surfaces
 	    { 
 	    
 	    	const float LodBias = 0.0;
 	    	vec3 normal = normalize(vec3(gradient.xy/scale, 1));
             vec3 w = getTriplanarWeightVector(normal);
-            vec4 luma4 = textureTriplanar(detailsTU, position.xyz, w, LodBias);    
+            float blurLevel = 2;
+            vec4 luma4 = textureTriplanar(detailsTU, position.xyz, w, LodBias + blurLevel);    
             vec4 mixmap = blendMixmap(mixmap + luma4);
             float luma = 0.2;
-            vec4 luma4Dx = textureTriplanar(detailsDxTU, position.xyz, w, LodBias);
-		    vec4 luma4Dy = textureTriplanar(detailsDyTU, position.xyz, w, LodBias);
+            vec4 luma4Dx = textureTriplanar(detailsDxTU, position.xyz, w, LodBias + blurLevel);
+		    vec4 luma4Dy = textureTriplanar(detailsDyTU, position.xyz, w, LodBias + blurLevel);
 
-            float H = 0.01*dot(mixmap, luma4);
-			vec3 dH = vec3(
+            float H = 0.010*dot(mixmap, luma4);
+			dH = vec3(
 			    dot(mixmap, luma4Dx),
 			    dot(mixmap, luma4Dy),
-			    0.0 // Dz doesn't matter because it's texture mapping, no relief here.
+			    0.010 
 			);
 
-			vec3 position1 = position.xyz;
-			vec3 normal1   = normal.xyz;
-            displaceVertexAndRecomputeNormal(position1, normal1, H, dH);
+			//vec3 position1 = position.xyz;
+			//vec3 normal1   = normal.xyz;
+            displaceVertexAndRecomputeNormal(position, normal, H, dH);
 	    
 	        color += 0.00000000001*blendColor(color, mixmap, 0.3, 06);
 	    
@@ -300,6 +302,7 @@ void main()
 	// Output vertex
 	tVertex.position = vec4(coords, position.z,	povDistance ); // TODO: povDistance is not currently used down the pipeline
 	tVertex.gradient = gradient;
+            //vec4(dH.xy, gradient.zw); // TODO: compute the new normal
     tVertex.color	 = color;
 	tVertex.mixmap	 = mixmap;
     gl_Position = vec4(position, 1.0);
@@ -407,10 +410,10 @@ uniform sampler2D detailsDyTU;
 
 uniform float bump_intensity = 0.400;
 
-uniform vec4 defaultColorR = vec4(0.36, 0.30, 0.26, 0.0); // Light stone
-uniform vec4 defaultColorG = vec4(0.28, 0.24, 0.20, 0.0); // Pebbles
-uniform vec4 defaultColorB = vec4(0.34, 0.26, 0.22, 0.0); // Brownish stone
-uniform vec4 defaultColorA = vec4(0.50, 0.38, 0.30, 0.0); // Dirty sand
+uniform vec4 defaultColorR;
+uniform vec4 defaultColorG;
+uniform vec4 defaultColorB;
+uniform vec4 defaultColorA;
 
 //////////////////////////// ROCK GRIT BONE SAND
 //uniform vec4  fresmap = vec4(1.0, 1.0, 0.2, 0.5);
@@ -422,7 +425,7 @@ uniform vec2 viewport;
 uniform mat4 InverseRotationProjection;
 uniform vec4 Light0_position;
 uniform float visibileDistance = 100;
-//uniform float AbsoluteTime;
+uniform float AbsoluteTime;
 
 uniform mat3 NormalMatrix; //// TEMP ////
 uniform float scale; // TEMP
@@ -459,6 +462,48 @@ vec4 textureTriplanar(sampler2D detailsTU, vec3 position, vec3 weight, float lod
          + weight.z*texture(detailsTU, position.xy, lodBias);
 }
 
+/*
+// From IQ. Does it work? 
+// There is some thin discountinuity I'm not sure I can get rid of.
+vec4 textureBiplanar( sampler2D sam, vec3 p, vec3 n, float lodBias )
+{
+    float k = 8.0;
+
+    // grab coord derivatives for texturing
+    vec3 dpdx = dFdx(p);
+    vec3 dpdy = dFdy(p);
+    //n = abs(n);
+
+    // major axis (in x; yz are following axis)
+    ivec3 ma = (n.x>n.y && n.x>n.z) ? ivec3(0,1,2) :
+               (n.y>n.z)            ? ivec3(1,2,0) :
+                                      ivec3(2,0,1) ;
+    // minor axis (in x; yz are following axis)
+    ivec3 mi = (n.x<n.y && n.x<n.z) ? ivec3(0,1,2) :
+               (n.y<n.z)            ? ivec3(1,2,0) :
+                                      ivec3(2,0,1) ;
+        
+    // median axis (in x;  yz are following axis)
+    ivec3 me = ivec3(3) - mi - ma;
+    
+    // project+fetch
+    vec4 x = textureGrad( sam, vec2(   p[ma.y],   p[ma.z]), 
+                               vec2(dpdx[ma.y],dpdx[ma.z]), 
+                               vec2(dpdy[ma.y],dpdy[ma.z]) );
+    vec4 y = textureGrad( sam, vec2(   p[me.y],   p[me.z]), 
+                               vec2(dpdx[me.y],dpdx[me.z]),
+                               vec2(dpdy[me.y],dpdy[me.z]) );
+    
+    // blend and return
+    vec2 m = vec2(n[ma.x],n[me.x]);
+    // optional - add local support (prevents discontinuty)
+    m = clamp( (m-0.5773)/(1.0-0.5773), 0.0, 1.0 );
+    // transition control
+    m = pow( m, vec2(k/8.0) );
+	return (x*m.x + y*m.y) / (m.x + m.y);
+}
+*/
+
 // https://www.shadertoy.com/view/Ms3yzS
 vec4 blendMixmap(vec4 mixmap) 
 {
@@ -493,7 +538,7 @@ vec3 getSkyDomeColor(vec3 E, vec3 L, vec3 sunColor, vec3 zenithColor, vec3 horiz
     vec3 color  = mix(zenithColor, horizonColor, pow(1.0-E.z, 4.0));
 		
 	// sun and halo
-	float sunHaloWidth = mix(2, 30, smoothstep(0.0, 0.5, L.z));
+	float sunHaloWidth = mix(2, 30, smoothstep(0.0, 0.4, L.z));
 	float sunDiscWidth = 5000; 
 	float EdotL = max(dot(E,L),0.0);
 	color = mix(color, sunColor, pow(EdotL,sunHaloWidth));		
@@ -514,6 +559,31 @@ vec3 tone(vec3 color, float t)
     return smoothstep(0.0, 1.0, color/(color + t)*(1.0 + t));
     //return color/(color + t)*(1.0 + t);
 }
+
+float hash1(vec2 x) {
+	return fract(sin(dot(x, vec2(12.9898, 78.233)))*43758.5453);
+}
+
+// TEMP will be used for microbumps?
+vec4 noise(vec2 point) 
+{		
+    vec2 i = floor(point);
+    vec2 f = fract(point);
+
+	vec2 u = f*f*(3.0-2.0*f);  //f*f*f*(f*(6.0*f-15.0)+10.0);
+	vec2 du = 6.0*f*(1.0-f);   //30.0*f*f*(f*(f-2.0)+1.0);
+	
+    vec4 L = vec4(0.0, 1.0, 57.0, 1.0 + 57.0);	
+#if 0
+    L = fract(43758.5453123 * sin(L + dot(i, L.yz)));
+#else
+    L = fract((L + dot(i, L.yz))*0.1301);
+    L += 1.17*L*(L + 17.11);
+    L = fract(2.71*L*L) - 0.5;
+#endif
+	L = vec4(L.x, L.y-L.x, L.z-L.x, L.x-L.y-L.z+L.w);
+	return vec4(du*(L.yz + L.w*u.yx), L.x + L.y*u.x + L.z*u.y + L.w*u.x*u.y, 0.0 );
+}
 	
 
 void main()
@@ -521,11 +591,10 @@ void main()
 	//
 	// Texture generation
 	//
-	// NOTE: Here height, luma, occlusion are assimilated to the same physical entity.
 	float vertexLuma = 0.2;
 	float luma      = vertexLuma;
 	vec3 normal     = normalize(vec3(gVertex.gradient.xy, 1));
-	vec4 color      = gVertex.color; 
+	vec4 matColor   = gVertex.color; 
 	vec4 mixmap     = gVertex.mixmap;
 
     float dist      = length(gVertex.E);
@@ -535,20 +604,28 @@ void main()
 	{
         const float LodBias = -0.666; // 0.0 smooth, -0.5 sharper
         vec3 w = getTriplanarWeightVector( normalize(vec3(gVertex.gradient.xy/scale, 1)) );
-        vec4 luma4 = textureTriplanar(detailsTU, gVertex.position.xyz, w, LodBias); 
-        // TODO: de-offst for mixmap>1, meaning: offset [1..2]=>[1..0] and amplitude 1=>0.
+        vec4 luma4 = textureTriplanar(detailsTU,  gVertex.position.xyz, w, LodBias); 
+
+        if(Tessellator > 0.0) {
+            luma4 = 0.666*luma4 + 0.333*textureTriplanar(detailsTU, gVertex.position.xyz*32.0, w, LodBias).rbaa;
+        }
             
         mixmap = blendMixmap(mixmap + luma4); // moveable to tessellator ?
-        color  = blendColor(gVertex.color, mixmap, 0.3, 0.6); // moveable to tessellator ?
+        matColor  = blendColor(gVertex.color, mixmap, 1.95, 1.96); // moveable to tessellator ?
 		
 		// Graciously fade texture mapping out with distance.
 		luma = mix( dot(mixmap, luma4), vertexLuma, textureFadingFactor);
-		color = mix(color, gVertex.color, textureFadingFactor);
+		matColor = mix(matColor, gVertex.color, textureFadingFactor);
 
 		if( Bumps > 0.0 ) 
-		{    
-		   vec4 luma4Dx = textureTriplanar(detailsDxTU, gVertex.position.xyz, w, LodBias);
-		   vec4 luma4Dy = textureTriplanar(detailsDyTU, gVertex.position.xyz, w, LodBias);
+	    {
+            vec4 luma4Dx =  textureTriplanar(detailsDxTU, gVertex.position.xyz, w, LodBias);
+            vec4 luma4Dy =  textureTriplanar(detailsDyTU, gVertex.position.xyz, w, LodBias);
+
+            if(Tessellator > 0.0) {
+		    	luma4Dx = 0.666*luma4Dx + 0.333*textureTriplanar(detailsDxTU, gVertex.position.xyz*32.0, w, LodBias + 0.0).rbaa;
+		        luma4Dy = 0.666*luma4Dy + 0.333*textureTriplanar(detailsDyTU, gVertex.position.xyz*32.0, w, LodBias + 0.0).rbaa;
+            }
 
             // Compute H and dH
             // NOTE: Height displacement is disabled here
@@ -556,7 +633,10 @@ void main()
 			vec3 dH = vec3(
 			    dot(mixmap, luma4Dx),
 			    dot(mixmap, luma4Dy),
-			    0.0 // Dz doesn't matter because it's texture mapping, no relief here.
+			    0.0 // Dz doesn't matter because it's texture mapping, no relief here. 
+                // TODO: But it can be useful to inject procedural bump mapping in here.
+                //0.50*hash1(gVertex.position.xy*16)
+                //noise(gVertex.position.xy*1.0)
 			);
 			
 			// Energy adujustment across LODs (empiric).
@@ -573,10 +653,6 @@ void main()
 		}
 	}
 	
-	//
-	// Global Illumination
-	//
-	
 	// Model space
     vec2 ndcoords = gl_FragCoord.xy/viewport*2.0 - 1.0;
 	vec3 EE = normalize((InverseRotationProjection * vec4(ndcoords,0,1)).xyz);
@@ -585,19 +661,16 @@ void main()
 	vec3 NN = normalize(vec3(normal.xy/scale, normal.z));
 	vec3 RR = reflect(LL,NN);
 	
-	// atmospheric scattering
-	vec3 sunColor	  = mix(vec3(0.80, 0.24, 0.20), vec3(1.00, 0.90, 0.74), smoothstep( 0.0, 0.4, LL.z));
+	// Atmospheric scattering
+	vec3 sunColor	  = mix(vec3(0.80, 0.40, 0.20), vec3(1.00, 0.97, 0.75), smoothstep( 0.0, 0.3, LL.z));
 	vec3 zenithColor  = mix(vec3(0.01, 0.02, 0.04), vec3(0.35, 0.48, 0.60), smoothstep(-0.8, 0.0, LL.z));
 	vec3 horizonColor = mix(vec3(0.02, 0.03, 0.04), sunColor,               smoothstep(-0.4, 0.5, LL.z));
-	vec3 groundColor  = vec3( dot( mix(0.03*zenithColor, 1.4*zenithColor, smoothstep(0.0, 0.4, LL.z)), vec3(0.33)) );
-	vec3 skyColorByEE = getSkyDomeColor(EE, LL, sunColor, zenithColor, horizonColor, groundColor);
+	vec3 groundColor  = vec3( dot( mix(0.03*zenithColor, 1.4*zenithColor, smoothstep(0.0, 0.4, LL.z)), vec3(0.22,0.33,0.45)) );
+	//vec3 skyColorByEE = getSkyDomeColor(EE, LL, sunColor, zenithColor, horizonColor, groundColor);
 	
 	//
 	// Lighting
 	//
-	vec3 col;
-	vec3 light;
-    
     vec3 E = normalize(gVertex.E); 
 	vec3 L = normalize(gVertex.L);
     vec3 N = normalize(NormalMatrix * normal);
@@ -606,75 +679,57 @@ void main()
 	float shadowing = clamp(20.0*dot(normalize(gVertex.N0),L), 1.0 - Shadows, 1.0);
 	float indirectL  = smoothstep(-0.5, 0.5, LL.z);
     float occlusion = pow(luma, 1.0);
-	float glossmap  = smoothstep(0.2, 0.7, luma); // TODO add sub glossmap for sand
+	float glossmap  = smoothstep(0.2, 0.7, luma);
 	float fresnmap  = smoothstep(0.2, 0.7, luma);
 	
 	float diffuse   = shadowing * occlusion * max(0.0, dot(N,L));
 	float specular  = shadowing * glossmap  * dot(mixmap, specmap) * pow(max(0.0, dot(E,R)), dot(mixmap, specpow));
 	float indirect  = indirectL * occlusion * max(0.0, dot(NN,LI)); 
 	float zenith    = 1.0       * occlusion * clamp(0.5 + 0.5*N.z, 0.0, 1.0);
-	float fresnel   = 1.0       * fresnmap  * mix( 1.0, pow(1.0-abs(dot(E,N)), 4.0), 0.9 );
+	float fresnel   = 1.0       * fresnmap  * mix( 1.0, pow(1.0-abs(dot(E,N)), 4.0), 0.9 );  // TODO: have a fresmap along with specmap
 
     // Energy conservation (?)
-    //float reflectivity = 0.40; // reflectivity
-    light  = 0.60 * Diffuse  * diffuse  * sunColor;
-    light += 0.40 * Specular * specular * sunColor; //getSkyDomeColor(RR, LL, sunColor, zenithColor, horizonColor, groundColor);
+    vec3 light  = 0.60 * Diffuse  * diffuse  * sunColor;
+         light += 0.40 * Specular * specular * getSkyDomeColor(RR, LL, sunColor, zenithColor, horizonColor, groundColor);
     
     // Ambient
     light += 0.04 * Indirect * indirect * sunColor;
     light += 0.12 * Sky	     * zenith   * zenithColor;
-    light = mix(light, getSkyDomeColor(reflect(EE,NN), LL, sunColor, zenithColor, horizonColor, groundColor), 0.10 * Fresnel * fresnel);
+    light = mix(light, getSkyDomeColor(reflect(EE,NN), LL, sunColor, zenithColor, horizonColor, groundColor),  0.25 * Fresnel * fresnel); 
     
     // Tone mapping
-    vec3 desaturate = 0.70 * Desaturate * smoothstep(0.1, 0.4, LL.z) * tone(vec3(diffuse + specular), 0.02);
-	col = light * mix(color.rgb, sunColor, desaturate);
-    col = tone(col, 0.2); 
+    vec3 color = tone(light*matColor.rgb, 0.1); 
 
-    //
 	// Scattering
-	//
 	if( Scattering > 0 ) {
 	    float EdotL = max(0.0, dot(E,L));
 	    float dayTime = smoothstep(-0.05, 0.5, LL.z);
 	    float scattering = dayTime*(1.0-exp(-0.0030*dist))*pow(EdotL, 8.0); // TODO: and visibileDistance?
-		col += 8.0 * scattering * zenithColor;
-		
+		color += 8.0 * scattering * zenithColor;
 		float volumetric = 100.0 * Bumps * pow(0.01*gVertex.position.z, 6.0); // TODO
-		col = mix(col, groundColor, smoothstep(visibileDistance*0.2, visibileDistance, dist + 0.0*volumetric));
+		color = mix(color, groundColor, smoothstep(visibileDistance*0.2, visibileDistance, dist + 0.0*volumetric));
 	}
-	
-	// FIXME: unsaturate a bit at dawn because of too much red light.
-	col = mix(col, vec3(dot(col,vec3(0.33))), 0.5 * (1.0 - smoothstep(-0.1, 0.5, LL.z)) );
 
-	//
 	// Postprocessing
-	//
-	
-	float gamma = Gamma > 0.0 ? 2*2.2 : 3.7;
-	col = pow(col, vec3(1.0/gamma));	
-    col = mix(col, col*col*(3.0-2.0*col), 0.3 * Contrast);
-	col = mix(col, vec3(dot(col,vec3(0.33))), 0.4 * Unsaturate);
-	col *= mix(vec3(1.0), vec3(1.06, 1.05, 1.00), 1.0 * Tint);	
-	
-	col *= mix(1.0, pow(2.0*(ndcoords.x*ndcoords.x-1.0)*(ndcoords.y*ndcoords.y-1), 0.20), 0.5 * Vignetting);	
-	col += 0.00000000001 * Gamma * Contrast * Unsaturate * Tint * Vignetting*Desaturate; // TEMP
+	float gamma = Gamma > 0.0 ? 2*2.2 : 2.2;
+	color = pow(color, vec3(1.0/gamma));	
+    color = mix(color, color*color*(3.0-2.0*color), 0.3 * Contrast);
+	color = mix(color, vec3(dot(color,vec3(0.33))), 0.4 * Unsaturate);
+	color *= mix(vec3(1.0), vec3(1.06, 1.05, 1.00), 1.0 * Tint);	
+	color *= mix(1.0, pow(2.0*(ndcoords.x*ndcoords.x-1.0)*(ndcoords.y*ndcoords.y-1), 0.20), 0.5 * Vignetting);
 
-	// banding removal
-	//col.xyz += hash1b( ndcoords + fract(AbsoluteTime*0.0001) )/255.0;
-	//col.xyz += 10*hash12( ndcoords*123 + fract(AbsoluteTime*0.01) )/255.0;
+    // TEMP
+	color += 0.00000000001 * Gamma * Contrast * Unsaturate * Tint * Vignetting * Desaturate * Scattering * Fresnel;
 	
-	
-	//
 	// Debug controls
-	//
    	if( DebugMode == ColorView ) {
-	    col = 4.0 * color.rgb * occlusion;
+	    color = 4.0 * color.rgb * occlusion;
 	} else if( DebugMode == LightView ) {
-		col = 3.0 * light; // NOTE: Fresnel is not included.
+		color = 3.0 * light; // NOTE: Fresnel is not included.
 	} else if( DebugMode == NormalView ) {
-		col = normalize(vec3(normal.xy/scale, normal.z))*0.5 + 0.5;
+		color = normalize(vec3(normal.xy/scale, normal.z))*0.5 + 0.5;
 	} else if( DebugMode == FresnelView ) {
-		col.xyz = mix(col.xyz, vec3(0.0,1.0,1.0), fresnel);
+		color.xyz = mix(color.xyz, vec3(0.0,1.0,1.0), fresnel);
 	} 
 	
 	if( Wireframe > 0 ) {
@@ -682,16 +737,19 @@ void main()
 		vec3 d = fwidth(gVertex.barycentric);
 		vec3 t = smoothstep(vec3(0.0), d*1.5, gVertex.barycentric);
 		float edgeFactor = min(min(t.x, t.y), t.z);
-		col = mix(pow(col.xyz,vec3(0.8)), pow(col.xyz,vec3(1.2)), edgeFactor);	    
+		color = mix(pow(color.xyz,vec3(0.8)), pow(color.xyz,vec3(1.2)), edgeFactor);	    
 	    // TileFrame   
 	    vec2 p = fract(gVertex.position.xy/scale);
 	    float m = min(min(p.x, p.y), min(1.0-p.x, 1.0-p.y));
-	    col.r += 0.1*(1.0-smoothstep(0.0, 0.05, m)); 
+	    color.r += 0.1*(1.0-smoothstep(0.0, 0.05, m)); 
 	}
 	
 	if( gl_FragCoord.x < 700.0 ) {
-	    //col = vec3(1,0,0);
+	    //color = vec3(1,0,0);
 	}
+	
+    // banding removal
+	color.xyz += 0.02*(-0.5 + hash1(ndcoords + fract(AbsoluteTime)));
 
-	fragColor = vec4( col.rgb, 1 );
+	fragColor = vec4(color.rgb, 1.0);
 }

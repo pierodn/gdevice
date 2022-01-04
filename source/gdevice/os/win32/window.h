@@ -339,7 +339,7 @@ public:
 				return 0;
 
 			case WM_SYSCOMMAND:
-                DEBUG_CHECKPOINT(WM_SYSCOMMAND);
+                //DEBUG_CHECKPOINT(WM_SYSCOMMAND);
 				switch( wParam ) {
 					case SC_SCREENSAVE:     // Screensaver trying to start
 					case SC_MONITORPOWER:   // Monitor entering powersave

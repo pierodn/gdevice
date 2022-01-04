@@ -466,14 +466,14 @@ public:
         //DEBUG_TRACE_ONCE(visibileDistance);
         //DEBUG_TRACE_ONCE(heightmap.children.size());
         GL::GLSL::set( programRenderTerrain, "visibileDistance", visibileDistance );
-		//GL::GLSL::set( programRenderTerrain, "AbsoluteTime",	float(Timer::absoluteTime()) );
+		GL::GLSL::set( programRenderTerrain, "AbsoluteTime",	float(Timer::absoluteTime()) );
 
         const int HeightBlendView = 2;
         if( controls.values[Controls::Bindings[Controls::DEBUGMODE]] == HeightBlendView ) {
             GL::GLSL::set(programRenderTerrain, "defaultColorR", vec4(1.0, 0.0, 0.0, 0.0));
             GL::GLSL::set(programRenderTerrain, "defaultColorG", vec4(0.0, 1.0, 0.0, 0.0));
             GL::GLSL::set(programRenderTerrain, "defaultColorB", vec4(0.0, 0.0, 1.0, 0.0));
-            GL::GLSL::set(programRenderTerrain, "defaultColorA", vec4(0.5, 0.5, 0.5, 0.0));
+            GL::GLSL::set(programRenderTerrain, "defaultColorA", vec4(1.0, 0.0, 0.0, 0.0));
         } else {
             GL::GLSL::set(programRenderTerrain, "defaultColorR", vec4(0.36, 0.30, 0.26, 0.0));  // Light stone
             GL::GLSL::set(programRenderTerrain, "defaultColorG", vec4(0.28, 0.24, 0.20, 0.0));  // Pebbles
@@ -522,6 +522,12 @@ public:
 	{
 		//glFlush();
 		//glFinish();
+
+        // TODO 
+        // foreach(quartet, vbo) {
+        // vbo = execute(offset, size) {
+        // ... glsl code ...
+
 		VertexBuffer& vbo = *tile->vbo;
 
         GL::GLSL::bind( programGenerateTerrain );

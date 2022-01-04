@@ -399,6 +399,22 @@
 			RelativePath=".\gdevice.h"
 			>
 		</File>
+		<File
+			RelativePath=".\gpu\opengl\shaders\generate_gradientmap.glsl"
+			>
+		</File>
+		<File
+			RelativePath=".\gpu\opengl\shaders\generate_terrain.glsl"
+			>
+		</File>
+		<File
+			RelativePath=".\gpu\opengl\shaders\render_sky.glsl"
+			>
+		</File>
+		<File
+			RelativePath=".\gpu\opengl\shaders\render_terrain.glsl"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

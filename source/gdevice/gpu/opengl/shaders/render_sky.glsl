@@ -60,28 +60,28 @@ FRAGMENT:
 		vec3 E = normalize((InverseRotationProjection * vec4(ndcoords,0,1)).xyz);
 		vec3 L = normalize(Light0_position.xyz );
 		
-		// atmospheric scattering
-		vec3 sunColor	  = mix(vec3(0.80, 0.24, 0.20), vec3(1.00, 0.90, 0.74), smoothstep( 0.0, 0.4, L.z));
+		// Atmospheric scattering
+		vec3 sunColor	  = mix(vec3(0.80, 0.40, 0.20), vec3(1.00, 0.97, 0.75), smoothstep( 0.0, 0.3, L.z));
 		vec3 zenithColor  = mix(vec3(0.01, 0.02, 0.04), vec3(0.35, 0.48, 0.60), smoothstep(-0.8, 0.0, L.z));
 		vec3 horizonColor = mix(vec3(0.02, 0.03, 0.04), sunColor,               smoothstep(-0.4, 0.5, L.z));
-		vec3 groundColor  = vec3( dot( mix(0.03*zenithColor, 1.4*zenithColor, smoothstep(0.0, 0.4, L.z)), vec3(0.33)) );
+		vec3 groundColor  = vec3( dot( mix(0.03*zenithColor, 1.4*zenithColor, smoothstep(0.0, 0.4, L.z)), vec3(0.22,0.33,0.45)) );
 		
 		vec3 color  = mix(zenithColor, horizonColor, pow(1.0-E.z, 4.0));
 		
-		// sun and halo
-		float sunHaloWidth = mix(2, 30, smoothstep(0.0, 0.5, L.z));
+		// Sun and halo
+		float sunHaloWidth = mix(2, 30, smoothstep(0.0, 0.4, L.z));
 		float sunDiscWidth = 5000; 
 		float EdotL = max(dot(E,L),0.0);
 		color = mix(color, sunColor, pow(EdotL,sunHaloWidth));		
 		color += pow(EdotL, sunDiscWidth);										
 		
-		// clouds
-		color += 0.03*value1((E.xy+0.1)/(E.z+0.1)*2.0);
+		// Clouds
+		color += 0.04*value1((E.xy + 0.01)/(E.z + 0.01)*2.0);
 
-        // horizon
+        // Horizon
         color = mix(color, groundColor, smoothstep(-0.1, 0.0, -E.z));
         
-        // postprocessing
+        // Postprocessing
 	    float gamma = Gamma > 0.0 ? 2*2.2 : 3.7;
 	    color = pow(color, vec3(1.0/gamma));
         color = mix(color, color*color*(3.0-2.0*color), 0.3 * Contrast);
@@ -89,9 +89,9 @@ FRAGMENT:
 	    color *= mix(vec3(1.0), vec3(1.06, 1.05, 1.00), 1.0 * Tint);		
 	    color *= mix(1.0, pow(2.0*(ndcoords.x*ndcoords.x-1.0)*(ndcoords.y*ndcoords.y-1), 0.20), 0.5 * Vignetting);
 	
-	    // banding removal
-		color.xyz += hash1( ndcoords + fract(AbsoluteTime*0.0001) )/255.0;
+	    // Banding removal
+		color.xyz += 0.02*(-0.5 + hash1(ndcoords + fract(AbsoluteTime)));
 
-		fragColor = vec4(color.xyz, 1.0);
+		fragColor = vec4(color.rgb, 1.0);
 		gl_FragDepth = 1.0;
 	}

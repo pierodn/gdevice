@@ -13,7 +13,6 @@ uniform float size;
 #define RES 17      //17	// NOTE change also into gdevice_parameters.h
 #define ZOOM 1.5    // Controls both domain and height scale, to keep proportions.
 //const vec3 scale = vec3( vec2(0.005)*ZOOM, 50/ZOOM );
-
 const vec3 scale = vec3( vec2(0.005)*ZOOM, 200/ZOOM );
 
 layout (binding=0, rgba32f) uniform writeonly image2D quartetsIU;
@@ -116,11 +115,14 @@ vec4 maximum(vec4 n1, vec4 n2 )     { return n1.z > n2.z ? n1 : n2; }
 vec4 minimum(vec4 n1, vec4 n2 )     { return n1.z < n2.z ? n1 : n2; }
 vec4 saturate(vec4 n, float z1, float z2)   { return n.z < z1 ? z1*unit : n.z > z2 ? z2*unit : n; }
 vec4 saturate(vec4 n)               { return saturate(n, 0.0, 1.0); }
-//float converge(float x0, float x1, float x) { return 1.0/(x + 1.0/(x0-x1)) + x1; } 	
+//float converge(float x0, float x1, float x) { return 1.0/(x + 1.0/(x0-x1)) + x1; } 
+vec4 saturate(vec4 n, vec4 a, vec4 b)     { return n.z < a.z ? a : n.z >= b.z ? vec4(-b.xy, b.zw) : n; }
+
 vec4 smoothStep(float h0, float h1, vec4 n) { n = vec4(n.xy, n.z - h0, 0.0)/(h1 - h0); n = saturate(n, 0.0, 1.0); return multiply(multiply(n,n), bias(-2.0 * n, +3.0)); }
 vec4 absolute(vec4 n, float zero)   { return n.z >= zero ? n : -n; }    
 vec4 invert(vec4 n)                 { float z = 1.0/(n.z + 1.0); return vec4(-z*z*n.xy, z, 0.0); }
-vec4 invert2(vec4 n)			    { return vec4(-n.xy, 1.0 - n.z, 00); }
+vec4 invert2(vec4 n)			    { return vec4(-n.xy, 1.0 - n.z, 0.0); }
+vec4 minus(float t, vec4 n)         { return vec4(-n.xy, t - n.z, 0.0); }
 vec4 tone(vec4 n, float t)			{ return smoothStep(0.0, 1.0, multiply(n, invert(bias(n,t))))*(1.0 + t); }
 
 
@@ -154,14 +156,14 @@ vec4 fbm(vec2 p, int octaves,
     
 vec4 fbm_triangular(vec2 p, int octaves, 
         float pack = 0.12, float erode = 0.30,
-    float amplitude = 1.0,
     float gain = 0.5,
     mat2 frequency = mat2(1.0,0.0,0.0,1.0),
     mat2 lacunarity = 2.03*mat2(0.8,-0.6,0.6,0.8) )
 {
     vec4 signal = vec4(0.0);
+    float amplitude = 1.0;
     for( int i=0; i<octaves; i++ ) {
-        signal += amplitude*triangular(p, frequency, pack, erode);
+        signal += triangular(p, frequency, pack, erode);
 		amplitude *= gain;
 		frequency *= lacunarity;
     }
@@ -226,61 +228,56 @@ Substance substanceMix(Substance s1, Substance s2, float a, float b, float h,
     return substance;
 }
 	
-Substance getSubstance(vec4 t, vec4 maxima)
+Substance getSubstance(vec4 t, vec4 rock, vec4 dump)
 { 
-    // Discriminators
 	float slope = 1.0 - normalize(vec3(t.xy, 1.0)).z;
 	float height = t.z;
-	float peak = t.w;
+	//float peak = t.w;
 
-    //
-    // Substance palette
-	// 
-	// ==================== Red   Green Blue  Spec ====== Rock Grit Bran Sand
+	float some = 0.5 + noise(t.xy, scale.x*10000).z;
+	float meso = 1.0 - some;
+	float less = pow(some, 2.0);
+	float more = 1.0 - less;
+	
+	//Substance ERROR = {vec4(1.0, 0.0, 0.0, 0.0), vec4(1.0, 0.0, 0.0, 0.0)};
+	//if( some<0.5 || some>1.0 )
+	//    return ERROR;
+	    
+
 #if 1 // Single detail substances
-	Substance ROCK = { vec4(0.36, 0.30, 0.26, 0.00), vec4(1.0, 0.0, 0.0, 0.0) };
-    Substance GRIT = { vec4(0.28, 0.24, 0.20, 0.00), vec4(0.0, 1.0, 0.0, 0.0) };
-    Substance BRAN = { vec4(0.34, 0.26, 0.22, 0.00), vec4(0.0, 0.0, 1.0, 0.0) };
-    Substance SAND = { vec4(0.50, 0.38, 0.30, 0.00), vec4(0.0, 0.0, 0.0, 1.5) }; 
+    // ===================  Red   Green Blue  Spec  ===== Rock  Grit  Bran  Sand
+	Substance ROCK = { vec4(0.36, 0.30, 0.26, 0.00), vec4(1.00, 0.00, 0.00, 0.00) };
+    Substance GRIT = { vec4(0.46, 0.38, 0.35, 0.00), vec4(0.00, 1.00, 0.00, 0.00) };
+    Substance BRAN = { vec4(0.34, 0.26, 0.22, 0.00), vec4(0.00, less, 1.2*some, 0.00) };
+    Substance SAND = { vec4(0.72, 0.54, 0.43, 0.00), vec4(0.00, 0.00, 0.00, 1.1 + 0.2*more) }; 
 #else // Testing
-    Substance ROCK = { vec4(0.94, 0.25, 0.23, 0.00), vec4(1.0, 0.0, 0.9, 0.0) };
-    Substance GRIT = { vec4(0.28, 0.99, 0.30, 0.00), vec4(0.0, 0.6, 0.0, 1.0) };
-    Substance BRAN = { vec4(0.19, 0.14, 0.92, 0.00), vec4(0.7, 0.0, 1.0, 0.0) };
-    Substance SAND = { vec4(0.50, 0.38, 0.30, 0.00), vec4(0.6, 0.5, 0.0, 1.0) }; 
+    Substance ROCK = { vec4(1.00, 0.00, 0.00, 0.00), vec4(1.0, 0.0, 0.0, 0.0) };
+    Substance GRIT = { vec4(0.00, 1.00, 0.00, 0.00), vec4(0.0, 1.0, 0.0, 0.0) };
+    Substance BRAN = { vec4(0.00, 0.00, 1.00, 0.00), vec4(0.0, 0.0, 1.0, 0.0) };
+    Substance SAND = { vec4(1.00, 0.00, 0.00, 0.00), vec4(0.0, 0.0, 0.0, 1.0) }; 
 #endif
 
-	// Noise factors
-	float much = 0.0 + 2.0*noise(t.xy, scale.x*10000).z;
-	float some = 0.0 + 0.5*pow(1.0 - much, 2.0);
-	float less = much * some;
-	float much0 = 0.0 + 2.0*noise(t.xy, scale.x*1000).z;
-	float some0 = 0.00 + 0.5*pow(1.0 - much0, 2.0);
-	
-	// Mixed detail substances
-	Substance SAND_AND_ROCK = { SAND.color, vec4(0.6, 0.5, 0.0, 1.0) };
-	Substance SAND_OUTCROPS = substanceMix(SAND, SAND_AND_ROCK, some0);
-	
+    // Flow map
+    vec2 d = t.xy/length(t.xy);
+    float f = atan(d.y, d.x);
+    f = (f + 3.14159265)/(2*3.14159265); // [0..1]
+    f = pow(f, 2.0);
+    f = (f*f - 5)*(f*11 + 3)/17;
+    f = abs(fract(f) - 0.5)*2.0;
 
-/*
-	Substance substance = SAND; 
-	substance = substanceMix( substance, SCRE, 0.00, 0.01, slope );
-	substance = substanceMix( substance, SCRE, 0.02, 0.06, slope );
-	substance = substanceMix( substance, PEBS, 0.10, 0.11, slope );
-	substance = substanceMix( substance, BRAN, 0.20, 0.21, slope );
-*/
-#if 1
-	Substance substance = 
-	    maxima.z < 0.15 ? SAND :
-        maxima.z > 0.80 ? BRAN : // BRAN
-        maxima.z > 0.40 ? ROCK : // stone side => eroding
-                          GRIT ; // dump zone  => rolling cobs around some stone boulders
-#else
+    // Sand on slopes and cobs on flow map.
+    f = smoothstep(0.000, 0.920, f);
+
+    Substance gritt =  { SAND.color, mix(SAND.mixmap, GRIT.mixmap, f) };
+
     Substance substance = 
-	    slope <= 0.1 ? SAND : ROCK;
-#endif
-	
-#if 0   
-/// Snow
+        slope > 0.40 ? ROCK : 
+        slope > 0.30 ? GRIT : 
+        slope > 0.05 ? gritt :
+        SAND;
+
+
+#if 0  // Snow
     float h = smoothstep(0.20, 0.40, height );
     float e = smoothstep(1.0 - 0.5*h, 1.0 - 0.2*h, 1 - slope);
     float o = 0.4 + 0.6*smoothstep(0.0, 0.1, h*h);
@@ -292,21 +289,6 @@ Substance getSubstance(vec4 t, vec4 maxima)
     substance.mixmap = mix( substance.mixmap, snow_mixmap, 0.0*smoothstep(0.41, 0.99, s) );
 #endif
 
-#if 0
-/// Erosion debug
-    substance.color = 
-        maxima.z <= 0.0 ? substance.color :       // gentle steep or plateau
-        maxima.z > 0.80 ? vec4(1.0,0.0,0.0,0.0) : // stone top  => solid
-        maxima.z > 0.10 ? vec4(1.0,0.8,0.0,0.0) : // stone side => eroding
-                          vec4(1.0,0.8,0.4,0.0) ; // dump zone  => rolling cobs around some stone boulders
-#endif
-
-#if 0
-/// Height debug
-	//if( height<0.0 )  substance.color.r = 1;
-	//if( height>1.0 )  substance.color.g = 1;
-	if( peak>0.1 )    substance.color.b = 1;
-#endif
 
 	return substance;
 }
@@ -385,59 +367,6 @@ Vertex getVertex(ivec2 ij)
     vec4 t1 = hybrid(point, 1,              signal, weight, scale0, frequency);
 #endif
 
-#if 1
-    // Erosion map
-    // This is a sort of local maxima distance given by derivating T with respect to octave.
-    //vec4 maxima = smoothStep(0.015, 0.040, invert2(power(invert2(t1-t0), 4.0)));
-		vec4 maxima = smoothStep(0.020, 0.200, invert2(power(invert2(t1-t0), 4.0)));
-    //vec4 tri = triangular(point, 8.0, 0.00, 0.46);
-    float tr1scale = 12.0;
-    float tr2scale = 37.0;
-    vec4 tr1 = fbm_triangular( point*tr1scale, 3, 0.00, 0.46, 1.0, 0.4) * vec4( tr1scale,  tr1scale, 1.0, 1.0);
-    vec4 tr2 = fbm_triangular(-point*tr2scale, 3, 0.20, 0.28, 1.0, 0.4) * vec4(-tr2scale, -tr2scale, 1.0, 1.0);               
-    /*{
-        float stepHeight = 723.0;
-        float hardness = 7.0;
-        tri = smoothFloor((tri + t1*1.3-t0)*stepHeight, hardness)/stepHeight;
-    }*/
-    //t1 = lerp( 0.2*maxima, t1, t0 + bias(0.012*tr1 + 0.018*tr2, + 0.000) + (t1-t0)*0.02 );
-        
-        // TEST
-        //t0 = t1 = 0.00*tr1 + 0.11*tr2;
-        //t0 = t1; // = saturate(t1, 0.0, 0.9*maxima.z);
-        //t1 = t0 + multiply(invert2(t0), power(multiply(t1-t0, invert2(t0)), 0.1) ) * 0.2;	// low erosion with no spikes
-        //vec4 t01 = multiply(invert2(t0), power(multiply(t1-t0, invert2(t0)), 2.0)) * 50.0; // high erosion but spikes
-        //t1 = 0.0*t0 + t01;
-        //t1 = saturate(t1, 0.0, 0.5);
-    
-    // TODO layers?
-    //float stepHeight = 723.0;
-    //float hardness = 7.0;
-    //t1 = smoothFloor(t1*stepHeight, hardness)/stepHeight;
-    //t1 = 0.02*multiply(t1, maxima);
-    
-/*
-    // TODO small cobs
-    // TODO fix triangles discountinuities
-    float tscale2 = 60.0;
-    vec4 tri2 = fbm_triangular(point*tscale2, 5, 
-                    0.40, 0.43, 
-                    1.0, 0.5) 
-                * vec4(tscale2, tscale2, 1.0, 1.0);
-    t1 += 0.005*tri2;
-*/
-#endif
-
-/*
-/// Scaling debug 
-    float hscale = 1.33;
-    c0 *= hscale; 
-    t0 *= hscale;
-    c1 *= hscale;
-    t1 *= hscale;
-    t2 *= hscale;
-*/
-
     // The domain scale is applied to gradient as well.
     t0.xy *= -scale.xy;
     t1.xy *= -scale.xy;
@@ -451,22 +380,35 @@ Vertex getVertex(ivec2 ij)
 	
 	
 	// TEMP
-	vec4 t01 = multiply(invert2(t0), power(multiply(t1-t0, invert2(t0)), 2.0)) * 50.0;
+	vec4 t01 = multiply(invert2(t0), power(multiply(t1-t0, invert2(t0)), 2.0)) * 50.0; // Great dump
 	//vec4 t01 = t1-t0;
 	
-	bool clipping_spikes = false;
-	if( t01.z > 0.015 ) { // 0.02
-		//t01 = saturate(t01, 0.00, 0.02) ;//+ t01*0.02 + (t1-t0)*0.02; 
-		clipping_spikes = true;
-	}
-	//t1 = t0 + 0.04*saturate(30.0*t01, 0.25, 1.20); // + t01
-	t1 = t0 + 1.0*saturate(1.0*t01, 0.0, 1.0); 
+	float tr3scale = 19.0;
+	float tr4scale = 13.0;
+    vec4 tr3 = fbm_triangular( point*tr3scale, 3, 0.00, 0.47, 0.6) * vec4(tr3scale,  tr3scale, 1.0, 1.0);
+    vec4 tr4 = fbm_triangular(-point*tr4scale, 3, 0.20, 0.38, 0.6) * vec4(-tr4scale, -tr4scale, 1.0, 1.0);  
+    
+    // Define spike range
+    vec4 h0 = 0.011*unit;           
+	vec4 h1 = h0 + 0.003*bias(tr4*0.6, +0.4);
 	
-	Substance substance = getSubstance(t1, maxima);
-	if(clipping_spikes) {
-		substance.color.rgb = vec3(1.0, 0.0, 0.0);
-	}
+	vec4 dump = t0 + saturate(t01, 0.0*unit, h0);
+	vec4 rock = bias(saturate(t01, h0, h1), -h0.z);
+	//vec4 spikes = bias(saturate(t01, h1, 0.016*unit), -h1.z);
+
+	{
+        // Add some plateaus on the rock
+        float stepHeight = 723.0;
+        float hardness = 6.0;
+        rock = smoothFloor(rock*stepHeight, hardness)/stepHeight;
+    }
+
+    // Clamp the spikes and raise rocks
+	t1 = dump + 3.0*rock; // + 0.0*multiply(rock, spikes);
 	
+	Substance substance = getSubstance(t1, rock/(h1-h0).z, dump/(t0+h0).z);
+	
+
     t1.z *= scale.z; 
     
 	vec4 position = t1; // Here only z is actually used.
@@ -479,7 +421,7 @@ Vertex getVertex(ivec2 ij)
 	vec4 coarserColor;
 	vec4 coarserMixmap;
 	if( (ij.x % 2 + ij.y % 2) == 0 ) {
-	    Substance substance = getSubstance(c1, maxima);
+	    Substance substance = getSubstance(c1, rock, dump);
 	    c1.z *= scale.z; 
 	    coarserPosition = c1;
 	    coarserGradient = vec4(c1.xy, c0.xy) * size;
