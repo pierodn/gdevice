@@ -49,8 +49,8 @@ struct Controls
 		// NOTE "light0" stands for the main light source and is normally the sun
 		literals[WIREFRAME]	    .push("Wireframe");
         literals[DEBUGMODE]	    .push("DebugMode").push("Color").push("HeightBlend").push("Normal").push("Light").push("Fresnel");
-		literals[BUMPS]	        .push("Bumps");//.push("Bumpmapping").push("Microbumps"); // TODO Remove Microbumps
-		literals[TESSELLATOR]	.push("Tessellator");   // TODO
+		literals[BUMPS]	        .push("Bumps");
+		literals[TESSELLATOR]	.push("Tessellator");   // FIX
 		literals[DIFFUSE]		.push("Diffuse");		// Lambertian
         literals[SPECULAR]		.push("Specular");	
 		literals[INDIRECT]		.push("Indirect");		// Indirect lambertian contribute
@@ -66,10 +66,10 @@ struct Controls
 		literals[VIGNETTING]	.push("Vignetting");
 
 		// default values
-		values[Bindings[WIREFRAME]]	    = 0; // 0
-        values[Bindings[DEBUGMODE]]	    = 0; // 0
-		values[Bindings[BUMPS]]         = 1; // 1
-		values[Bindings[TESSELLATOR]]	= 0;
+		values[Bindings[WIREFRAME]]	    = 0;
+        values[Bindings[DEBUGMODE]]	    = 0;
+		values[Bindings[BUMPS]]         = 1;
+		values[Bindings[TESSELLATOR]]	= 1;
 		values[Bindings[DIFFUSE]]		= 1;
         values[Bindings[SPECULAR]]		= 1;
 		values[Bindings[INDIRECT]]		= 1;

@@ -110,13 +110,13 @@ vec4 multiply(vec4 n1, vec4 n2 )    { return vec4(n1.xy * n2.z + n2.xy * n1.z, n
 //vec4 quotient(vec4 n1, vec4 n2)		{ return vec4((n1.xy * n2.z - n2.xy * n1.z)/(n2.z*n2.z),  n1.z/n2.z, 0.0); }	
 vec4 lerp(vec4 a, vec4 n1, vec4 n2 ){ return multiply(vec4(0.0, 0.0, 1.0, 0.0)-a,n1) + multiply(a,n2); }
 //vec4 power(vec4 n, float k)         { return vec4(k*pow(n.z, k-1.0)*n.xy, pow(n.z, k), k*pow(n.w, k+0.1)); }
-vec4 power(vec4 n, float k)           { return vec4(k*pow(n.z, k-1.0)*n.xy, pow(n.z, k), n.w); }
-vec4 maximum(vec4 n1, vec4 n2 )     { return n1.z > n2.z ? n1 : n2; }
-vec4 minimum(vec4 n1, vec4 n2 )     { return n1.z < n2.z ? n1 : n2; }
+vec4 power(vec4 n, float k)         { return vec4(k*pow(n.z, k-1.0)*n.xy, pow(n.z, k), n.w); }
+vec4 maximum(vec4 n1, vec4 n2)      { return n1.z > n2.z ? n1 : n2; }
+vec4 minimum(vec4 n1, vec4 n2)      { return n1.z < n2.z ? n1 : n2; }
 vec4 saturate(vec4 n, float z1, float z2)   { return n.z < z1 ? z1*unit : n.z > z2 ? z2*unit : n; }
 vec4 saturate(vec4 n)               { return saturate(n, 0.0, 1.0); }
 //float converge(float x0, float x1, float x) { return 1.0/(x + 1.0/(x0-x1)) + x1; } 
-vec4 saturate(vec4 n, vec4 a, vec4 b)     { return n.z < a.z ? a : n.z >= b.z ? vec4(-b.xy, b.zw) : n; }
+vec4 saturate(vec4 n, vec4 a, vec4 b) { return n.z < a.z ? a : n.z >= b.z ? vec4(-b.xy, b.zw) : n; }
 
 vec4 smoothStep(float h0, float h1, vec4 n) { n = vec4(n.xy, n.z - h0, 0.0)/(h1 - h0); n = saturate(n, 0.0, 1.0); return multiply(multiply(n,n), bias(-2.0 * n, +3.0)); }
 vec4 absolute(vec4 n, float zero)   { return n.z >= zero ? n : -n; }    
@@ -209,73 +209,42 @@ struct Substance
 	vec4 mixmap;
 };
 
-// Mixing
-Substance substanceMix(Substance s1, Substance s2, float a) {
+Substance sMix(Substance s1, Substance s2, float a) {
     a = clamp(a, 0.0, 1.0);
     Substance substance;
     substance.color  = mix(s1.color,  s2.color,  a);
     substance.mixmap = mix(s1.mixmap, s2.mixmap, a);
     return substance;
 }
-
-// http://www.iquilezles.org/www/material/function2009/function2009.pdf
-Substance substanceMix(Substance s1, Substance s2, float a, float b, float h,	
-    float c = 0.20, float d = 0.80, float slope = 1.0) {
-    float t = smoothstep(a + c*slope, b + d*slope, h);
-    Substance substance;
-    substance.color  = mix(s1.color,  s2.color,  t);
-    substance.mixmap = mix(s1.mixmap, s2.mixmap, t);
-    return substance;
-}
 	
-Substance getSubstance(vec4 t, vec4 rock, vec4 dump)
+Substance getSubstance(vec4 t)
 { 
-	float slope = 1.0 - normalize(vec3(t.xy, 1.0)).z;
+    float slope = 1.0 - normalize(vec3(t.xy, 1.0)).z;
 	float height = t.z;
 	//float peak = t.w;
 
-	float some = 0.5 + noise(t.xy, scale.x*10000).z;
-	float meso = 1.0 - some;
-	float less = pow(some, 2.0);
-	float more = 1.0 - less;
-	
-	//Substance ERROR = {vec4(1.0, 0.0, 0.0, 0.0), vec4(1.0, 0.0, 0.0, 0.0)};
-	//if( some<0.5 || some>1.0 )
-	//    return ERROR;
-	    
+    // FIX frequency
+	float s1 = 0.5 + noise(t.zz + t.yx, scale.x*123.4567).z;
+	float less = pow(s1, 4.0);
+	float more = pow(1.0 - less, 2.0);
 
-#if 1 // Single detail substances
     // ===================  Red   Green Blue  Spec  ===== Rock  Grit  Bran  Sand
 	Substance ROCK = { vec4(0.36, 0.30, 0.26, 0.00), vec4(1.00, 0.00, 0.00, 0.00) };
     Substance GRIT = { vec4(0.46, 0.38, 0.35, 0.00), vec4(0.00, 1.00, 0.00, 0.00) };
-    Substance BRAN = { vec4(0.34, 0.26, 0.22, 0.00), vec4(0.00, less, 1.2*some, 0.00) };
-    Substance SAND = { vec4(0.72, 0.54, 0.43, 0.00), vec4(0.00, 0.00, 0.00, 1.1 + 0.2*more) }; 
-#else // Testing
-    Substance ROCK = { vec4(1.00, 0.00, 0.00, 0.00), vec4(1.0, 0.0, 0.0, 0.0) };
-    Substance GRIT = { vec4(0.00, 1.00, 0.00, 0.00), vec4(0.0, 1.0, 0.0, 0.0) };
-    Substance BRAN = { vec4(0.00, 0.00, 1.00, 0.00), vec4(0.0, 0.0, 1.0, 0.0) };
-    Substance SAND = { vec4(1.00, 0.00, 0.00, 0.00), vec4(0.0, 0.0, 0.0, 1.0) }; 
-#endif
+    Substance BRAN = { vec4(0.34, 0.26, 0.22, 0.00), vec4(less, 1.00, more, 0.00) };
+    Substance SAND = { vec4(0.70, 0.54, 0.45, 0.00), vec4(0.00, 0.00, 0.00, 1.1 + 0.2*more) };
 
-    // Flow map
-    vec2 d = t.xy/length(t.xy);
-    float f = atan(d.y, d.x);
-    f = (f + 3.14159265)/(2*3.14159265); // [0..1]
-    f = pow(f, 2.0);
-    f = (f*f - 5)*(f*11 + 3)/17;
-    f = abs(fract(f) - 0.5)*2.0;
+    float flow = atan(t.y/t.x);
+    flow = abs(fract(flow*3) - 0.5)*2.0;
 
-    // Sand on slopes and cobs on flow map.
-    f = smoothstep(0.000, 0.920, f);
-
-    Substance gritt =  { SAND.color, mix(SAND.mixmap, GRIT.mixmap, f) };
+    Substance grit = GRIT; //sMix(GRIT, ROCK, less);
+    Substance sand = sMix(SAND, grit, /*more**/flow);
 
     Substance substance = 
         slope > 0.40 ? ROCK : 
-        slope > 0.30 ? GRIT : 
-        slope > 0.05 ? gritt :
-        SAND;
-
+        slope > 0.30 ? grit : 
+        slope > 0.05 ? sand :
+                       SAND;
 
 #if 0  // Snow
     float h = smoothstep(0.20, 0.40, height );
@@ -284,11 +253,10 @@ Substance getSubstance(vec4 t, vec4 rock, vec4 dump)
     float s = h*e*o;
     //col = mix( col, 0.29*vec3(0.62,0.65,0.7), smoothstep( 0.1, 0.9, s ) );
     vec4 snow_color = 0.90*vec4(0.62, 0.65, 0.7, 0.0);
-    vec4 snow_mixmap = SNOW;
+    vec4 snow_mixmap = SAND.mixmap;
     substance.color  = mix( substance.color,  snow_color,  0.0*smoothstep(0.01, 0.99, s) );
     substance.mixmap = mix( substance.mixmap, snow_mixmap, 0.0*smoothstep(0.41, 0.99, s) );
 #endif
-
 
 	return substance;
 }
@@ -335,7 +303,7 @@ Vertex getVertex(ivec2 ij)
 
     int octaves = 13; 
     int lodOctaveBudget = int(octaves - 0.0*log2(size)); // TODO: enable
-    int shadowfreq = int(lodOctaveBudget*0.40); // 0.40
+    int shadowfreq = int(lodOctaveBudget*0.50); // 0.40
     int spikesfreq = int(lodOctaveBudget*0.20); // 0.20
     int terrainFreq = lodOctaveBudget - shadowfreq - spikesfreq;
 
@@ -368,47 +336,50 @@ Vertex getVertex(ivec2 ij)
 #endif
 
     // The domain scale is applied to gradient as well.
+    //c0.xy *= -scale.xy;
     t0.xy *= -scale.xy;
     t1.xy *= -scale.xy;
     
     // Height scale is applied to gradient but not to height yet
     // because I want height be somewhat normalized when computing the substance. 
     // That means: the substance is computed on correct steepness and on normalized height.
+    //c0.xy *= scale.z;
     t0.xy *= scale.z;
     t1.xy *= scale.z;
     
 	
-	
-	// TEMP
-	vec4 t01 = multiply(invert2(t0), power(multiply(t1-t0, invert2(t0)), 2.0)) * 50.0; // Great dump
-	//vec4 t01 = t1-t0;
-	
-	float tr3scale = 19.0;
-	float tr4scale = 13.0;
-    vec4 tr3 = fbm_triangular( point*tr3scale, 3, 0.00, 0.47, 0.6) * vec4(tr3scale,  tr3scale, 1.0, 1.0);
-    vec4 tr4 = fbm_triangular(-point*tr4scale, 3, 0.20, 0.38, 0.6) * vec4(-tr4scale, -tr4scale, 1.0, 1.0);  
-    
-    // Define spike range
-    vec4 h0 = 0.011*unit;           
-	vec4 h1 = h0 + 0.003*bias(tr4*0.6, +0.4);
-	
-	vec4 dump = t0 + saturate(t01, 0.0*unit, h0);
-	vec4 rock = bias(saturate(t01, h0, h1), -h0.z);
-	//vec4 spikes = bias(saturate(t01, h1, 0.016*unit), -h1.z);
+    // Post processing
+#if 1
+	float tr4scale = 31.0;
+    vec4 tr4 = fbm_triangular(-point*tr4scale, 4, 0.20, 0.30, 0.5) * vec4(-tr4scale, -tr4scale, 1.0, 1.0); 
 
-	{
-        // Add some plateaus on the rock
-        float stepHeight = 723.0;
-        float hardness = 6.0;
+    // Spike clamping
+    #if 0
+        vec4 t01 = multiply(invert2(t0), power(multiply(t1-t0, invert2(t0)), 2.0)) * 50.0; // Great dump
+        vec4 h0 = 0.0025*unit;           
+	    vec4 h1 = h0 + 0.005*bias(tr4*0.2, +0.1) + 0.001*saturate(0.5+noise(point, scale0*0.1), 0.2, 0.5);
+    #else
+        vec4 t01 = t1-t0;
+        vec4 h0 = 0.009*unit;           
+	    vec4 h1 = h0 + 0.009*bias(tr4*0.2, +0.1) + 0.002*saturate(0.5 + noise(point, scale0*0.1), 0.2, 0.5);
+    #endif	
+ 
+	vec4 dump = t0 + saturate(t01, 0.0*unit, h0);
+	vec4 rock = bias(saturate(t01, h0, h1), -h0.z);// + 0.021*(0.5+noise(point, scale0*0.01));
+	/*
+    // Add some plateaus on the rock
+    {   float stepHeight = 7771.0; // * (0.1+0.5*fbm((point + 0.000)*dwFrequency, 4).z);// * (0.1 + 0.9*tr4.z);
+        float hardness = 4.0;
         rock = smoothFloor(rock*stepHeight, hardness)/stepHeight;
     }
-
+*/
     // Clamp the spikes and raise rocks
-	t1 = dump + 3.0*rock; // + 0.0*multiply(rock, spikes);
-	
-	Substance substance = getSubstance(t1, rock/(h1-h0).z, dump/(t0+h0).z);
-	
+	t1 = dump + 3.0*rock;//maximum(2.0*rock, 0.0*bias(0.014*tr4, -0.015) ); // + 0.0*multiply(rock, spikes);
+    //t1 = t1*0.000000000001 + 0.004*tr4;
+#endif
 
+	Substance substance = getSubstance(t1);
+	
     t1.z *= scale.z; 
     
 	vec4 position = t1; // Here only z is actually used.
@@ -421,7 +392,7 @@ Vertex getVertex(ivec2 ij)
 	vec4 coarserColor;
 	vec4 coarserMixmap;
 	if( (ij.x % 2 + ij.y % 2) == 0 ) {
-	    Substance substance = getSubstance(c1, rock, dump);
+	    Substance substance = getSubstance(c1);
 	    c1.z *= scale.z; 
 	    coarserPosition = c1;
 	    coarserGradient = vec4(c1.xy, c0.xy) * size;

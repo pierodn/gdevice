@@ -453,6 +453,11 @@ public:
 		GL::GLSL::set( programRenderTerrain, "ModelViewMatrix",				ModelViewMatrix );
 		GL::GLSL::set( programRenderTerrain, "NormalMatrix",				NormalMatrix );
 
+        // tessellation
+        GL::GLSL::set( programRenderTerrain, "tessellationRange", 0.20f );
+        GL::GLSL::set( programRenderTerrain, "tessellationFactor", 0.25f );
+        GL::GLSL::set( programRenderTerrain, "tessellationDisplacement", 0.012f );
+
 		// lighting
 		GL::GLSL::set( programRenderTerrain, "Light0_position",				lights[0]->position );
 
@@ -460,8 +465,6 @@ public:
 		GL::GLSL::set( programRenderTerrain, "viewport", getViewport() );
 		GL::GLSL::set( programRenderTerrain, "InverseRotationProjection", inverseRotationMatrix * inverseProjection(ProjectionMatrix) );
         
-        //long visibileDistance = ((Heightmap)heightmap).visibility();
-        //float visibileDistance = 4*(1<<(heightmap.children.size()));
         float visibileDistance = 2*(1<<(heightmap.children.size()));
         //DEBUG_TRACE_ONCE(visibileDistance);
         //DEBUG_TRACE_ONCE(heightmap.children.size());

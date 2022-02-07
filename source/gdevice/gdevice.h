@@ -36,7 +36,7 @@ public:
         scene.transform.rotation = vec3( -90, 0, 0 );
 	    scene.children.push( &heightmap );
 
-        wheelSpeed = 4;
+        wheelSpeed = 40;
 	    camera.position = 100.0 * dvec3(0,0,1);
 	    camera.rotation = dvec3(0,0,0);
     	

@@ -63,17 +63,17 @@ FRAGMENT:
 		// Atmospheric scattering
 		vec3 sunColor	  = mix(vec3(0.80, 0.40, 0.20), vec3(1.00, 0.97, 0.75), smoothstep( 0.0, 0.3, L.z));
 		vec3 zenithColor  = mix(vec3(0.01, 0.02, 0.04), vec3(0.35, 0.48, 0.60), smoothstep(-0.8, 0.0, L.z));
-		vec3 horizonColor = mix(vec3(0.02, 0.03, 0.04), sunColor,               smoothstep(-0.4, 0.5, L.z));
+		vec3 horizonColor = mix(vec3(0.02, 0.03, 0.04), sunColor,               smoothstep(-0.4, 0.2, L.z));
 		vec3 groundColor  = vec3( dot( mix(0.03*zenithColor, 1.4*zenithColor, smoothstep(0.0, 0.4, L.z)), vec3(0.22,0.33,0.45)) );
 		
 		vec3 color  = mix(zenithColor, horizonColor, pow(1.0-E.z, 4.0));
 		
 		// Sun and halo
 		float sunHaloWidth = mix(2, 30, smoothstep(0.0, 0.4, L.z));
-		float sunDiscWidth = 5000; 
+		float sunDiscWidth = 20000; 
 		float EdotL = max(dot(E,L),0.0);
 		color = mix(color, sunColor, pow(EdotL,sunHaloWidth));		
-		color += pow(EdotL, sunDiscWidth);										
+		color += 6.0*pow(EdotL, sunDiscWidth);										
 		
 		// Clouds
 		color += 0.04*value1((E.xy + 0.01)/(E.z + 0.01)*2.0);

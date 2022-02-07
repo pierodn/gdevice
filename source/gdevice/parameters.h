@@ -31,9 +31,9 @@
 
 // Control parameters
 #define ROTATION_SPEED		100.0
-#define TRANSLATION_SPEED	(POV_HEIGHT / 1000.0)
+#define TRANSLATION_SPEED	(POV_HEIGHT / 10000.0)
 #define BOOST_FACTOR        10.0
 #define WARP_FACTOR         300.0
 #define TIME_START          16.00
-#define TIME_SPEED			1.00
+#define TIME_SPEED			0.20
 #define FPS_FREQUENCY       5
