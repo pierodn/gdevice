@@ -14,11 +14,11 @@ template<class Application>
 class Window //: public Window
 {
 public:
-
-//// Window interface stuff
 	Listener<Application>* listener;
 	Renderer* renderer;
 
+    bool isActive;
+    //bool isIconified;
 	bool fullscreen;
 	vec2 windowedSize;
 	vec2 size;
@@ -52,7 +52,6 @@ public:
 		previousWheel = mouseWheel;
 		return delta;
 	}
-//// Window interface stuff end
 
 private:
 	HWND	hWnd;
@@ -65,12 +64,13 @@ public:
 	{
         DEBUG_ASSERT(!listener); // TODO Windows without listener
 		this->listener = listener;
-		this->renderer = new Renderer();
-        this->renderer->controls.values = Key::getCounters(); // TEMP?
-		this->fullscreen = false;
-		this->isPointerVisible = false;
-		this->windowedSize = vec2(WINDOW_WIDTH, WINDOW_HEIGHT); 
-		this->bits = 32;
+		renderer = new Renderer();
+        renderer->controls.values = Key::getCounters(); // TEMP?
+        isActive = false;
+		fullscreen = false;
+		isPointerVisible = false;
+		windowedSize = vec2(WINDOW_WIDTH, WINDOW_HEIGHT); 
+		bits = 32;
 		size = vec2(0,0);
 	}
 
@@ -114,13 +114,18 @@ public:
 		return true;
 	}
 
-    int runPlainMessageLoop() {
-        if( create() ) {
+    int runPlainMessageLoop()
+    {
+        if(create()) {
             MSG msg;
-		    while( GetMessage(&msg, hWnd, 0, 0)>0 ) {
-			    if( msg.message == WM_CLOSE ) return 0;
-                TranslateMessage(&msg);   // Translates virtual key codes into WM_CHAR messages.
-			    DispatchMessage(&msg);    // Dispatch the message to the WindowProc thread.
+		    while(GetMessage(&msg, hWnd, 0, 0) > 0) {
+			    if(msg.message == WM_CLOSE) 
+                    return 0;
+
+                if(isActive) {
+                    TranslateMessage(&msg);   // Translates virtual key codes into WM_CHAR messages.
+			        DispatchMessage(&msg);    // Dispatch the message to the WindowProc thread.
+                }
 		    }
         }
         return 0;
@@ -237,8 +242,8 @@ public:
                 break;
 
 			 case WM_ACTIVATE: 
-                //bool isActive = LOWORD(wParam) != WA_INACTIVE;
-				//bool isIconified = HIWORD(wParam);
+                isActive = LOWORD(wParam) != WA_INACTIVE;
+				//isIconified = HIWORD(wParam);
 				break;
 
             case WM_SIZE:

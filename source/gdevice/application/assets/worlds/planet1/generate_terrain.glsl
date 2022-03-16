@@ -366,13 +366,13 @@ Vertex getVertex(ivec2 ij)
  
 	vec4 dump = t0 + saturate(t01, 0.0*unit, h0);
 	vec4 rock = bias(saturate(t01, h0, h1), -h0.z);// + 0.021*(0.5+noise(point, scale0*0.01));
-	/*
+	
     // Add some plateaus on the rock
-    {   float stepHeight = 7771.0; // * (0.1+0.5*fbm((point + 0.000)*dwFrequency, 4).z);// * (0.1 + 0.9*tr4.z);
+    {   float stepHeight = 3771.0; // * (0.1+0.5*fbm((point + 0.000)*dwFrequency, 4).z);// * (0.1 + 0.9*tr4.z);
         float hardness = 4.0;
         rock = smoothFloor(rock*stepHeight, hardness)/stepHeight;
     }
-*/
+
     // Clamp the spikes and raise rocks
 	t1 = dump + 3.0*rock;//maximum(2.0*rock, 0.0*bias(0.014*tr4, -0.015) ); // + 0.0*multiply(rock, spikes);
     //t1 = t1*0.000000000001 + 0.004*tr4;

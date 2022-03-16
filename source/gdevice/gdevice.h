@@ -2,27 +2,26 @@
 
 #define DEBUG_SHOW_GLSL_SOURCE	
 
-#include "os/platform.h"
-#include "os/application.h"
-#include "os/keyboard.h"
-
 #include "type/terrain/heightmap.h" 
 #include "type/glsl.h"
 #include "type/node.h"
 
-#include "parameters.h"
+#include "os/platform.h"
+#include "os/application.h"
+#include "os/keyboard.h"
+
+#include "application/assets/worlds/planet1/parameters.h"
 
 
 
 class GDevice : public Application<GDevice>
 {
 	float time; 
-	dmat3 camera; // TODO: mat3
+	dmat3 camera;
 	Node scene;
 	Heightmap heightmap;
 	Light sun;
 
-    
 	double wheelSpeed; // TODO: Get rid.
 	
 public:
@@ -33,8 +32,8 @@ public:
 	    heightmap.setLODs(CLIPMAPS_COUNT);	
 	    heightmap.light = &sun;
 
-        scene.transform.rotation = vec3( -90, 0, 0 );
-	    scene.children.push( &heightmap );
+        scene.transform.rotation = vec3(-90, 0, 0);
+	    scene.children.push(&heightmap);
 
         wheelSpeed = 40;
 	    camera.position = 100.0 * dvec3(0,0,1);
@@ -47,8 +46,8 @@ public:
 
 	void onSize(Window<GDevice>& window)
     {
-	    window.renderer->setViewport( window.size ); 
-	    window.renderer->setProjection( FOV, NEAR_CLIP_PLANE, heightmap.visibility() );
+	    window.renderer->setViewport(window.size); 
+	    window.renderer->setProjection(FOV, NEAR_CLIP_PLANE, heightmap.visibility());
     }
 
 	void onDraw(Window<GDevice>& window, double elapsed)
@@ -60,18 +59,18 @@ public:
         // Update by user input.
         //
 	    // Camera rotation
-	    dvec3 mouse_rotation	= dvec3(window.mouseDeltaY(), 0, window.mouseDeltaX());
-        dvec3 cursors_rotation	= dvec3(Key::cursorDeltaY(),  0, Key::cursorDeltaX());
-	    dvec3 input_rotation	= double(!window.isPointerVisible) * mouse_rotation + 0.01 * cursors_rotation;
-	    camera.rotation   -= ROTATION_SPEED * input_rotation;			// counter-clockwise
-	    camera.rotation.z  = mod( camera.rotation.z, 360.0 );			// positive horizontal axis
-	    camera.rotation.x  = clamp( camera.rotation.x, -90.0, +90.0 );	// clamped to [-90,+90] in order to avoid gimbal lock
+	    dvec3 mouse_rotation     = dvec3(window.mouseDeltaY(), 0, window.mouseDeltaX());
+        dvec3 cursors_rotation   = dvec3(Key::cursorDeltaY(), 0, Key::cursorDeltaX());
+	    dvec3 input_rotation     = double(!window.isPointerVisible) * mouse_rotation + 0.01 * cursors_rotation;
+	    camera.rotation   -= ROTATION_SPEED * input_rotation;		// counter-clockwise
+	    camera.rotation.z  = mod(camera.rotation.z, 360.0);			// positive horizontal axis
+	    camera.rotation.x  = clamp(camera.rotation.x, -90.0, +90.0);// clamped to [-90,+90] in order to avoid gimbal lock
 
         // Camera position
 	    dmat3 T = transpose(rotate(camera.rotation));
 	    dvec3 forward =  T.yAxis;
 	    dvec3 strafe  = -T.xAxis;
-	    float speedFactor = (Key(LSHIFT).isPressed() ? BOOST_FACTOR : 1) * (Key(LCONTROL).isPressed() ? WARP_FACTOR : 1) * (wheelSpeed*wheelSpeed);
+	    double speedFactor = (Key(LSHIFT).isPressed() ? BOOST_FACTOR : 1) * (Key(LCONTROL).isPressed() ? WARP_FACTOR : 1) * (wheelSpeed*wheelSpeed);
 	    double ts = TRANSLATION_SPEED * speedFactor;
 	    camera.position += forward*(Key('W').isPressed()? +ts : Key('S').isPressed()? -ts : 0) + strafe*(Key('A').isPressed()? +ts : Key('D').isPressed()? -ts : 0);
 	    camera.position.z += (Key(' ').isPressed()? +ts : Key('Z').isPressed()? -ts : 0); // TODO could be included into strafe
@@ -89,7 +88,7 @@ public:
         ////////////////////////////
         // Update scene
         //
-        double level = heightmap.moveAt( camera );
+        double level = heightmap.moveAt(camera);
         heightmap.generateInvalidatedTiles(renderer);
 
         // TODO: Sleep while compute shader is working.
@@ -105,9 +104,9 @@ public:
 	    // Rendering
 	    //
         // TODO: renderer.barrier 
-	    renderer.setFogDensity( FOG_DENSITY ); // TODO: Move to world properties.
+	    renderer.setFogDensity(FOG_DENSITY); // TODO: Move to world properties.
 	    renderer.clear();
-	    renderer.inverseRotationMatrix = transpose( RotationMatrix(scene.transform.rotation) * RotationMatrix(heightmap.transform.rotation) );
+	    renderer.inverseRotationMatrix = transpose(RotationMatrix(scene.transform.rotation) * RotationMatrix(heightmap.transform.rotation));
         // TODO: renderer.setTarget<rgba>( NULL );
 	    renderer.draw( scene );
 	    renderer.drawSky();
@@ -116,11 +115,11 @@ public:
 	    // 
 	    // Misc controls
 	    //
-	    wheelSpeed = clamp( wheelSpeed + window.mouseDeltaWheel()/200.0, 1.0, 31.6228 );
+	    wheelSpeed = clamp(wheelSpeed + window.mouseDeltaWheel()/200.0, 1.0, 31.6228);
 
-	    if( Key('L').isJustPressed() ) window.toogleFullscreen();
-	    if( Key('P').isJustPressed() ) window.togglePointer();
-	    if( Key(ESCAPE).isPressed() ) window.close();
+	    if(Key('L').isJustPressed()) window.toogleFullscreen();
+	    if(Key('P').isJustPressed()) window.togglePointer();
+	    if(Key(ESCAPE).isPressed())  window.close();
 
 	    char controls_string[255];
 	    renderer.controls.getString(controls_string);
@@ -129,20 +128,21 @@ public:
 	    static dvec3 previous_pos; 
 	    static int counter = 0;
 	    static float interval;
-	    if( (++counter) % FPS_FREQUENCY == 0 ) interval = fpsTimer.elapsed()/FPS_FREQUENCY;
+	    if((++counter) % FPS_FREQUENCY == 0) 
+            interval = fpsTimer.elapsed()/FPS_FREQUENCY;
 	    int fps = (int)(1.0/interval);
 
-	    window.setTitle( "FPS=%i%s Speed=%.2fkmh (x%i) Renderer=[%s] Time=%02i.%02i GPS=( %s)", 
+	    window.setTitle("FPS=%i%s Speed=%.2fkmh (x%i) Renderer=[%s] Time=%02i.%02i GPS=( %s)", 
 		    fps, fps<100 ? "  " : "",
 		    distance(camera.position, previous_pos) * METERS_PER_TILE/interval * 3600/1000,
 		    int(speedFactor),
 		    controls_string, 
-		    (int)time, (int)(fract(time)*60),
+		    int(time), int(fract(time)*60),
 		    str(METERS_PER_TILE * camera.position) 
 	    );
 	    previous_pos = camera.position;
 
-        DEBUG_TRACE_ONCE( renderer.vertices );
+        DEBUG_TRACE_ONCE(renderer.vertices);
     }
 
     int run() {

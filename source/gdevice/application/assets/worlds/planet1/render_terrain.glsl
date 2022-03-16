@@ -590,6 +590,26 @@ vec4 noise(vec2 point)
 	L = vec4(L.x, L.y-L.x, L.z-L.x, L.x-L.y-L.z+L.w);
 	return vec4(du*(L.yz + L.w*u.yx), L.x + L.y*u.x + L.z*u.y + L.w*u.x*u.y, 0.0 );
 }
+
+//here!!
+////////////////
+// Volumetric
+struct Plane {vec3 origin; vec3 normal; };
+struct Ray   {vec3 origin; vec3 direction; };
+float intersect(Plane plane, Ray ray)
+{
+    float denominator = dot(plane.normal, ray.direction);
+    float Epsilon = 0.00001;
+    if(abs(denominator) > Epsilon) {
+        vec3 D = plane.origin - ray.origin;
+        float t = dot(D, plane.normal)/denominator;
+        if(t > Epsilon) {
+            return t;
+        }
+    }
+    return -1.0; // There is no "negative distance", right?
+}
+
 	
 
 void main()
@@ -685,7 +705,7 @@ void main()
 			);
 			
 			// Energy adujustment across LODs (empiric).
-			float scale00 = 1 + 0.70*log(scale); 
+			//float scale00 = 1 + 0.0000030*log(scale); 
 			
 			// Graciously fade bumps out with distance.
 		    float _bump_intensity = mix(bump_intensity, 0.0, textureFadingFactor);
@@ -697,7 +717,7 @@ void main()
             dH.xy += b.xy;
 */			
 			//H  *= _bump_intensity * scale00; 
-			dH *= _bump_intensity * scale00;
+			dH *= _bump_intensity;// * scale00;
 			
 			vec3 P = gVertex.position.xyz;
             displaceVertexAndRecomputeNormal(P, normal, H, dH);
@@ -740,7 +760,7 @@ void main()
 	float specular  = glossmap  * daylight * dot(mixmap, specmap) * pow(max(0.0, dot(E,R)), dot(mixmap, specpow));
 	float indirect  = occlusion * daylight * max(0.0, dot(NN,LI)); 
 	float zenith    = occlusion * clamp(0.5 + 0.5*N.z, 0.0, 1.0);
-	float fresnel   = fresnmap  * mix( 1.0, pow(1.0-abs(dot(E,N)), 4.0), 0.9 );  // TODO: have a fresmap along with specmap
+	float fresnel   = fresnmap  * mix(1.0, pow(1.0-abs(dot(E,N)), 4.0), 0.9);  // TODO: have a fresmap along with specmap
 
     // Energy conservation
     vec3 light  = 0.60 * Diffuse  * diffuse  * shadowing * sunColor;
@@ -755,6 +775,14 @@ void main()
     // Tone mapping
     vec3 color = tone(1.00*light*matColor.rgb, 0.1); 
 
+    // Volumetric
+    Plane plane;
+    plane.origin = vec3(gVertex.position.xy, 0.3);
+    plane.normal = vec3(0,0,1);
+    Ray ray; // = {vec3(), vec3()};
+    ray.origin = vec3(gVertex.position.xyz); // ?
+    ray.direction = E;
+
 	// Scattering
 	if( Scattering > 0 ) {
 	    float EdotL = max(0.0, dot(E,L));
@@ -763,6 +791,7 @@ void main()
 		//float volumetric = 100.0 * Bumps * pow(0.01*gVertex.position.z, 6.0); // TODO
 		color = mix(color, groundColor, smoothstep(visibileDistance*0.2, visibileDistance, dist /*+ 0.0*volumetric*/));
 	}
+
 
 	// Postprocessing
 	float gamma = Gamma > 0.0 ? 2*2.2 : 2.2;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "parameters.h"
+#include "application/assets/worlds/planet1/parameters.h"
 #include "type/node.h"
 
 struct Clipmap : public Node

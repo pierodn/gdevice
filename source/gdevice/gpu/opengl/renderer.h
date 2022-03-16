@@ -1,35 +1,23 @@
 #pragma once
 
-// TODO remove dependency on these:
-//#include "os/platform.h"
-#include "parameters.h" // CLIPMAP_WINDOW, TEXTURE_RANGE
-///////////////////////////////////////
-
 #include "type/glsl.h"
 #include "type/array.h"
+#include "type/node.h"
 
 #include "os/profiler.h"
 #include "os/timer.h"
 
-//#include "engines/graphic/material.h"
 #include "__temp/light.h"
 #include "gpu/program.h"
-#include "type/node.h"
-
-//#include "engines/graphic/opengl/shaders/generate_gradientmap.glsl.h"
-#include "gpu/opengl/shaders/generate_terrain.glsl.h"
-#include "gpu/opengl/shaders/render_terrain.glsl.h"
-#include "gpu/opengl/shaders/render_sky.glsl.h"
-
-
-
 #include "gpu/opengl/gl.h"
-//#include "engines/graphic/opengl/glsl.h"
-//#include "engines/graphic/opengl/vbo.h"
-//#include "engines/graphic/opengl/mrt.h"
-
-#include "asset/asset.h"
 #include "gpu/controls.h"
+
+#include "application/assets/worlds/planet1/parameters.h" // CLIPMAP_WINDOW, TEXTURE_RANGE
+#include "application/assets/worlds/planet1/textures.h"
+#include "application/assets/worlds/planet1/generate_terrain.glsl.h"
+#include "application/assets/worlds/planet1/render_terrain.glsl.h"
+#include "application/assets/worlds/planet1/render_sky.glsl.h"
+
 
 #define MAX_LIGHTS 4 // 32
 

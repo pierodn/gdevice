@@ -231,15 +231,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\asset\asset.h"
-				>
-			</File>
-			<File
 				RelativePath=".\gpu\cacheable.h"
 				>
 			</File>
 			<File
-				RelativePath=".\asset\charset.h"
+				RelativePath=".\application\assets\ui\charset.h"
 				>
 			</File>
 			<File
@@ -291,11 +287,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\os\win32\keyboard.h"
+				RelativePath=".\os\keyboard.h"
 				>
 			</File>
 			<File
-				RelativePath=".\os\keyboard.h"
+				RelativePath=".\os\win32\keyboard.h"
 				>
 			</File>
 			<File
@@ -319,7 +315,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\parameters.h"
+				RelativePath=".\application\assets\worlds\planet1\parameters.h"
 				>
 			</File>
 			<File
@@ -335,11 +331,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\gpu\opengl\renderer.h"
+				RelativePath=".\gpu\renderer.h"
 				>
 			</File>
 			<File
-				RelativePath=".\gpu\renderer.h"
+				RelativePath=".\gpu\opengl\renderer.h"
 				>
 			</File>
 			<File
@@ -347,7 +343,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\os\thread.h"
+				RelativePath=".\application\assets\worlds\planet1\textures.h"
 				>
 			</File>
 			<File
@@ -355,11 +351,15 @@
 				>
 			</File>
 			<File
-				RelativePath=".\os\timer.h"
+				RelativePath=".\os\thread.h"
 				>
 			</File>
 			<File
 				RelativePath=".\os\win32\timer.h"
+				>
+			</File>
+			<File
+				RelativePath=".\os\timer.h"
 				>
 			</File>
 			<File
@@ -371,11 +371,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\os\win32\window.h"
+				RelativePath=".\os\window.h"
 				>
 			</File>
 			<File
-				RelativePath=".\os\window.h"
+				RelativePath=".\os\win32\window.h"
 				>
 			</File>
 		</Filter>
@@ -400,19 +400,19 @@
 			>
 		</File>
 		<File
-			RelativePath=".\gpu\opengl\shaders\generate_gradientmap.glsl"
+			RelativePath=".\application\assets\generate_gradientmap.glsl"
 			>
 		</File>
 		<File
-			RelativePath=".\gpu\opengl\shaders\generate_terrain.glsl"
+			RelativePath=".\application\assets\worlds\planet1\generate_terrain.glsl"
 			>
 		</File>
 		<File
-			RelativePath=".\gpu\opengl\shaders\render_sky.glsl"
+			RelativePath=".\application\assets\worlds\planet1\render_sky.glsl"
 			>
 		</File>
 		<File
-			RelativePath=".\gpu\opengl\shaders\render_terrain.glsl"
+			RelativePath=".\application\assets\worlds\planet1\render_terrain.glsl"
 			>
 		</File>
 	</Files>
