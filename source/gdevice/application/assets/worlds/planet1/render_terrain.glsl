@@ -75,7 +75,10 @@ vec4 projectToNDS(vec3 position) {
 bool isOffScreen(vec4 ndsPosition) {
     //return (ndsPosition.z < -0.5) || any(lessThan(ndsPosition.xy, vec2(-1.0)) || greaterThan(ndsPosition.xy, vec2(1.0)));
     //return (ndsPosition.z < -1.0) || any(lessThan(ndsPosition.xy, vec2(-2.0)) || greaterThan(ndsPosition.xy, vec2(2.0)));
-    return (ndsPosition.z < -2.0) || any(lessThan(ndsPosition.xy, vec2(-4.0)) || greaterThan(ndsPosition.xy, vec2(4.0)));
+    //return (ndsPosition.z << -2.0) || any(lessThan(ndsPosition.xy, vec2(-4.0)) || greaterThan(ndsPosition.xy, vec2(4.0)));
+	return ndsPosition.z < -2.0
+		|| ndsPosition.x < -4.0 || ndsPosition.x > +4.0  
+		|| ndsPosition.y < -4.0 || ndsPosition.y > +4.0;
 }
     
 vec2 projectToScreen(vec4 ndsPosition) {
@@ -632,9 +635,9 @@ void main()
         vec3 w = getTriplanarWeightVector( normalize(vec3(gVertex.gradient.xy/scale, 1)) );
         vec4 luma4 = textureTriplanar(detailsTU,  gVertex.position.xyz, w, LodBias); 
 
-        float a1 = 0.7, a2 = 1.2, // (1.0 - a1)*4,
-              a3 = 0.2, a4 = 0.2, a5 = 0.2,
-              a6 = 0.8;
+        float a1 = 0.7, a2 = 1.2, // (1.0 - a1)*4,  // LOD0
+              a3 = 0.2, a4 = 0.2, a5 = 0.2;         // LOD1
+        float sand0 = 0.8, grit0 = 0.2;             // SAND and GRIT on LOD0
         vec4 l1,l2;
         if(Tessellator > 0.0) {
             //luma4 = 0.666*luma4 + 0.333*textureTriplanar(detailsTU, gVertex.position.xyz*32.0, w, LodBias).rbaa;
@@ -643,7 +646,8 @@ void main()
             l2 = textureTriplanar(detailsTU, gVertex.position.xyz*32.0, w, LodBias);
 
             l1 = a1*l1 + a2*l1*l2.rbaa; /* l1*(0.2 + 2.7*l2);*/
-            l1.a = mix(l1.a, l2.a, a6); // sand
+            l1.a = mix(l1.a, l2.a, sand0); // sand
+            //l1.g = mix(l1.g, l2.g, grit0); // grit
 
             //luma4.rgba = max(l1.rgba, a3*l2.bgaa);
             luma4.r = l1.r > a3*l2.b ? l1.r : a4*l2.b;
@@ -676,8 +680,10 @@ void main()
 
                 l1Dx = a1*l1Dx + a2*l1Dx*l2.rbaa + a2*l1*l2Dx.rbaa; 
                 l1Dy = a1*l1Dy + a2*l1Dy*l2.rbaa + a2*l1*l2Dy.rbaa;
-                l1Dx.a = mix(l1Dx.a, l2Dx.a, a6); // sand
-                l1Dy.a = mix(l1Dy.a, l2Dy.a, a6); // sand
+                l1Dx.a = mix(l1Dx.a, l2Dx.a, sand0); // sand
+                l1Dy.a = mix(l1Dy.a, l2Dy.a, sand0); // sand
+                //l1Dx.g = mix(l1Dx.g, l2Dx.g, grit0*2.0); // grit
+                //l1Dy.g = mix(l1Dy.g, l2Dy.g, grit0*2.0); // grit
 
                 l1Dx.r = l1.r > a3*l2.b ? l1Dx.r : a5*l2Dx.b;
                 l1Dx.g = l1.g > a3*l2.g ? l1Dx.g : a5*l2Dx.g;
@@ -767,10 +773,10 @@ void main()
          light += 0.40 * Specular * specular * shadowing * getSkyDomeColor(RR, LL, sunColor, zenithColor, horizonColor, groundColor, shadowing);
     
     // Ambient
-    vec3 ambient  = 0.03 * Indirect * indirect * sunColor;
-         ambient += 0.04 * Sky	    * zenith   * zenithColor;
+    vec3 ambient  = 0.04 * Indirect * indirect * sunColor;
+         ambient += 0.05 * Sky	    * zenith   * zenithColor;
     light = mix(ambient + light, getSkyDomeColor(reflect(EE,NN), LL, sunColor, zenithColor, horizonColor, groundColor, shadowing),  
-             0.05 * Fresnel * fresnel);
+             0.08 * Fresnel * fresnel);
     
     // Tone mapping
     vec3 color = tone(1.00*light*matColor.rgb, 0.1); 
@@ -789,7 +795,9 @@ void main()
 	    float scattering = smoothstep(-0.05, 0.5, LL.z)*(1.0-exp(-0.0030*dist))*pow(EdotL, 8.0); // TODO: and visibileDistance?
 		color += 8.0 * scattering * zenithColor;
 		//float volumetric = 100.0 * Bumps * pow(0.01*gVertex.position.z, 6.0); // TODO
-		color = mix(color, groundColor, smoothstep(visibileDistance*0.2, visibileDistance, dist /*+ 0.0*volumetric*/));
+		//color = color*color*(3.0-2.0*color);
+		color = mix(color, groundColor, vec3(1.0,1.0,1.0)*smoothstep(visibileDistance*0.2, visibileDistance, dist /*+ 0.0*volumetric*/));
+        //color = mix(color, groundColor, 1.0 - exp(-0.030*dist*vec3(0.6, 1.0, 1.4))); // IQ: https://www.youtube.com/watch?v=BFld4EBO2RE&t=592
 	}
 
 
@@ -797,8 +805,8 @@ void main()
 	float gamma = Gamma > 0.0 ? 2*2.2 : 2.2;
 	color = pow(color, vec3(1.0/gamma));	
     color = mix(color, color*color*(3.0-2.0*color), 0.3 * Contrast);
-	color = mix(color, vec3(dot(color, vec3(0.299, 0.587, 0.114))), 0.3 * Unsaturate);
-	color *= mix(vec3(1.0), vec3(1.06, 1.05, 1.00), 0.5 * Tint);	
+	color = mix(color, vec3(dot(color, vec3(0.299, 0.587, 0.114))), 0.2 * Unsaturate);
+	color *= mix(vec3(1.0), vec3(1.06, 1.05, 1.00), 0.4 * Tint);	
 	color *= mix(1.0, pow(2.0*(ndcoords.x*ndcoords.x-1.0)*(ndcoords.y*ndcoords.y-1), 0.20), 0.5 * Vignetting);
 
     // TEMP
