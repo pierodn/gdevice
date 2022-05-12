@@ -1251,26 +1251,42 @@ namespace GL
 				        }
         			
 				        bool hasShaderCompiled = attach(program, shader_sources[i], shader_lenght, shader_types[i]);
-				        color(CMD_WHITE,CMD_CYAN); DEBUG_PRINT("%s", shader_names[i]); 
-                        color(CMD_LIGHTRED,0); DEBUG_PRINT(" %s", hasShaderCompiled ? "" : "==> ERROR");
-
+				        color(CMD_WHITE,CMD_CYAN); DEBUG_PRINT("%s", shader_names[i]);
+						color(CMD_WHITE, 0); DEBUG_PRINT(" ");
+                        
 				        if( !hasShaderCompiled )
 				        {
+							color(CMD_LIGHTRED,0); DEBUG_PRINT("%s", "==> ERROR\n\n");
+
                             char message[512];
 	                        glGetShaderInfoLog( program.tail().id, sizeof(message), NULL, message );
+							printf("%s\n", message);
 
-                            char* p1 = strchr(message, '(');
-                            char* p2 = strchr(p1, ')');
-                            int line = p1>0 && p2>0 ? strtol(p1+1, &p2, 10) : -1;
+							// Parse to get the error line.
+							// NOTE: Different drivers give different error messages
+							// https://gamedev.stackexchange.com/questions/38685/is-this-a-reliable-method-of-parsing-glgetshaderinfolog
+							int line = -1;
+							if(line <= 0) {
+								// NVIDIA error message
+								char *p1 = 0, *p2 = 0;
+								p1 = strchr(message, '(');
+								if( p1>0 ) p2 = strchr(p1+1, ')');
+								if( p1>0 && p2>0 ) line = strtol(p1+1, &p2, 10);
+							}
+							if(line <= 0) {
+								// ATI/Intel error message
+								char *p0 = 0, *p1 = 0, *p2 = 0;
+								p0 = strchr(message, ':');
+								if( p0>0 ) p1 = strchr(p0+1, ':');
+								if( p1>0 ) p2 = strchr(p1+1, ':');
+								if(p0>0 && p1>0 && p2>0) line = strtol(p1+1, &p2, 10);
+							}
+							ASSERT(line > 0);
 
                             #if defined(DEBUG_SHOW_GLSL_SOURCE)
-                                printf("\n\n");
 					            printSource( shader_sources[i], shader_lenght, line ); 
                                 printf("\n");
                             #endif
-
-                            color(CMD_LIGHTRED, 0); 
-		                    printf("%s\n", message);
 
                             //CRITICAL("Shader compile error");
 				        }

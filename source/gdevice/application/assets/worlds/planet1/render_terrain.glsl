@@ -75,7 +75,10 @@ vec4 projectToNDS(vec3 position) {
 bool isOffScreen(vec4 ndsPosition) {
     //return (ndsPosition.z < -0.5) || any(lessThan(ndsPosition.xy, vec2(-1.0)) || greaterThan(ndsPosition.xy, vec2(1.0)));
     //return (ndsPosition.z < -1.0) || any(lessThan(ndsPosition.xy, vec2(-2.0)) || greaterThan(ndsPosition.xy, vec2(2.0)));
-    return (ndsPosition.z < -2.0) || any(lessThan(ndsPosition.xy, vec2(-4.0)) || greaterThan(ndsPosition.xy, vec2(4.0)));
+    //return (ndsPosition.z << -2.0) || any(lessThan(ndsPosition.xy, vec2(-4.0)) || greaterThan(ndsPosition.xy, vec2(4.0)));
+	return ndsPosition.z < -2.0
+		|| ndsPosition.x < -4.0 || ndsPosition.x > +4.0  
+		|| ndsPosition.y < -4.0 || ndsPosition.y > +4.0;
 }
     
 vec2 projectToScreen(vec4 ndsPosition) {
