@@ -36,7 +36,7 @@ struct Controls
 
 	enum constants {	WIREFRAME, DEBUGMODE, BUMPS, TESSELLATOR, 
 						DIFFUSE, SPECULAR, INDIRECT, SKY, FRESNEL, 
-                        SHADOWS, DESATURATE, SCATTERING,
+                        SHADOWS, CONSERVATION, SCATTERING,
 						GAMMA, CONTRAST, UNSATURATE, TINT, VIGNETTING, 
 						CONTROLCOUNT };
 
@@ -57,7 +57,7 @@ struct Controls
 		literals[SKY]			.push("Sky");			// Sky dome contribute	
 		literals[FRESNEL]		.push("Fresnel");
         literals[SHADOWS]		.push("Shadows");		// Low-Frequency lambertian filter
-        literals[DESATURATE]	.push("Desaturate");
+        literals[CONSERVATION]	.push("Conservation");
 		literals[SCATTERING]	.push("Scattering");	// Fog + halo
 		literals[GAMMA]			.push("Gamma");
 		literals[CONTRAST]		.push("Contrast");
@@ -76,11 +76,11 @@ struct Controls
 		values[Bindings[SKY]]			= 1;
 		values[Bindings[FRESNEL]]		= 1;
         values[Bindings[SHADOWS]]		= 1;
-		values[Bindings[DESATURATE]]	= 1;
+		values[Bindings[CONSERVATION]]	= 1;
         values[Bindings[SCATTERING]]	= 1;
 		values[Bindings[GAMMA]]			= 1;
 		values[Bindings[CONTRAST]]		= 0;
-		values[Bindings[UNSATURATE]]	= 0;
+		values[Bindings[UNSATURATE]]	= 1;
 		values[Bindings[TINT]]			= 0;
 		values[Bindings[VIGNETTING]]	= 1;
 	}

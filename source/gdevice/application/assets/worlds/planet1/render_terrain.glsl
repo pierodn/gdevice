@@ -404,7 +404,7 @@ uniform int Indirect	= 1;
 uniform int Sky			= 1;	
 uniform int Fresnel		= 1;
 uniform int Shadows		= 1;
-uniform int Desaturate	= 1;
+uniform int Conservation = 1;
 uniform int Scattering	= 1;
 uniform int Gamma		= 1;
 uniform int Contrast	= 1;
@@ -764,11 +764,14 @@ void main()
 	
 	float diffuse   = occlusion * daylight * max(0.0, dot(N,L));
 	float specular  = glossmap  * daylight * dot(mixmap, specmap) * pow(max(0.0, dot(E,R)), dot(mixmap, specpow));
+
+	// Energy conservation (https://learnopengl.com/PBR/Theory)
+	diffuse = diffuse * (1.0 - specular*Conservation); 
+		
 	float indirect  = occlusion * daylight * max(0.0, dot(NN,LI)); 
 	float zenith    = occlusion * clamp(0.5 + 0.5*N.z, 0.0, 1.0);
 	float fresnel   = fresnmap  * mix(1.0, pow(1.0-abs(dot(E,N)), 4.0), 0.9);  // TODO: have a fresmap along with specmap
 
-    // Energy conservation
     vec3 light  = 0.60 * Diffuse  * diffuse  * shadowing * sunColor;
          light += 0.40 * Specular * specular * shadowing * getSkyDomeColor(RR, LL, sunColor, zenithColor, horizonColor, groundColor, shadowing);
     
@@ -810,7 +813,7 @@ void main()
 	color *= mix(1.0, pow(2.0*(ndcoords.x*ndcoords.x-1.0)*(ndcoords.y*ndcoords.y-1), 0.20), 0.5 * Vignetting);
 
     // TEMP
-	color += 0.00000000001 * Wireframe * Gamma * Contrast * Unsaturate * Tint * Vignetting * Desaturate * Scattering * Fresnel;
+	color += 0.00000000001 * Wireframe * Gamma * Contrast * Unsaturate * Tint * Vignetting * Conservation * Scattering * Fresnel;
 	
 	// Debug controls
    	if( DebugMode == ColorView ) {
