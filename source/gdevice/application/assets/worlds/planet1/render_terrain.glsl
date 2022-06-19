@@ -808,7 +808,7 @@ void main()
 	float gamma = Gamma > 0.0 ? 2*2.2 : 2.2;
 	color = pow(color, vec3(1.0/gamma));	
     color = mix(color, color*color*(3.0-2.0*color), 0.3 * Contrast);
-	color = mix(color, vec3(dot(color, vec3(0.299, 0.587, 0.114))), 0.3 * Unsaturate);
+	color = mix(color, vec3(dot(color, vec3(0.299, 0.587, 0.114))), 0.2 * Unsaturate);
 	color *= mix(vec3(1.0), vec3(1.06, 1.05, 1.00), 0.4 * Tint);	
 	color *= mix(1.0, pow(2.0*(ndcoords.x*ndcoords.x-1.0)*(ndcoords.y*ndcoords.y-1), 0.20), 0.5 * Vignetting);
 

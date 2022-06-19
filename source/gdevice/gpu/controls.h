@@ -76,11 +76,11 @@ struct Controls
 		values[Bindings[SKY]]			= 1;
 		values[Bindings[FRESNEL]]		= 1;
         values[Bindings[SHADOWS]]		= 1;
-		values[Bindings[CONSERVATION]]	= 1;
+		values[Bindings[CONSERVATION]]	= 0;
         values[Bindings[SCATTERING]]	= 1;
 		values[Bindings[GAMMA]]			= 1;
 		values[Bindings[CONTRAST]]		= 0;
-		values[Bindings[UNSATURATE]]	= 1;
+		values[Bindings[UNSATURATE]]	= 0;
 		values[Bindings[TINT]]			= 0;
 		values[Bindings[VIGNETTING]]	= 1;
 	}

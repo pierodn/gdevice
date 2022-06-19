@@ -67,7 +67,7 @@ vec4 triangle(in vec2 p, float pack = 0.12, float erode = 0.47)
     return t;
 }
     
-
+/*
 // Cheaper than Voronoi.
 vec4 triangular(in vec2 point, float scale = 1.0, float pack = 0.12, float erode = 0.30 )
 {
@@ -97,6 +97,30 @@ vec4 triangular(in vec2 point, float scale = 1.0, float pack = 0.12, float erode
     d = vec4( 3.0*(F2-F1).xyz, 0.0 );
     d.xy *= scale; 
     return d;
+}*/
+
+vec4 triangular(vec2 point, float scale, float low, float high )
+{
+    point *= scale;
+    
+    const mat2 R1 = mat2( -0.7373, -0.6755, +0.6755, -0.7373 ); // 137.5077 (Golden Angle)
+    const mat2 R2 = mat2( +0.3623, -0.9320, +0.9320, +0.3623 ); // 19.64390 (Ga/7)
+    const mat2 R3 = mat2( -0.7159, -0.6981, +0.6981, -0.7159 ); // 27.50154 (Ga/5)
+    vec4 F1 = triangle(point, low, high); 
+    vec4 F2 = triangle(R1*point + R1[0], low, high); F2.xy *= R1;
+    vec4 F3 = triangle(R2*point + R2[0], low, high); F3.xy *= R2;
+    //vec4 F4 = triangle(R3*point + R3[0], low, high); F4.xy *= R3;
+
+    if( F1.z > F2.z ) { vec4 t = F1; F1 = F2; F2 = t; };
+    //if( F3.z > F4.z ) { vec4 t = F3; F3 = F4; F4 = t; };
+    if( F1.z > F3.z ) { vec4 t = F1; F1 = F3; F3 = t; };
+    //if( F2.z > F4.z ) { vec4 t = F2; F2 = F4; F4 = t; };
+    if( F2.z > F3.z ) { vec4 t = F2; F2 = F3; F3 = t; };
+
+    vec4 result = vec4(F1.xyz, (F2-F1).z);
+    
+	result.xy *= scale;
+    return result;
 }
 
 //
@@ -246,6 +270,8 @@ Substance getSubstance(vec4 t)
         slope > 0.05 ? sand :
                        SAND;
 
+    //substance.color.r += pow(t.w, 0.25);
+
 #if 0  // Snow
     float h = smoothstep(0.20, 0.40, height );
     float e = smoothstep(1.0 - 0.5*h, 1.0 - 0.2*h, 1 - slope);
@@ -328,6 +354,34 @@ Vertex getVertex(ivec2 ij)
     vec4 t0 = terrain(dwPointU, dwPointV, 1,              signal, weight, scale0, frequency);
     vec4 c1 = terrain(dwPointU, dwPointV, terrainFreq-1,  signal, weight, scale0, frequency);
     vec4 t1 = terrain(dwPointU, dwPointV, 1,              signal, weight, scale0, frequency);
+
+    #if 0
+        // Triangular Base line 
+        float scale1 = 10.0;
+        point *= scale1;
+        // t2 = warp(t, 0.4, 0.7);
+        float f = 0.4, a = 0.7;
+        vec4 nu = a*vec4(f,f,1,0)*fbm((point.xy+0.000)*f, 5);
+        vec4 nv = a*vec4(f,f,1,0)*fbm((point.yx+123.1)*f, 5);
+        vec4 u = vec4(nu.xy + vec2(1.0, 0.0), nu.z + point.x, 0.0);
+        vec4 v = vec4(nv.xy + vec2(0.0, 1.0), nv.z + point.y, 0.0);
+        vec2 uv = vec2(u.z,v.z);
+        vec4 t = power(1.6*triangular(uv, 0.5, 0.00, 0.46), 4.0); 
+        t.x = t.x*u.x + t.y*v.x;
+        t.y = t.x*u.y + t.y*v.y;
+        //t = 0.1*t;
+        t.xy *= scale1;
+
+        float k0 = 0.0;
+        float k1 = 0.0;
+        float k2 = 0.1;
+        float pp = 1.0;
+        c0 = k0*t + power(k2*multiply(t, bias(c0, k1)), pp);
+        t0 = k0*t + power(k2*multiply(t, bias(t0, k1)), pp);
+        c1 = k0*t + power(k2*multiply(t, bias(c1, k1)), pp);
+        t1 = k0*t + power(k2*multiply(t, bias(t1, k1)), pp);
+    #endif
+
 #else
     vec4 c0 = hybrid(point, shadowfreq-1,   signal, weight, scale0, frequency);
     vec4 t0 = hybrid(point, 1,              signal, weight, scale0, frequency);
