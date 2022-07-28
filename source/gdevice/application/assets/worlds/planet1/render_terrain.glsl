@@ -197,8 +197,7 @@ out VertexData {
 // Common functions
 //
 vec3 getTriplanarWeightVector(vec3 N) {
-    vec3 w = pow(abs(N), vec3(64.0)); 
-    // w = max(w, 0.000000000000001); 
+    vec3 w = pow(abs(N), vec3(64.0));  
     return w / dot(w, vec3(1.0));
 }
 
@@ -459,8 +458,8 @@ out vec4 fragColor;
 // Common functions
 //
 vec3 getTriplanarWeightVector(vec3 N) {
-    vec3 w = pow(abs(N), vec3(64.0)); 
-    // w = max(w, 0.000000000000001); 
+    vec3 w = pow(abs(N), vec3(64.0));  
+    //w = max(w, 0.00001); // layering
     return w / dot(w, vec3(1.0));
 }
 
@@ -470,48 +469,6 @@ vec4 textureTriplanar(sampler2D detailsTU, vec3 position, vec3 weight, float lod
          + weight.y*texture(detailsTU, position.zx, lodBias) 
          + weight.z*texture(detailsTU, position.xy, lodBias);
 }
-
-/*
-// From IQ. Does it work? 
-// There is some thin discountinuity I'm not sure I can get rid of.
-vec4 textureBiplanar( sampler2D sam, vec3 p, vec3 n, float lodBias )
-{
-    float k = 8.0;
-
-    // grab coord derivatives for texturing
-    vec3 dpdx = dFdx(p);
-    vec3 dpdy = dFdy(p);
-    //n = abs(n);
-
-    // major axis (in x; yz are following axis)
-    ivec3 ma = (n.x>n.y && n.x>n.z) ? ivec3(0,1,2) :
-               (n.y>n.z)            ? ivec3(1,2,0) :
-                                      ivec3(2,0,1) ;
-    // minor axis (in x; yz are following axis)
-    ivec3 mi = (n.x<n.y && n.x<n.z) ? ivec3(0,1,2) :
-               (n.y<n.z)            ? ivec3(1,2,0) :
-                                      ivec3(2,0,1) ;
-        
-    // median axis (in x;  yz are following axis)
-    ivec3 me = ivec3(3) - mi - ma;
-    
-    // project+fetch
-    vec4 x = textureGrad( sam, vec2(   p[ma.y],   p[ma.z]), 
-                               vec2(dpdx[ma.y],dpdx[ma.z]), 
-                               vec2(dpdy[ma.y],dpdy[ma.z]) );
-    vec4 y = textureGrad( sam, vec2(   p[me.y],   p[me.z]), 
-                               vec2(dpdx[me.y],dpdx[me.z]),
-                               vec2(dpdy[me.y],dpdy[me.z]) );
-    
-    // blend and return
-    vec2 m = vec2(n[ma.x],n[me.x]);
-    // optional - add local support (prevents discontinuty)
-    m = clamp( (m-0.5773)/(1.0-0.5773), 0.0, 1.0 );
-    // transition control
-    m = pow( m, vec2(k/8.0) );
-	return (x*m.x + y*m.y) / (m.x + m.y);
-}
-*/
 
 // https://www.shadertoy.com/view/Ms3yzS
 vec4 blendMixmap(vec4 mixmap) 

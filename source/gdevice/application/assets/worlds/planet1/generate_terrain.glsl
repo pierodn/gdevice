@@ -66,38 +66,6 @@ vec4 triangle(in vec2 p, float pack = 0.12, float erode = 0.47)
     t = saturate(t, pack, erode);
     return t;
 }
-    
-/*
-// Cheaper than Voronoi.
-vec4 triangular(in vec2 point, float scale = 1.0, float pack = 0.12, float erode = 0.30 )
-{
-    mat2 R1 = mat2( -0.7373, -0.6755, +0.6755, -0.7373 ); // 137.5077 (Golden Angle)
-    mat2 R2 = mat2( +0.3623, -0.9320, +0.9320, +0.3623 ); // 19.6439 (Ga/7)
-    mat2 R3 = mat2( -0.7159, -0.6981, +0.6981, -0.7159 ); // 27.50154 (Ga/5)
-  
-    vec4 F1 = vec4(0.0, 0.0, 1.0, 0.0);
-    vec4 F2 = vec4(0.0, 0.0, 1.0, 0.0);
-    
-    point *= scale;
-    vec4 d = triangle(point, pack, erode); 
-    if( d.z<F1.z ) { F2 = F1; F1 = d; } else if( d.z<F2.z ) F2 = d; 
-
-    d = triangle(R1*point + R1[0], pack, erode); 
-    d.xy *= R1;
-    if( d.z<F1.z ) { F2 = F1; F1 = d; } else if( d.z<F2.z ) F2 = d; 
-
-    d = triangle(R2*point + R2[0], pack, erode); 
-    d.xy *= R2;
-    if( d.z<F1.z ) { F2 = F1; F1 = d; } else if( d.z<F2.z ) F2 = d; 
-  
-    d = triangle(R3*point + R3[0], pack, erode);  
-    d.xy *= R3;
-    if( d.z<F1.z ) { F2 = F1; F1 = d; } else if( d.z<F2.z ) F2 = d; 
-    
-    d = vec4( 3.0*(F2-F1).xyz, 0.0 );
-    d.xy *= scale; 
-    return d;
-}*/
 
 vec4 triangular(vec2 point, float scale, float low, float high )
 {
@@ -108,14 +76,14 @@ vec4 triangular(vec2 point, float scale, float low, float high )
     const mat2 R3 = mat2( -0.7159, -0.6981, +0.6981, -0.7159 ); // 27.50154 (Ga/5)
     vec4 F1 = triangle(point, low, high); 
     vec4 F2 = triangle(R1*point + R1[0], low, high); F2.xy *= R1;
-    vec4 F3 = triangle(R2*point + R2[0], low, high); F3.xy *= R2;
+    //vec4 F3 = triangle(R2*point + R2[0], low, high); F3.xy *= R2;
     //vec4 F4 = triangle(R3*point + R3[0], low, high); F4.xy *= R3;
 
     if( F1.z > F2.z ) { vec4 t = F1; F1 = F2; F2 = t; };
     //if( F3.z > F4.z ) { vec4 t = F3; F3 = F4; F4 = t; };
-    if( F1.z > F3.z ) { vec4 t = F1; F1 = F3; F3 = t; };
+    //if( F1.z > F3.z ) { vec4 t = F1; F1 = F3; F3 = t; };
     //if( F2.z > F4.z ) { vec4 t = F2; F2 = F4; F4 = t; };
-    if( F2.z > F3.z ) { vec4 t = F2; F2 = F3; F3 = t; };
+    //if( F2.z > F3.z ) { vec4 t = F2; F2 = F3; F3 = t; };
 
     vec4 result = vec4(F1.xyz, (F2-F1).z);
     
@@ -215,9 +183,7 @@ vec4 hybrid(vec2 point, int octaves,
         weight.w = dot(weight.xy, weight.xy);
         frequency = min(frequency*lacunarity, maxFrequency);
 	    scale *= lacunarity;
-	    //point += 0.001*scale;	
     }
-    
     return signal;
 }
                               
@@ -253,7 +219,7 @@ Substance getSubstance(vec4 t)
 	float more = pow(1.0 - less, 2.0);
 
     // ===================  Red   Green Blue  Spec  ===== Rock  Grit  Bran  Sand
-	Substance ROCK = { vec4(0.36, 0.30, 0.26, 0.00), vec4(1.00, 0.00, 0.00, 0.00) };
+	Substance ROCK = { vec4(0.36, 0.28, 0.22, 0.00), vec4(1.00, 0.00, 0.00, 0.00) };
     Substance GRIT = { vec4(0.46, 0.38, 0.35, 0.00), vec4(0.00, 1.00, 0.00, 0.00) };
     Substance BRAN = { vec4(0.34, 0.26, 0.22, 0.00), vec4(less, 1.00, more, 0.00) };
     Substance SAND = { vec4(0.70, 0.54, 0.45, 0.00), vec4(0.00, 0.00, 0.00, 1.1 + 0.2*more) };
@@ -265,9 +231,9 @@ Substance getSubstance(vec4 t)
     Substance sand = sMix(SAND, grit, /*more**/flow);
 
     Substance substance = 
-        slope > 0.40 ? ROCK : 
+        slope > 0.34 ? ROCK : 
         slope > 0.30 ? grit : 
-        slope > 0.05 ? sand :
+        slope > 0.04 ? sand :
                        SAND;
 
     //substance.color.r += pow(t.w, 0.25);
@@ -314,7 +280,7 @@ vec4 terrain(vec4 U, vec4 V, int octaves,
     inout float scale,
     inout float frequency)
 {
-    vec4 t = 1.0*hybrid(vec2(U.z, V.z), octaves, signal, weight, scale, frequency);
+    vec4 t = 1.4*hybrid(vec2(U.z, V.z), octaves, signal, weight, scale, frequency);
 
     // Chain rule.
     t.x = t.x*U.x + t.y*V.x;
@@ -335,7 +301,7 @@ Vertex getVertex(ivec2 ij)
 
     vec4 signal = vec4(0.0);
     vec4 weight = vec4(0.0, 0.0, 0.17, 0.0);
-    float ZOOM0 = 1.0;
+    float ZOOM0 = 10.0;
     float scale0 = ZOOM0;
     float frequency = 0.73;
    
@@ -356,6 +322,13 @@ Vertex getVertex(ivec2 ij)
     vec4 t1 = terrain(dwPointU, dwPointV, 1,              signal, weight, scale0, frequency);
 
     #if 0
+		// Shattered rock 
+		float stepHeight = 771.0; // * (0.1+0.5*fbm((point + 0.000)*dwFrequency, 4).z);// * (0.1 + 0.9*tr4.z);
+        float hardness = 1.0*(1.0 + 0.5 + 0.5*fbm((point + 0.000)*dwFrequency*2.25, 4).z);// * (0.1 + 0.9*tr4.z);
+        t1 = smoothFloor(t1*stepHeight, hardness)/stepHeight;
+    #endif
+
+    #if 1
         // Triangular Base line 
         float scale1 = 10.0;
         point *= scale1;
@@ -371,15 +344,45 @@ Vertex getVertex(ivec2 ij)
         t.y = t.x*u.y + t.y*v.y;
         //t = 0.1*t;
         t.xy *= scale1;
-
+        
+        t = saturate(t, 0.002, 0.5);
+        /*
+        float scale2 = 3.0;
+        vec4 nn = fbm(point.xy*scale2, 5)*vec4(scale2, scale2, 1.0, 1.0);
+        nn = bias(nn, 0.5);
+        //nn = smoothStep(0.2, 0.5, nn);
+        nn = power(nn, 2.0);
+        t = multiply(t, nn);
+        */
+/*
+        // fbm doesn't produce discontinuities
+        float scale3 = 1.0;
+        t1 = fbm(point.xy*scale3, 15)*vec4(scale3, scale3, 1.0, 1.0);
+        t1 = bias(t1, +0.5);
+*/        
+        // fmb produces discontinuities
+        //t = 1.7 * t1;
+        
+        //t = lerp( smoothStep(0.3, 0.99, t), t, t+t1) ;//+ t1;//+ power(t1,2.0); 
+        
+        t = 0.25 * multiply(t, 1.0*smoothStep(0.38, 0.50, t1) + 1.0*smoothStep(0.35, 0.50, t1));
+        
+        //t = multiply(t, t1);
+        
+        
+/*
         float k0 = 0.0;
-        float k1 = 0.0;
-        float k2 = 0.1;
+        float k1 = 0.2;
+        float k2 = 1.0;
         float pp = 1.0;
-        c0 = k0*t + power(k2*multiply(t, bias(c0, k1)), pp);
-        t0 = k0*t + power(k2*multiply(t, bias(t0, k1)), pp);
-        c1 = k0*t + power(k2*multiply(t, bias(c1, k1)), pp);
-        t1 = k0*t + power(k2*multiply(t, bias(t1, k1)), pp);
+        t = unit;
+        c0 = k0*t + k2*power(multiply(t, bias(c0, k1)), pp);
+        t0 = k0*t + k2*power(multiply(t, bias(t0, k1)), pp);
+        c1 = k0*t + k2*power(multiply(t, bias(c1, k1)), pp);
+        t1 = k0*t + k2*power(multiply(t, bias(t1, k1)), pp);
+*/
+        t *= 1.0/8.0;
+        c0 = t0 = c1 = t1 = t;
     #endif
 
 #else
@@ -403,7 +406,7 @@ Vertex getVertex(ivec2 ij)
     
 	
     // Post processing
-#if 1
+#if 0
 	float tr4scale = 31.0;
     vec4 tr4 = fbm_triangular(-point*tr4scale, 4, 0.20, 0.30, 0.5) * vec4(-tr4scale, -tr4scale, 1.0, 1.0); 
 
@@ -488,8 +491,7 @@ void main()
 	Vertex v1 = getVertex(i1);
 	Vertex v2 = getVertex(i2);
 	Vertex v3 = getVertex(i3);
-	
-	//if( i0.x == 0 || i0.y == 0 ) v0.color *= 0.3; // To show tiles.
+
 	imageStore( quartetsIU,	 i0, vec4(v0.position.z, v0.position.z, v0.position.z, v0.position.z));
 	imageStore( gradientsIU, i0, v0.gradient);
 	imageStore( colorsIU,    i0, v0.color);
