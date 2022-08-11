@@ -752,8 +752,9 @@ void main()
 	// Scattering
 	if( Scattering > 0 ) {
 	    float EdotL = max(0.0, dot(E,L));
-	    float scattering = smoothstep(-0.05, 0.5, LL.z)*(1.0-exp(-0.0030*dist))*pow(EdotL, 8.0); // TODO: and visibileDistance?
-		color += 8.0 * scattering * zenithColor;
+	    float scattering = smoothstep(+0.05, 0.5, LL.z)*(1.0-exp(-0.0200*dist))*pow(EdotL, 8.0); // TODO: and visibileDistance?
+	    scattering = min(8.0*scattering, 0.5);
+		color += scattering * zenithColor;
 		//float volumetric = 100.0 * Bumps * pow(0.01*gVertex.position.z, 6.0); // TODO
 		//color = color*color*(3.0-2.0*color);
 		color = mix(color, groundColor, vec3(1.0,1.0,1.0)*smoothstep(visibileDistance*0.0, visibileDistance, dist /*+ 0.0*volumetric*/));

@@ -346,43 +346,8 @@ Vertex getVertex(ivec2 ij)
         t.xy *= scale1;
         
         t = saturate(t, 0.002, 0.5);
-        /*
-        float scale2 = 3.0;
-        vec4 nn = fbm(point.xy*scale2, 5)*vec4(scale2, scale2, 1.0, 1.0);
-        nn = bias(nn, 0.5);
-        //nn = smoothStep(0.2, 0.5, nn);
-        nn = power(nn, 2.0);
-        t = multiply(t, nn);
-        */
-/*
-        // fbm doesn't produce discontinuities
-        float scale3 = 1.0;
-        t1 = fbm(point.xy*scale3, 15)*vec4(scale3, scale3, 1.0, 1.0);
-        t1 = bias(t1, +0.5);
-*/        
-        // fmb produces discontinuities
-        //t = 1.7 * t1;
-        
-        //t = lerp( smoothStep(0.3, 0.99, t), t, t+t1) ;//+ t1;//+ power(t1,2.0); 
-        
-        t = 0.25 * multiply(t, 1.0*smoothStep(0.38, 0.50, t1) + 1.0*smoothStep(0.35, 0.50, t1));
-        
-        //t = multiply(t, t1);
-        
-        
-/*
-        float k0 = 0.0;
-        float k1 = 0.2;
-        float k2 = 1.0;
-        float pp = 1.0;
-        t = unit;
-        c0 = k0*t + k2*power(multiply(t, bias(c0, k1)), pp);
-        t0 = k0*t + k2*power(multiply(t, bias(t0, k1)), pp);
-        c1 = k0*t + k2*power(multiply(t, bias(c1, k1)), pp);
-        t1 = k0*t + k2*power(multiply(t, bias(t1, k1)), pp);
-*/
-        t *= 1.0/8.0;
-        c0 = t0 = c1 = t1 = t;
+
+        t = 0.04 * multiply(t, 2.0*smoothStep(0.26, 0.50, t1) + 0.3*smoothStep(0.35, 0.50, t1));       c0 = t0 = c1 = t1 = t;
     #endif
 
 #else
