@@ -9,11 +9,13 @@ COMPUTE:
 
 uniform vec2  offset;
 uniform float size;
+
 // TODO: Make uniforms (?)
 #define RES 17      //17	// NOTE change also into gdevice_parameters.h
-#define ZOOM 1.5    // Controls both domain and height scale, to keep proportions.
-//const vec3 scale = vec3( vec2(0.005)*ZOOM, 50/ZOOM );
-const vec3 scale = vec3( vec2(0.005)*ZOOM, 200/ZOOM );
+
+#define SCALE 130
+#define OCTAVES 13
+const vec3 worldScale = vec3(vec2(1.0/SCALE), SCALE);
 
 layout (binding=0, rgba32f) uniform writeonly image2D quartetsIU;
 layout (binding=1, rgba32f) uniform writeonly image2D gradientsIU;
@@ -207,7 +209,7 @@ Substance sMix(Substance s1, Substance s2, float a) {
     return substance;
 }
 	
-Substance getSubstance(vec4 t)
+Substance getSubstance(vec4 t, vec3 scale)
 { 
     float slope = 1.0 - normalize(vec3(t.xy, 1.0)).z;
 	float height = t.z;
@@ -291,9 +293,9 @@ vec4 terrain(vec4 U, vec4 V, int octaves,
 Vertex getVertex(ivec2 ij)
 {		
 	vec2 point = offset + vec2(ij)*size/(RES-1);
-	point *= scale.xy; // NOTE: Must apply to gradient as well.
+	point *= worldScale.xy; // NOTE: Must apply to gradient as well.
 
-    int octaves = 13; 
+    int octaves = OCTAVES; 
     int lodOctaveBudget = int(octaves - 0.0*log2(size)); // TODO: enable
     int shadowfreq = int(lodOctaveBudget*0.50); // 0.40
     int spikesfreq = int(lodOctaveBudget*0.20); // 0.20
@@ -301,8 +303,7 @@ Vertex getVertex(ivec2 ij)
 
     vec4 signal = vec4(0.0);
     vec4 weight = vec4(0.0, 0.0, 0.17, 0.0);
-    float ZOOM0 = 10.0;
-    float scale0 = ZOOM0;
+    float scale0 = 1200*worldScale.x; 
     float frequency = 0.73;
    
 #if 1 
@@ -330,24 +331,34 @@ Vertex getVertex(ivec2 ij)
 
     #if 1
         // Triangular Base line 
-        float scale1 = 10.0;
-        point *= scale1;
-        // t2 = warp(t, 0.4, 0.7);
+        float scale1 = 1333.0 * worldScale.x;
+        vec2 point1 = point*scale1;
+        // TODO: t2 = warp(t, 0.4, 0.7);
         float f = 0.4, a = 0.7;
-        vec4 nu = a*vec4(f,f,1,0)*fbm((point.xy+0.000)*f, 5);
-        vec4 nv = a*vec4(f,f,1,0)*fbm((point.yx+123.1)*f, 5);
-        vec4 u = vec4(nu.xy + vec2(1.0, 0.0), nu.z + point.x, 0.0);
-        vec4 v = vec4(nv.xy + vec2(0.0, 1.0), nv.z + point.y, 0.0);
+        vec4 nu = a*vec4(f,f,1,0)*fbm((point1.xy+0.000)*f, 5);
+        vec4 nv = a*vec4(f,f,1,0)*fbm((point1.yx+123.1)*f, 5);
+        vec4 u = vec4(nu.xy + vec2(1.0, 0.0), nu.z + point1.x, 0.0);
+        vec4 v = vec4(nv.xy + vec2(0.0, 1.0), nv.z + point1.y, 0.0);
         vec2 uv = vec2(u.z,v.z);
         vec4 t = power(1.6*triangular(uv, 0.5, 0.00, 0.46), 4.0); 
         t.x = t.x*u.x + t.y*v.x;
         t.y = t.x*u.y + t.y*v.y;
-        //t = 0.1*t;
         t.xy *= scale1;
+        
+        //t.z *= scale1.z;
         
         t = saturate(t, 0.002, 0.5);
 
-        t = 0.04 * multiply(t, 2.0*smoothStep(0.26, 0.50, t1) + 0.3*smoothStep(0.35, 0.50, t1));       c0 = t0 = c1 = t1 = t;
+        t = 0.04 * multiply(t, 2.0*smoothStep(0.26, 0.50, t1) + 0.3*smoothStep(0.35, 0.50, t1)); 
+        //t = maximum(t, bias(0.65*saturate(power(t, 0.5), 0.00, 0.2), -0.07));
+        
+        float sc = 30;
+        vec4 tt; // = triangular(uv*sc, 0.5, 0.00, 0.46) * vec4(vec2(sc), vec2(1.0));
+        tt = smoothStep(0.45, 0.99, t1);
+        t += 0.001*power(tt, 64.0);
+        
+        // TODO: shadow consistency   
+        c0 = t0 = c1 = t1 = t;
     #endif
 
 #else
@@ -359,15 +370,15 @@ Vertex getVertex(ivec2 ij)
 
     // The domain scale is applied to gradient as well.
     //c0.xy *= -scale.xy;
-    t0.xy *= -scale.xy;
-    t1.xy *= -scale.xy;
+    t0.xy *= -worldScale.xy;
+    t1.xy *= -worldScale.xy;
     
     // Height scale is applied to gradient but not to height yet
     // because I want height be somewhat normalized when computing the substance. 
     // That means: the substance is computed on correct steepness and on normalized height.
     //c0.xy *= scale.z;
-    t0.xy *= scale.z;
-    t1.xy *= scale.z;
+    t0.xy *= worldScale.z;
+    t1.xy *= worldScale.z;
     
 	
     // Post processing
@@ -400,9 +411,9 @@ Vertex getVertex(ivec2 ij)
     //t1 = t1*0.000000000001 + 0.004*tr4;
 #endif
 
-	Substance substance = getSubstance(t1);
+	Substance substance = getSubstance(t1, worldScale);
 	
-    t1.z *= scale.z; 
+    t1.z *= worldScale.z; 
     
 	vec4 position = t1; // Here only z is actually used.
     vec4 gradient = vec4(t1.xy, t0.xy) * size; // Applying tile domain scale to gradient.
@@ -414,8 +425,8 @@ Vertex getVertex(ivec2 ij)
 	vec4 coarserColor;
 	vec4 coarserMixmap;
 	if( (ij.x % 2 + ij.y % 2) == 0 ) {
-	    Substance substance = getSubstance(c1);
-	    c1.z *= scale.z; 
+	    Substance substance = getSubstance(c1, worldScale);
+	    c1.z *= worldScale.z; 
 	    coarserPosition = c1;
 	    coarserGradient = vec4(c1.xy, c0.xy) * size;
 	    coarserColor    = substance.color;
