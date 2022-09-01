@@ -12,7 +12,7 @@
 #define METERS_PER_TILE		2.0
 
 // Terrain, heightmap, clipmap
-#define TILE_RESOLUTION		17 //33 //2^N+1. NOTE: Change also in generate_terrain.glsl
+#define TILE_RESOLUTION		33 //33 //2^N+1. NOTE: Change also in generate_terrain.glsl
 #define CLIPMAPS_COUNT		5		// 12
 #define CLIPMAP_WINDOW		10
 #define CLIPMAP_BUFFERING	0

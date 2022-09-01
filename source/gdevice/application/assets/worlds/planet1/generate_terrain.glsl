@@ -11,7 +11,7 @@ uniform vec2  offset;
 uniform float size;
 
 // TODO: Make uniforms (?)
-#define RES 17      //17	// NOTE change also into gdevice_parameters.h
+#define RES 33      //17	// NOTE change also into gdevice_parameters.h
 
 #define SCALE 130
 #define OCTAVES 13
@@ -340,25 +340,22 @@ Vertex getVertex(ivec2 ij)
         vec4 u = vec4(nu.xy + vec2(1.0, 0.0), nu.z + point1.x, 0.0);
         vec4 v = vec4(nv.xy + vec2(0.0, 1.0), nv.z + point1.y, 0.0);
         vec2 uv = vec2(u.z,v.z);
-        vec4 t = power(1.6*triangular(uv, 0.5, 0.00, 0.46), 4.0); 
+        vec4 t = power(1.333*triangular(uv, 0.5, 0.00, 0.46), 2.0); 
         t.x = t.x*u.x + t.y*v.x;
         t.y = t.x*u.y + t.y*v.y;
         t.xy *= scale1;
-        
         //t.z *= scale1.z;
-        
-        t = saturate(t, 0.002, 0.5);
+        t = saturate(t, 0.005, 0.200);
 
-        t = 0.04 * multiply(t, 2.0*smoothStep(0.26, 0.50, t1) + 0.3*smoothStep(0.35, 0.50, t1)); 
-        //t = maximum(t, bias(0.65*saturate(power(t, 0.5), 0.00, 0.2), -0.07));
-        
-        float sc = 30;
-        vec4 tt; // = triangular(uv*sc, 0.5, 0.00, 0.46) * vec4(vec2(sc), vec2(1.0));
-        tt = smoothStep(0.45, 0.99, t1);
-        t += 0.001*power(tt, 64.0);
-        
-        // TODO: shadow consistency   
-        c0 = t0 = c1 = t1 = t;
+		#if 0
+			t = 0.04 * multiply(t, 3.0*smoothStep(0.26, 0.50, t1) + 0.3*smoothStep(0.35, 0.50, t1)); 
+			c0 = t0 = c1 = t1 = t;
+        #else 
+			c0 = 0.04 * multiply(t, 3.0*smoothStep(0.26, 0.50, c0) + 0.3*smoothStep(0.35, 0.50, c0)); 
+			t0 = 0.04 * multiply(t, 3.0*smoothStep(0.26, 0.50, t0) + 0.3*smoothStep(0.35, 0.50, t0)); 
+			c1 = 0.04 * multiply(t, 3.0*smoothStep(0.26, 0.50, c1) + 0.3*smoothStep(0.35, 0.50, c1)); 
+			t1 = 0.04 * multiply(t, 3.0*smoothStep(0.26, 0.50, t1) + 0.3*smoothStep(0.35, 0.50, t1)); 
+		#endif 
     #endif
 
 #else

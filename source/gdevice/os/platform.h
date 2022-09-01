@@ -135,13 +135,13 @@ inline void printf(void* x)			{ printf("%08X", x); };
     #define DEBUG_CHECKPOINT_AUTO       _PRINT_PATH(__FUNCTION__, __FILE__, __LINE__); color(CMD_WHITE,CMD_CYAN); printf(__COUNTER__); color(15,0);
     #define DEBUG_CHECKPOINT(tag)       _PRINT_PATH(__FUNCTION__, __FILE__, __LINE__); color(CMD_WHITE,CMD_CYAN); printf("%s\n", #tag); color(15,0);
     #define DEBUG_PATH                  _PRINT_PATH(__FUNCTION__, __FILE__, __LINE__);
-    #define DEBUG_TRACE(variable)       _PRINT_PATH(__FUNCTION__, __FILE__, __LINE__); color(CMD_LIGHTGRAY,0); printf("%s ", #variable); color(CMD_DARKGRAY,0); printf("= "); color(CMD_GREEN,0); printf(variable); printf("\n");
+	#define DEBUG_TRACE(variable)       _PRINT_PATH(__FUNCTION__, __FILE__, __LINE__); color(CMD_LIGHTGRAY,0); printf("%s ", #variable); color(CMD_DARKGRAY,0); printf("= "); color(CMD_YELLOW,0); printf(variable); printf("\n");
     #define DEBUG_WARNING(message)      _WARNING((message), __FUNCTION__, __FILE__, __LINE__)
     #define DEBUG_CRITICAL(message)     _CRITICAL((message), __FUNCTION__, __FILE__, __LINE__)
     #define DEBUG_PROFILE(expected)     Profiler __profiler(expected, __FUNCTION__, __FILE__, __LINE__)
     #define DEBUG_CHECKPOINT_AUTO_ONCE  {static bool t = false; if(!t) { _PRINT_PATH(__FUNCTION__, __FILE__, __LINE__); color(CMD_WHITE,CMD_CYAN); printf(__COUNTER__); color(15,0); t = true;}}
     #define DEBUG_CHECKPOINT_ONCE(tag)  {static bool t = false; if(!t) { _PRINT_PATH(__FUNCTION__, __FILE__, __LINE__); color(CMD_WHITE,CMD_CYAN); printf("%s\n", #tag); color(15,0); t = true;}}
-    #define DEBUG_TRACE_ONCE(variable)  {static bool t = false; if(!t) { _PRINT_PATH(__FUNCTION__, __FILE__, __LINE__); color(CMD_LIGHTGRAY,0); printf("%s ", #variable); color(CMD_DARKGRAY,0); printf("= "); color(CMD_GREEN,0); printf(variable); printf("\n"); t = true;}}
+    #define DEBUG_TRACE_ONCE(variable)  {static bool t = false; if(!t) { _PRINT_PATH(__FUNCTION__, __FILE__, __LINE__); color(CMD_LIGHTGRAY,0); printf("%s ", #variable); color(CMD_DARKGRAY,0); printf("= "); color(CMD_YELLOW,0); printf(variable); printf("\n"); t = true;}}
     #define DEBUG_WARNING_ONCE(message) {static bool t = false; if(!t) { _WARNING((message),  __FUNCTION__, __FILE__, __LINE__); t = true;}}
     #define DEBUG_PROFILE_ONCE(expected) static bool t__FUNCTION__=false; Profiler __profiler(expected, __FUNCTION__, __FILE__, __LINE__, t__FUNCTION__, true); t__FUNCTION__=true;
     #define DEBUG_RUN_ONCE(code)        {static bool t = false; if(!t) { code; t = true;}}

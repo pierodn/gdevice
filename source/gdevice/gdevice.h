@@ -115,7 +115,7 @@ public:
 	    // 
 	    // Misc controls
 	    //
-	    wheelSpeed = clamp(wheelSpeed + window.mouseDeltaWheel()/200.0, 1.0, 31.6228);
+	    wheelSpeed = clamp(wheelSpeed + window.mouseDeltaWheel()/200.0, 0.25, 31.6228);
 
 	    if(Key('L').isJustPressed()) window.toogleFullscreen();
 	    if(Key('P').isJustPressed()) window.togglePointer();
