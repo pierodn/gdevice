@@ -696,7 +696,7 @@ void main()
     vec2 ndcoords = gl_FragCoord.xy/viewport*2.0 - 1.0;
 	vec3 EE = normalize((InverseRotationProjection * vec4(ndcoords,0,1)).xyz);
 	vec3 LL = normalize(Light0_position.xyz);
-	vec3 LI = normalize(vec3(-LL.x, -LL.y, 0.0));
+	vec3 I = normalize(vec3(-LL.x, -LL.y, 0.0)); // Indirect light from mountains
 	vec3 NN = normalize(vec3(normal.xy/scale, normal.z));
 	vec3 RR = reflect(LL,NN);
 	
@@ -726,7 +726,7 @@ void main()
 	// Energy conservation (https://learnopengl.com/PBR/Theory)
 	diffuse = diffuse * (1.0 - specular*Conservation); 
 		
-	float indirect  = occlusion * daylight * max(0.0, dot(NN,LI)); 
+	float indirect  = occlusion * daylight * max(0.0, dot(NN,I)); 
 	float zenith    = occlusion * clamp(0.5 + 0.5*N.z, 0.0, 1.0);
 	float fresnel   = fresnmap  * mix(1.0, pow(1.0-abs(dot(E,N)), 4.0), 0.9);  // TODO: have a fresmap along with specmap
 
@@ -764,9 +764,9 @@ void main()
 
 
 	// Postprocessing
-	float gamma = Gamma > 0.0 ? 2*2.2 : 2.2;
+	float gamma = Gamma > 0.0 ? 2*2.2 : 2*1.8;
 	color = pow(color, vec3(1.0/gamma));	
-    color = mix(color, color*color*(3.0-2.0*color), 0.3 * Contrast);
+    color = mix(color, color*color*(3.0-2.0*color), 0.4 * Contrast);
 	color = mix(color, vec3(dot(color, vec3(0.299, 0.587, 0.114))), 0.2 * Unsaturate);
 	color *= mix(vec3(1.0), vec3(1.06, 1.05, 1.00), 0.4 * Tint);	
 	color *= mix(1.0, pow(2.0*(ndcoords.x*ndcoords.x-1.0)*(ndcoords.y*ndcoords.y-1), 0.20), 0.5 * Vignetting);
