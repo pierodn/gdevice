@@ -226,8 +226,16 @@ Substance getSubstance(vec4 t, vec3 scale)
     Substance BRAN = { vec4(0.34, 0.26, 0.22, 0.00), vec4(less, 1.00, more, 0.00) };
     Substance SAND = { vec4(0.70, 0.54, 0.45, 0.00), vec4(0.00, 0.00, 0.00, 1.1 + 0.2*more) };
 
-    float flow = atan(t.y/t.x);
-    flow = abs(fract(flow*3) - 0.5)*2.0;
+    vec2 v = t.xy * 0.1;
+#if 0 // BinaryTreeSubDiv2
+    v *= exp2(ceil(-log2(v.y)));
+    v.x *= 0.5;
+    v = fract(v);
+#endif
+    float flow = atan(v.y/v.x);
+    //flow = abs(fract(flow*3) - 0.5)*2.0;
+    
+
 
     Substance grit = GRIT; //sMix(GRIT, ROCK, less);
     Substance sand = sMix(SAND, grit, /*more**/flow);
@@ -340,21 +348,22 @@ Vertex getVertex(ivec2 ij)
         vec4 u = vec4(nu.xy + vec2(1.0, 0.0), nu.z + point1.x, 0.0);
         vec4 v = vec4(nv.xy + vec2(0.0, 1.0), nv.z + point1.y, 0.0);
         vec2 uv = vec2(u.z,v.z);
-        vec4 t = power(1.333*triangular(uv, 0.5, 0.00, 0.46), 2.0); 
+        vec4 t = power(2.0*triangular(uv, 0.5, 0.00, 0.46), 3.0); 
         t.x = t.x*u.x + t.y*v.x;
         t.y = t.x*u.y + t.y*v.y;
         t.xy *= scale1;
         //t.z *= scale1.z;
-        t = saturate(t, 0.005, 0.200);
+        t = saturate(t, 0.0, 0.2) + 0.5*multiply(t, t1);
 
 		#if 0
 			t = 0.04 * multiply(t, 3.0*smoothStep(0.26, 0.50, t1) + 0.3*smoothStep(0.35, 0.50, t1)); 
 			c0 = t0 = c1 = t1 = t;
         #else 
-			c0 = 0.04 * multiply(t, 3.0*smoothStep(0.26, 0.50, c0) + 0.3*smoothStep(0.35, 0.50, c0)); 
-			t0 = 0.04 * multiply(t, 3.0*smoothStep(0.26, 0.50, t0) + 0.3*smoothStep(0.35, 0.50, t0)); 
-			c1 = 0.04 * multiply(t, 3.0*smoothStep(0.26, 0.50, c1) + 0.3*smoothStep(0.35, 0.50, c1)); 
-			t1 = 0.04 * multiply(t, 3.0*smoothStep(0.26, 0.50, t1) + 0.3*smoothStep(0.35, 0.50, t1)); 
+			const float aa = 0.03;
+			c0 = aa * multiply(t, 2.0*smoothStep(0.25, 0.50, c0) + 0.5*smoothStep(0.40, 0.50, c0)); 
+			t0 = aa * multiply(t, 2.0*smoothStep(0.25, 0.50, t0) + 0.5*smoothStep(0.40, 0.50, t0)); 
+			c1 = aa * multiply(t, 2.0*smoothStep(0.25, 0.50, c1) + 0.5*smoothStep(0.40, 0.50, c1)); 
+			t1 = aa * multiply(t, 2.0*smoothStep(0.25, 0.50, t1) + 0.5*smoothStep(0.40, 0.50, t1)); 
 		#endif 
     #endif
 

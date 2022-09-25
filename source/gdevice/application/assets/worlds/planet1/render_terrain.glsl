@@ -574,9 +574,10 @@ float intersect(Plane plane, Ray ray)
 
 void main()
 {	
-	//
+	// ==================
 	// Texture generation
-	//
+	// (Color, Normal, Specular..)
+	// ==================
 	float vertexLuma = 0.2;
 	float luma      = vertexLuma;
 	vec3 normal     = normalize(vec3(gVertex.gradient.xy, 1));

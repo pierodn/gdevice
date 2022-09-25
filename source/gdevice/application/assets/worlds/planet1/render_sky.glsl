@@ -81,13 +81,13 @@ FRAGMENT:
         // Horizon
         color = mix(color, groundColor, smoothstep(-0.1, 0.0, -E.z));
         
-        // Postprocessing
-	    float gamma = Gamma > 0.0 ? 2*2.2 : 3.7;
-	    color = pow(color, vec3(1.0/gamma));
-        color = mix(color, color*color*(3.0-2.0*color), 0.3 * Contrast);
-	    color = mix(color, vec3(dot(color,vec3(0.33))), 0.4 * Unsaturate);
-	    color *= mix(vec3(1.0), vec3(1.06, 1.05, 1.00), 1.0 * Tint);		
-	    color *= mix(1.0, pow(2.0*(ndcoords.x*ndcoords.x-1.0)*(ndcoords.y*ndcoords.y-1), 0.20), 0.5 * Vignetting);
+		// Postprocessing
+		float gamma = Gamma > 0.0 ? 2*2.2 : 2*1.8;
+		color = pow(color, vec3(1.0/gamma));	
+		color = mix(color, color*color*(3.0-2.0*color), 0.3 * Contrast);
+		color = mix(color, vec3(dot(color, vec3(0.299, 0.587, 0.114))), 0.2 * Unsaturate);
+		color *= mix(vec3(1.0), vec3(1.06, 1.05, 1.00), 0.4 * Tint);	
+		color *= mix(1.0, pow(2.0*(ndcoords.x*ndcoords.x-1.0)*(ndcoords.y*ndcoords.y-1), 0.20), 0.5 * Vignetting);
 	
 	    // Banding removal
 		color.xyz += 0.02*(-0.5 + hash1(ndcoords + fract(AbsoluteTime)));
