@@ -36,7 +36,7 @@ struct Controls
 
 	enum constants {	WIREFRAME, DEBUGMODE, BUMPS, TESSELLATOR, 
 						DIFFUSE, SPECULAR, INDIRECT, SKY, FRESNEL, 
-                        SHADOWS, CONSERVATION, SCATTERING,
+                        SHADOWS, VOLUMETRIC, SCATTERING,
 						GAMMA, CONTRAST, UNSATURATE, TINT, VIGNETTING, 
 						CONTROLCOUNT };
 
@@ -48,7 +48,7 @@ struct Controls
 		// NOTE first value is the name of the uniform
 		// NOTE "light0" stands for the main light source and is normally the sun
 		literals[WIREFRAME]	    .push("Wireframe");
-        literals[DEBUGMODE]	    .push("DebugMode").push("Color").push("HeightBlend").push("Normal").push("Light").push("Fresnel");
+        literals[DEBUGMODE]	    .push("DebugMode").push("Color").push("HeightBlend").push("Normal").push("Light");
 		literals[BUMPS]	        .push("Bumps");
 		literals[TESSELLATOR]	.push("Tessellator");   // FIX
 		literals[DIFFUSE]		.push("Diffuse");		// Lambertian
@@ -57,7 +57,7 @@ struct Controls
 		literals[SKY]			.push("Sky");			// Sky dome contribute	
 		literals[FRESNEL]		.push("Fresnel");
         literals[SHADOWS]		.push("Shadows");		// Low-Frequency lambertian filter
-        literals[CONSERVATION]	.push("Conservation");
+        literals[VOLUMETRIC]	.push("Volumetric");
 		literals[SCATTERING]	.push("Scattering");	// Fog + halo
 		literals[GAMMA]			.push("Gamma");
 		literals[CONTRAST]		.push("Contrast");
@@ -76,7 +76,7 @@ struct Controls
 		values[Bindings[SKY]]			= 1;
 		values[Bindings[FRESNEL]]		= 1;
         values[Bindings[SHADOWS]]		= 1;
-		values[Bindings[CONSERVATION]]	= 0;
+		values[Bindings[VOLUMETRIC]]	= 0;
         values[Bindings[SCATTERING]]	= 1;
 		values[Bindings[GAMMA]]			= 1;
 		values[Bindings[CONTRAST]]		= 0;

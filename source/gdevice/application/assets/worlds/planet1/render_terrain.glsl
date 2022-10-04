@@ -394,7 +394,7 @@ FRAGMENT:
 	 
 // UNIFORMS:
 uniform int Wireframe   = 0;
-uniform int DebugMode   = 0; const int ColorView = 1, HeightBlendView = 2, NormalView = 3, LightView = 4, FresnelView = 5; 
+uniform int DebugMode   = 0; const int ColorView = 1, HeightBlendView = 2, NormalView = 3, LightView = 4;
 uniform int Bumps       = 1; //const int BumpsNormal = 1, BumpsMicro = 2;
 uniform int Tessellator	= 1; // TEMP 
 uniform int Diffuse		= 1;
@@ -403,7 +403,7 @@ uniform int Indirect	= 1;
 uniform int Sky			= 1;	
 uniform int Fresnel		= 1;
 uniform int Shadows		= 1;
-uniform int Conservation = 1;
+uniform int Volumetric  = 1;
 uniform int Scattering	= 1;
 uniform int Gamma		= 1;
 uniform int Contrast	= 1;
@@ -772,7 +772,7 @@ void main()
 	color *= mix(1.0, pow(2.0*(ndcoords.x*ndcoords.x-1.0)*(ndcoords.y*ndcoords.y-1), 0.20), 0.5 * Vignetting);
 
     // TEMP
-	color += 0.00000000001 * Wireframe * Gamma * Contrast * Unsaturate * Tint * Vignetting * Conservation * Scattering * Fresnel;
+	color += 0.00000000001 * Wireframe * Gamma * Contrast * Unsaturate * Tint * Vignetting * Volumetric * Scattering * Fresnel;
 	
 	// Debug controls
    	if( DebugMode == ColorView ) {
@@ -781,8 +781,6 @@ void main()
 		color = 4.0 * light; // NOTE: Fresnel and Tone mapping are not included
 	} else if( DebugMode == NormalView ) {
 		color = normalize(vec3(normal.xy/scale, normal.z))*0.5 + 0.5;
-	} else if( DebugMode == FresnelView ) {
-		color.xyz = mix(color.xyz, vec3(0.0,1.0,1.0), fresnel);
 	} 
 	if( Wireframe > 0 ) {
 	    // Wireframe
