@@ -1,6 +1,6 @@
 #pragma once
 
-// TODO fix dependencies
+// TODO: get rid of this dependency
 #include <windows.h>
 #define F1			VK_F1
 #define F2			VK_F2
@@ -16,11 +16,11 @@
 #define F12			VK_F12
 ///////////////////////////////////////////
 
-// TODO fix hard coded key bindings
 static const unsigned char BINDINGS[] = 
 { 
 	F1, F2, F3, F4,
-	F5, F6, F7, F8, F9, F10, F11, F12, 
+	F5, F6, F7, F8, 
+	F9, F10, F11, F12, 
 	'G', 'C', 'U', 'T', 'V' 
 };
     
@@ -34,9 +34,9 @@ struct Controls
 {
 	static const unsigned char* Bindings; 
 
-	enum constants {	WIREFRAME, DEBUGMODE, BUMPS, TESSELLATOR, 
-						DIFFUSE, SPECULAR, INDIRECT, SKY, FRESNEL, 
-                        SHADOWS, VOLUMETRIC, SCATTERING,
+	enum constants {	WIREFRAME, DEBUGMODE, DIFFUSE, SPECULAR,
+						INDIRECT, SKY, FRESNEL, SCATTERING, 
+                        TESSELLATOR, BUMPS, SHADOWS, VOLUMETRIC, 
 						GAMMA, CONTRAST, UNSATURATE, TINT, VIGNETTING, 
 						CONTROLCOUNT };
 
@@ -45,39 +45,47 @@ struct Controls
 
 	void initialize() 
 	{	
-		// NOTE first value is the name of the uniform
-		// NOTE "light0" stands for the main light source and is normally the sun
+		// NOTE: the first value is the name of the uniform.
+
 		literals[WIREFRAME]	    .push("Wireframe");
         literals[DEBUGMODE]	    .push("DebugMode").push("Color").push("HeightBlend").push("Normal").push("Light");
+		literals[DIFFUSE]		.push("Diffuse");		// Direct light: Lambertian (classic or some other)
+        literals[SPECULAR]		.push("Specular");		// Direct light: Specular (classic or PBR)
+
+		literals[INDIRECT]		.push("Indirect");		// Ambient light: direct light bouncing back
+		literals[SKY]			.push("Sky");			// Ambient light: sky
+		literals[FRESNEL]		.push("Fresnel");		// Ambient light: fresnel
+		literals[SCATTERING]	.push("Scattering");	// Light scattering
+
+		literals[TESSELLATOR]	.push("Tessellator");	// Micropolygons
 		literals[BUMPS]	        .push("Bumps");
-		literals[TESSELLATOR]	.push("Tessellator");   // FIX
-		literals[DIFFUSE]		.push("Diffuse");		// Lambertian
-        literals[SPECULAR]		.push("Specular");	
-		literals[INDIRECT]		.push("Indirect");		// Indirect lambertian contribute
-		literals[SKY]			.push("Sky");			// Sky dome contribute	
-		literals[FRESNEL]		.push("Fresnel");
-        literals[SHADOWS]		.push("Shadows");		// Low-Frequency lambertian filter
-        literals[VOLUMETRIC]	.push("Volumetric");
-		literals[SCATTERING]	.push("Scattering");	// Fog + halo
+		literals[SHADOWS]		.push("Shadows");		// Low-Frequency lambertian filter
+        literals[VOLUMETRIC]	.push("Volumetric");	// Volumetric rendering for volumetric clouds
+
 		literals[GAMMA]			.push("Gamma");
 		literals[CONTRAST]		.push("Contrast");
 		literals[UNSATURATE]	.push("Unsaturate");
 		literals[TINT]			.push("Tint");
 		literals[VIGNETTING]	.push("Vignetting");
 
+		//
 		// default values
+		//
 		values[Bindings[WIREFRAME]]	    = 0;
         values[Bindings[DEBUGMODE]]	    = 0;
-		values[Bindings[BUMPS]]         = 1;
-		values[Bindings[TESSELLATOR]]	= 1;
 		values[Bindings[DIFFUSE]]		= 1;
         values[Bindings[SPECULAR]]		= 1;
+		
 		values[Bindings[INDIRECT]]		= 1;
 		values[Bindings[SKY]]			= 1;
 		values[Bindings[FRESNEL]]		= 1;
-        values[Bindings[SHADOWS]]		= 1;
+		values[Bindings[SCATTERING]]	= 1;
+        
+		values[Bindings[TESSELLATOR]]	= 1;
+		values[Bindings[BUMPS]]         = 1;
+		values[Bindings[SHADOWS]]		= 1;
 		values[Bindings[VOLUMETRIC]]	= 0;
-        values[Bindings[SCATTERING]]	= 1;
+		
 		values[Bindings[GAMMA]]			= 1;
 		values[Bindings[CONTRAST]]		= 0;
 		values[Bindings[UNSATURATE]]	= 0;

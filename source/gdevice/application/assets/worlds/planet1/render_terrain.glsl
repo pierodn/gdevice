@@ -426,8 +426,8 @@ uniform vec4 defaultColorA;
 //////////////////////////// ROCK GRIT BONE SAND
 //uniform vec4  fresmap = vec4(1.0, 1.0, 0.2, 0.5);
 //uniform vec4  frespow = vec4(5.0, 5.0, 2.0, 1.0);
-uniform vec4  specmap = vec4(1.0, 1.0, 1.0, 2.0);
-uniform vec4  specpow = vec4(20,  10,  20,  10 );
+uniform vec4  specmap = vec4(1.0, 1.0, 2.0, 2.0);
+uniform vec4  specpow = vec4(20,  10,  10,  10 );
 
 uniform vec2 viewport;
 uniform mat4 InverseRotationProjection;
@@ -455,7 +455,7 @@ out vec4 fragColor;
 
 
 ////////////////////////////////////////////////////////////
-// Common functions
+// Texture mapping
 //
 vec3 getTriplanarWeightVector(vec3 N) {
     vec3 w = pow(abs(N), vec3(64.0));  
@@ -499,30 +499,30 @@ void displaceVertexAndRecomputeNormal(inout vec3 p, inout vec3 N, float H, vec3 
 ////////////////////////////////////////////////////////////
 	
 // TODO The whole environment sphere texture should be precomputed when time (and location?) changes significantly (?)
+////////////////////////////////////////////////////////////
+// Ambient sampling
 vec3 getSkyDomeColor(vec3 E, vec3 L, vec3 sunColor, vec3 zenithColor, vec3 horizonColor, vec3 groundColor, float shadowing)
 {
-    vec3 color  = mix(zenithColor, horizonColor, pow(1.0-E.z, 4.0));
+    vec3 skyColor  = mix(zenithColor, horizonColor, pow(1.0-E.z, 4.0));
 		
-	// sun and halo
 	float sunHaloWidth = mix(2, 30, smoothstep(0.0, 0.4, L.z));
 	float sunDiscWidth = 5000; 
 	float EdotL = max(dot(E,L),0.0);
-	color = mix(color, sunColor, shadowing*pow(EdotL,sunHaloWidth));		
-	color += shadowing*pow(EdotL, sunDiscWidth); //											
-	
-	// clouds
-	//color += 0.03*value1((E.xy+0.1)/(E.z+0.1)*2.0);
-	
-	// horizon
-    color = mix(color, groundColor, smoothstep(-0.1, 0.0, -E.z));
+	skyColor = mix(skyColor, sunColor, shadowing*pow(EdotL,sunHaloWidth));		
+	skyColor += shadowing*pow(EdotL, sunDiscWidth);
+	//skyColor += 0.03*value1((E.xy+0.1)/(E.z+0.1)*2.0); // clouds
+	skyColor = mix(skyColor, groundColor, smoothstep(-0.1, 0.0, -E.z));
 
-	// NOTE no postprocessing
-	return color;
+	// TODO color tuning?
+	return skyColor;
 }
 
+////////////////////////////////////////////////////////////
+// Tone mapping
+//
 vec3 tone(vec3 color, float t) 
 {
-    return smoothstep(0.0, 1.0, color/(color + t)*(1.0 + t));
+    return smoothstep(0.0, 1.0, color/(color + t)*(1.3 + t));
     //return color/(color + t)*(1.0 + t);
 }
 
@@ -553,7 +553,9 @@ vec4 noise(vec2 point)
 
 //here!!
 ////////////////
+////////////////////////////////////////////////////////////
 // Volumetric
+//
 struct Plane {vec3 origin; vec3 normal; };
 struct Ray   {vec3 origin; vec3 direction; };
 float intersect(Plane plane, Ray ray)
@@ -574,10 +576,9 @@ float intersect(Plane plane, Ray ray)
 
 void main()
 {	
-	// ==================
+	//////////////////////
 	// Texture generation
-	// (Color, Normal, Specular..)
-	// ==================
+	//
 	float vertexLuma = 0.2;
 	float luma      = vertexLuma;
 	vec3 normal     = normalize(vec3(gVertex.gradient.xy, 1));
@@ -615,7 +616,7 @@ void main()
         }
             
         mixmap = blendMixmap(mixmap + luma4); // moveable to tessellator ?
-        matColor  = blendColor(gVertex.color, mixmap, 1.95, 1.96); // moveable to tessellator ?
+        matColor  = blendColor(gVertex.color, mixmap, 0.30, 1.96); // moveable to tessellator ?
 		
 		// Graciously fade texture mapping out with distance.
 		luma = mix( dot(mixmap, luma4), vertexLuma, textureFadingFactor);
@@ -692,52 +693,59 @@ void main()
 		}
 	}
 	
-	// Model space
-    vec2 ndcoords = gl_FragCoord.xy/viewport*2.0 - 1.0;
-	vec3 EE = normalize((InverseRotationProjection * vec4(ndcoords,0,1)).xyz);
-	vec3 LL = normalize(Light0_position.xyz);
-	vec3 I = normalize(vec3(-LL.x, -LL.y, 0.0)); // Indirect light from mountains
-	vec3 NN = normalize(vec3(normal.xy/scale, normal.z));
-	vec3 RR = reflect(LL,NN);
-	
-	// Atmospheric scattering
-	vec3 sunColor	  = mix(vec3(0.80, 0.40, 0.20), vec3(1.00, 0.90, 0.75), smoothstep( 0.0, 0.3, LL.z));
-	vec3 zenithColor  = mix(vec3(0.01, 0.02, 0.04), vec3(0.35, 0.48, 0.60), smoothstep(-0.8, 0.0, LL.z));
-	vec3 horizonColor = mix(vec3(0.02, 0.03, 0.04), sunColor,               smoothstep(-0.4, 0.5, LL.z));
-	vec3 groundColor  = vec3( dot( mix(0.03*zenithColor, 1.4*zenithColor,   smoothstep(0.0, 0.4, LL.z)), vec3(0.22,0.33,0.45)) );
-	
-	//
+	/////////////////////////
 	// Lighting
 	//
     vec3 E = normalize(gVertex.E); 
 	vec3 L = normalize(gVertex.L);
     vec3 N = normalize(NormalMatrix * normal);
-	vec3 R = reflect(L,N);
 	
-	float shadowing = clamp(10.0*dot(normalize(gVertex.N0),L), 1.0 - Shadows, 1.0);
-    float occlusion = pow(luma, 1.0);
+	float occlusion = pow(luma, 1.0);
 	float glossmap  = smoothstep(0.2, 0.7, luma);
 	float fresnmap  = smoothstep(0.2, 0.7, luma);
-    float daylight  = smoothstep(0.0, 0.1, LL.z);
+    float lfShadow  = clamp(10.0*dot(normalize(gVertex.N0),L), 1.0 - Shadows, 1.0);
 	
-	float diffuse   = occlusion * daylight * max(0.0, dot(N,L));
-	float specular  = glossmap  * daylight * dot(mixmap, specmap) * pow(max(0.0, dot(E,R)), dot(mixmap, specpow));
+	// Model space
+    vec2 ndcoords = gl_FragCoord.xy/viewport*2.0 - 1.0;
+	vec3 EE = normalize((InverseRotationProjection * vec4(ndcoords,0,1)).xyz);
+	vec3 LL = normalize(Light0_position.xyz);
+	vec3 II = normalize(vec3(-LL.x, -LL.y, 0.0)); // Indirect light from mountains
+	vec3 NN = normalize(vec3(normal.xy/scale, normal.z));
 
-	// Energy conservation (https://learnopengl.com/PBR/Theory)
-	diffuse = diffuse * (1.0 - specular*Conservation); 
-		
-	float indirect  = occlusion * daylight * max(0.0, dot(NN,I)); 
-	float zenith    = occlusion * clamp(0.5 + 0.5*N.z, 0.0, 1.0);
-	float fresnel   = fresnmap  * mix(1.0, pow(1.0-abs(dot(E,N)), 4.0), 0.9);  // TODO: have a fresmap along with specmap
-
-    vec3 light  = 0.60 * Diffuse  * diffuse  * shadowing * sunColor;
-         light += 0.20 * Specular * specular * shadowing * getSkyDomeColor(RR, LL, sunColor, zenithColor, horizonColor, groundColor, shadowing);
+	// Sampling ambient light
+	vec3 sunColor	  = mix(vec3(0.80, 0.40, 0.20), vec3(1.00, 0.90, 0.75), smoothstep( 0.0, 0.3, LL.z));
+	vec3 zenithColor  = mix(vec3(0.01, 0.02, 0.04), vec3(0.35, 0.48, 0.60), smoothstep(-0.8, 0.0, LL.z));
+	vec3 horizonColor = mix(vec3(0.02, 0.03, 0.04), sunColor,               smoothstep(-0.4, 0.5, LL.z));
+	vec3 groundColor  = vec3( dot( mix(0.03*zenithColor, 1.4*zenithColor,   smoothstep(0.0, 0.4, LL.z)), vec3(0.22,0.33,0.45)) );
+	vec3 specularColor = getSkyDomeColor(reflect(LL,NN), LL, sunColor, zenithColor, horizonColor, groundColor, lfShadow);
+	vec3 fresnelColor  = getSkyDomeColor(reflect(EE,NN), LL, sunColor, zenithColor, horizonColor, groundColor, lfShadow);
+	float daylight  = smoothstep(0.0, 0.1, LL.z);
+	
     
-    // Ambient
-    vec3 ambient  = 0.02 * Indirect * indirect * sunColor;
-         ambient += 0.02 * Sky	    * zenith   * zenithColor;
-    light = mix(light + ambient, getSkyDomeColor(reflect(EE,NN), LL, sunColor, zenithColor, horizonColor, groundColor, shadowing),  
-             0.04 * Fresnel * fresnel);
+    
+    vec3 light = vec3(0.0);
+    
+    bool PBR = false;
+    if(PBR) {
+		vec3 H = normalize(E + L);
+		float metallic = 0.0;
+		float roughness = 0.5;
+		// TODO light =
+		
+	} else {
+		float diffuse   = max(0.0, dot(N,L));
+		float specular  = dot(mixmap, specmap) * pow(max(0.0, dot(E,reflect(L, N))), dot(mixmap, specpow));
+							//0.1* dot(mixmap, specmap) * phongSpecular(E, N, L, 2.0, 0.04); //smoothness, F0
+		float indirect  = occlusion * daylight * max(0.0, dot(NN,II)); 
+		float zenith    = occlusion * clamp(0.5 + 0.5*N.z, 0.0, 1.0);
+		float fresnel   = fresnmap  * mix(1.0, pow(1.0-abs(dot(E,N)), 4.0), 0.9);  // TODO: have a fresmap along with specmap
+
+		light += 0.60 * Diffuse  * diffuse  * occlusion * daylight * lfShadow * sunColor;
+		light += 0.20 * Specular * specular * glossmap  * daylight * mix(lfShadow, 1.0, 0.2) * specularColor;
+		light += 0.02 * Indirect * indirect * sunColor;
+		light += 0.02 * Sky	     * zenith   * zenithColor; 
+		light = mix(light, fresnelColor,0.04 * Fresnel * fresnel);
+	}
     
     // Tone mapping
     vec3 color = tone(1.00*light*matColor.rgb, 0.1); 
@@ -755,7 +763,7 @@ void main()
 	    float EdotL = max(0.0, dot(E,L));
 	    float scattering = smoothstep(+0.05, 0.5, LL.z)*(1.0-exp(-0.0200*dist))*pow(EdotL, 8.0); // TODO: and visibileDistance?
 	    scattering = min(8.0*scattering, 0.5);
-		color += scattering * zenithColor;
+		color += mix(lfShadow, 1.0, 0.7)*scattering * zenithColor;
 		//float volumetric = 100.0 * Bumps * pow(0.01*gVertex.position.z, 6.0); // TODO
 		//color = color*color*(3.0-2.0*color);
 		color = mix(color, groundColor, vec3(1.0,1.0,1.0)*smoothstep(visibileDistance*0.0, visibileDistance, dist /*+ 0.0*volumetric*/));
@@ -763,7 +771,7 @@ void main()
 	}
 
 
-	// Postprocessing
+	// Color tuning
 	float gamma = Gamma > 0.0 ? 2*2.2 : 2*1.8;
 	color = pow(color, vec3(1.0/gamma));	
     color = mix(color, color*color*(3.0-2.0*color), 0.4 * Contrast);
@@ -794,7 +802,7 @@ void main()
 	    color.gb -= 0.05*(1.0-smoothstep(0.0, 0.05, m)); 
 	}
 
-    // banding removal
+    // Banding removal
 	color.xyz += 0.02*(-0.5 + hash1(ndcoords + fract(AbsoluteTime)));
 
 	fragColor = vec4(color.rgb, 1.0);
