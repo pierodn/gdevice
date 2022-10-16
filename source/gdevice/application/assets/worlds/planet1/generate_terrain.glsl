@@ -51,9 +51,41 @@ vec4 noise(vec2 point)
 	return vec4(du*(L.yz + L.w*u.yx), L.x + L.y*u.x + L.z*u.y + L.w*u.x*u.y, 0.0 );
 }
 
+//
+// Noise algebra
+//
+const vec4 unit = vec4(0.0, 0.0, 1.0, 0.0);
+vec4 noise(vec2 point, mat2 scale)  { vec4 n = noise(scale*point); n.xy *= scale; return n; }
+vec4 noise(vec2 point, float scale) { vec4 n = noise(scale*point); n.xy *= scale; return n; }
+vec4 bias(vec4 n, float offset )    { return n + offset * unit; }
+vec4 multiply(vec4 n1, vec4 n2 )    { return vec4(n1.xy * n2.z + n2.xy * n1.z, n1.z * n2.z, n1.z * n2.w + n2.z*n1.w); }
+//vec4 quotient(vec4 n1, vec4 n2)		{ return vec4((n1.xy * n2.z - n2.xy * n1.z)/(n2.z*n2.z),  n1.z/n2.z, 0.0); }	
+vec4 lerp(vec4 a, vec4 n1, vec4 n2 ){ return multiply(vec4(0.0, 0.0, 1.0, 0.0)-a,n1) + multiply(a,n2); }
+//vec4 power(vec4 n, float k)         { return vec4(k*pow(n.z, k-1.0)*n.xy, pow(n.z, k), k*pow(n.w, k+0.1)); }
+vec4 power(vec4 n, float k)         { return vec4(k*pow(n.z, k-1.0)*n.xy, pow(n.z, k), n.w); }
+vec4 maximum(vec4 n1, vec4 n2)      { return n1.z > n2.z ? n1 : n2; }
+vec4 minimum(vec4 n1, vec4 n2)      { return n1.z < n2.z ? n1 : n2; }
+vec4 saturate(vec4 n, float z1, float z2)   { return n.z < z1 ? z1*unit : n.z > z2 ? z2*unit : n; }
+vec4 saturate(vec4 n)               { return saturate(n, 0.0, 1.0); }
+//float converge(float x0, float x1, float x) { return 1.0/(x + 1.0/(x0-x1)) + x1; } 
+vec4 saturate(vec4 n, vec4 a, vec4 b) { return n.z < a.z ? a : n.z >= b.z ? vec4(-b.xy, b.zw) : n; }
 
-vec4 saturate(vec4 t, float z0, float z1);
+vec4 smoothStep(float h0, float h1, vec4 n) { n = vec4(n.xy, n.z - h0, 0.0)/(h1 - h0); n = saturate(n, 0.0, 1.0); return multiply(multiply(n,n), bias(-2.0 * n, +3.0)); }
+vec4 absolute(vec4 n, float zero)   { return n.z >= zero ? n : -n; }    
+vec4 invert(vec4 n)                 { float z = 1.0/(n.z + 1.0); return vec4(-z*z*n.xy, z, 0.0); }
+vec4 invert2(vec4 n)			    { return vec4(-n.xy, 1.0 - n.z, 0.0); }
+vec4 minus(float t, vec4 n)         { return vec4(-n.xy, t - n.z, 0.0); }
+vec4 tone(vec4 n, float t)			{ return smoothStep(0.0, 1.0, multiply(n, invert(bias(n,t))))*(1.0 + t); }
+vec4 smoothFloor(vec4 n, float c) 
+{
+    vec4 a = vec4(n.xy, fract(n.z), 0.0);
+    vec4 b = vec4(0.0, 0.0, floor(n.z), 0.0);
+    return ((power(a,c) - power(invert2(a),c))/2.0) + b;
+}
 
+//
+// Triangular noise
+// 
 vec4 triangle(in vec2 p, float pack = 0.12, float erode = 0.47)
 {
     p = fract(p) - 0.5;
@@ -81,7 +113,11 @@ vec4 triangular(vec2 point, float scale, float low, float high )
     //vec4 F3 = triangle(R2*point + R2[0], low, high); F3.xy *= R2;
     //vec4 F4 = triangle(R3*point + R3[0], low, high); F4.xy *= R3;
 
-    if( F1.z > F2.z ) { vec4 t = F1; F1 = F2; F2 = t; };
+    //if( F1.z > F2.z ) { vec4 t = F1; F1 = F2; F2 = t; };
+    const float k = 2.0;
+    F1 = power(F1, -k) + power(F2, -k);
+    F1 = power(F1, -1.0/k);
+    
     //if( F3.z > F4.z ) { vec4 t = F3; F3 = F4; F4 = t; };
     //if( F1.z > F3.z ) { vec4 t = F1; F1 = F3; F3 = t; };
     //if( F2.z > F4.z ) { vec4 t = F2; F2 = F4; F4 = t; };
@@ -91,40 +127,6 @@ vec4 triangular(vec2 point, float scale, float low, float high )
     
 	result.xy *= scale;
     return result;
-}
-
-//
-// Noise algebra
-//
-const vec4 unit = vec4(0.0, 0.0, 1.0, 0.0);
-vec4 noise(vec2 point, mat2 scale)  { vec4 n = noise(scale*point); n.xy *= scale; return n; }
-vec4 noise(vec2 point, float scale) { vec4 n = noise(scale*point); n.xy *= scale; return n; }
-vec4 bias(vec4 n, float offset )    { return n + offset * unit; }
-vec4 multiply(vec4 n1, vec4 n2 )    { return vec4(n1.xy * n2.z + n2.xy * n1.z, n1.z * n2.z, n1.z * n2.w + n2.z*n1.w); }
-//vec4 quotient(vec4 n1, vec4 n2)		{ return vec4((n1.xy * n2.z - n2.xy * n1.z)/(n2.z*n2.z),  n1.z/n2.z, 0.0); }	
-vec4 lerp(vec4 a, vec4 n1, vec4 n2 ){ return multiply(vec4(0.0, 0.0, 1.0, 0.0)-a,n1) + multiply(a,n2); }
-//vec4 power(vec4 n, float k)         { return vec4(k*pow(n.z, k-1.0)*n.xy, pow(n.z, k), k*pow(n.w, k+0.1)); }
-vec4 power(vec4 n, float k)         { return vec4(k*pow(n.z, k-1.0)*n.xy, pow(n.z, k), n.w); }
-vec4 maximum(vec4 n1, vec4 n2)      { return n1.z > n2.z ? n1 : n2; }
-vec4 minimum(vec4 n1, vec4 n2)      { return n1.z < n2.z ? n1 : n2; }
-vec4 saturate(vec4 n, float z1, float z2)   { return n.z < z1 ? z1*unit : n.z > z2 ? z2*unit : n; }
-vec4 saturate(vec4 n)               { return saturate(n, 0.0, 1.0); }
-//float converge(float x0, float x1, float x) { return 1.0/(x + 1.0/(x0-x1)) + x1; } 
-vec4 saturate(vec4 n, vec4 a, vec4 b) { return n.z < a.z ? a : n.z >= b.z ? vec4(-b.xy, b.zw) : n; }
-
-vec4 smoothStep(float h0, float h1, vec4 n) { n = vec4(n.xy, n.z - h0, 0.0)/(h1 - h0); n = saturate(n, 0.0, 1.0); return multiply(multiply(n,n), bias(-2.0 * n, +3.0)); }
-vec4 absolute(vec4 n, float zero)   { return n.z >= zero ? n : -n; }    
-vec4 invert(vec4 n)                 { float z = 1.0/(n.z + 1.0); return vec4(-z*z*n.xy, z, 0.0); }
-vec4 invert2(vec4 n)			    { return vec4(-n.xy, 1.0 - n.z, 0.0); }
-vec4 minus(float t, vec4 n)         { return vec4(-n.xy, t - n.z, 0.0); }
-vec4 tone(vec4 n, float t)			{ return smoothStep(0.0, 1.0, multiply(n, invert(bias(n,t))))*(1.0 + t); }
-
-
-vec4 smoothFloor(vec4 n, float c) 
-{
-    vec4 a = vec4(n.xy, fract(n.z), 0.0);
-    vec4 b = vec4(0.0, 0.0, floor(n.z), 0.0);
-    return ((power(a,c) - power(invert2(a),c))/2.0) + b;
 }
 
 //  _____             _   _             _    _____                   _            _____     _   _         
@@ -359,11 +361,11 @@ Vertex getVertex(ivec2 ij)
 			t = 0.04 * multiply(t, 3.0*smoothStep(0.26, 0.50, t1) + 0.3*smoothStep(0.35, 0.50, t1)); 
 			c0 = t0 = c1 = t1 = t;
         #else 
-			const float aa = 0.03;
-			c0 = aa * multiply(t, 2.0*smoothStep(0.25, 0.50, c0) + 0.5*smoothStep(0.40, 0.50, c0)); 
-			t0 = aa * multiply(t, 2.0*smoothStep(0.25, 0.50, t0) + 0.5*smoothStep(0.40, 0.50, t0)); 
-			c1 = aa * multiply(t, 2.0*smoothStep(0.25, 0.50, c1) + 0.5*smoothStep(0.40, 0.50, c1)); 
-			t1 = aa * multiply(t, 2.0*smoothStep(0.25, 0.50, t1) + 0.5*smoothStep(0.40, 0.50, t1)); 
+			const float aa = 0.03, a0 = 2.0, a1 = 1.0;
+			c0 = aa * multiply(t, a0*smoothStep(0.25, 0.50, c0) + a1*smoothStep(0.40, 0.50, c0)); 
+			t0 = aa * multiply(t, a0*smoothStep(0.25, 0.50, t0) + a1*smoothStep(0.40, 0.50, t0)); 
+			c1 = aa * multiply(t, a0*smoothStep(0.25, 0.50, c1) + a1*smoothStep(0.40, 0.50, c1)); 
+			t1 = aa * multiply(t, a0*smoothStep(0.25, 0.50, t1) + a1*smoothStep(0.40, 0.50, t1)); 
 		#endif 
     #endif
 

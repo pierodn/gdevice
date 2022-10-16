@@ -424,10 +424,8 @@ uniform vec4 defaultColorB;
 uniform vec4 defaultColorA;
 
 //////////////////////////// ROCK GRIT BONE SAND
-//uniform vec4  fresmap = vec4(1.0, 1.0, 0.2, 0.5);
-//uniform vec4  frespow = vec4(5.0, 5.0, 2.0, 1.0);
 uniform vec4  specmap = vec4(1.0, 1.0, 2.0, 2.0);
-uniform vec4  specpow = vec4(10,  5,  5,  5 );
+uniform vec4  specpow = vec4(9.9, 5.0, 5.0, 5.0);
 
 uniform vec2 viewport;
 uniform mat4 InverseRotationProjection;
@@ -502,7 +500,7 @@ void displaceVertexAndRecomputeNormal(inout vec3 p, inout vec3 N, float H, vec3 
 ////////////////////////////////////////////////////////////
 // Ambient sampling
 // TODO: precompute the sky with sun and clouds, so that you just sample with E.
-vec3 getSkyDomeColor(vec3 E, vec3 L, vec3 sunColor, vec3 zenithColor, vec3 horizonColor, vec3 groundColor, float shadowing, float sunHaloWidth)
+vec3 sampleAmbient(vec3 E, vec3 L, vec3 sunColor, vec3 zenithColor, vec3 horizonColor, vec3 groundColor, float shadowing, float sunHaloWidth)
 {
 	float EdotL = max(dot(E,L),0.0);
     vec3 skyColor  = mix(zenithColor, horizonColor, pow(1.0-E.z, 4.0));
@@ -694,9 +692,6 @@ void main()
 	vec3 L = normalize(gVertex.L);
     vec3 N = normalize(NormalMatrix * normal);
 	
-	float occlusion = pow(luma, 1.0);
-	float glossmap  = smoothstep(0.2, 0.7, luma);
-	float fresnmap  = smoothstep(0.2, 0.7, luma);
     float lfShadow  = clamp(2.0*dot(normalize(gVertex.N0),L), 1.0 - Shadows, 1.0);
 	
 	// Model space
@@ -713,36 +708,29 @@ void main()
 	vec3 zenithColor	= mix(vec3(0.01, 0.02, 0.04), vec3(0.35, 0.48, 0.60), smoothstep(-0.8, 0.0, LL.z));
 	vec3 horizonColor	= mix(vec3(0.02, 0.03, 0.04), sunColor,               smoothstep(-0.4, 0.5, LL.z));
 	vec3 groundColor	= vec3( dot( mix(0.03*zenithColor, 1.4*zenithColor,   smoothstep( 0.0, 0.4, LL.z)), vec3(0.22,0.33,0.45)) );
-	vec3 specularColor	= 0.50*mix(sunColor, zenithColor, 0.5);
-			//getSkyDomeColor(reflect(LL,NN), LL, sunColor, zenithColor, horizonColor, groundColor, lfShadow);
-	vec3 fresnelColor	= getSkyDomeColor(reflect(EE,NN), LL, sunColor, zenithColor, horizonColor, groundColor, lfShadow, sunHaloWidth);
+	vec3 specularColor	= sampleAmbient(reflect(LL,NN), LL, sunColor, zenithColor, horizonColor, groundColor, lfShadow, sunHaloWidth);
+	vec3 fresnelColor	= sampleAmbient(reflect(EE,NN), LL, sunColor, zenithColor, horizonColor, groundColor, lfShadow, sunHaloWidth);
 
+	float occlusion = pow(luma, 1.0);
+	float reliefMap = smoothstep(0.2, 0.7, luma);
+	float F0		= dot(mixmap, specmap);
+
+	float diffuse   = max(0.0, dot(N,L));
+	float specular  = F0 * pow(max(0.0, dot(E, reflect(L, N))), dot(mixmap, specpow));
 	
-    
-    
-    vec3 light = vec3(0.0);
-    
-    bool PBR = false;
-    if(PBR) {
-		vec3 H = normalize(E + L);
-		float metallic = 0.0;
-		float roughness = 0.5;
-		// TODO light =
-		
-	} else {
-		float diffuse   = max(0.0, dot(N,L));
-		float specular  = dot(mixmap, specmap) * pow(max(0.0, dot(E,reflect(L, N))), dot(mixmap, specpow));
-							//0.1* dot(mixmap, specmap) * phongSpecular(E, N, L, 2.0, 0.04); //smoothness, F0
-		float indirect  = occlusion * daylight * max(0.0, dot(NN,II)); 
-		float zenith    = occlusion * clamp(0.5 + 0.5*N.z, 0.0, 1.0);
-		float fresnel   = fresnmap  * mix(1.0, pow(1.0 - abs(dot(E,N)), 4.0), 0.9);  // TODO: have a fresmap along with specmap
+	float specEN    = pow(1.0 - abs(dot(E,N)), dot(mixmap, specpow));
+	float fresnel   = mix(F0*specEN, F0 + specEN, 0.1); // 1.0 for pure Schlick's approximation.
+	float indirect  = occlusion * daylight * max(0.0, dot(NN,II)); 
+	float sky		= occlusion * clamp(0.5 + 0.5*N.z, 0.0, 1.0);
 
-		light += 0.30 * Diffuse  * diffuse  * occlusion * daylight * lfShadow * sunColor;
-		light += 0.20 * Specular * specular * glossmap  * daylight * mix(lfShadow, 1.0, 0.2) * specularColor;
-		light += 0.02 * Indirect * indirect * sunColor;
-		light += 0.02 * Sky	     * zenith   * zenithColor; 
-		light = mix(light, fresnelColor, 0.04 * Fresnel * fresnel);
-	}
+
+	vec3 light = vec3(0.0);
+	light += 0.300 * Diffuse  * diffuse  * occlusion * daylight * lfShadow * sunColor;
+	light += 0.100 * Specular * specular * reliefMap * daylight * mix(0.1, 1.0, lfShadow) * specularColor;
+	light += 0.008 * Fresnel  * fresnel  * reliefMap * (fresnelColor - light);
+	light += 0.002 * Sky	  * sky		 * zenithColor;
+	light += 0.020 * Indirect * indirect * sunColor;
+
     
     // Tone mapping
     vec3 color = tone(1.00*light*matColor.rgb, 0.1); 
@@ -758,14 +746,12 @@ void main()
 	// Scattering
 	if( Scattering > 0 ) {
 	    float EdotL = max(0.0, dot(E,L));
-	    float scattering = smoothstep(+0.05, 0.5, LL.z)*(1.0-exp(-0.0200*dist))*pow(EdotL, 8.0); // TODO: and visibileDistance?
-	    scattering = min(8.0*scattering, 0.3);
-		color += mix(lfShadow, 1.0, 0.6)*scattering * zenithColor;
-		//float volumetric = 100.0 * Bumps * pow(0.01*gVertex.position.z, 6.0); // TODO
-		//color = color*color*(3.0-2.0*color);
-		color = mix(color, groundColor, vec3(1.0,1.0,1.0)*smoothstep(visibileDistance*0.0, visibileDistance, dist /*+ 0.0*volumetric*/));
-        //color = mix(color, groundColor, 1.0 - exp(-0.030*dist*vec3(0.6, 1.0, 1.4))); // IQ: https://www.youtube.com/watch?v=BFld4EBO2RE&t=592
+	    float scattering = smoothstep(+0.05, 0.5, LL.z)*(1.0-exp(-0.0200*dist))*pow(EdotL, 8.0);
+	    scattering = min(8.0*scattering, 0.1);
+		color += mix(lfShadow, 1.0, 0.6)*scattering * sunColor;
+		color = mix(color, groundColor, vec3(0.98,1.00,1.09)*smoothstep(0.0, visibileDistance, dist /*+ 0.0*volumetric*/));
 	}
+
 
 
 	// Color tuning
@@ -777,13 +763,13 @@ void main()
 	color *= mix(1.0, pow(2.0*(ndcoords.x*ndcoords.x-1.0)*(ndcoords.y*ndcoords.y-1), 0.20), 0.5 * Vignetting);
 
     // TEMP
-	color += 0.00000000001 * Wireframe * Gamma * Contrast * Unsaturate * Tint * Vignetting * Volumetric * Scattering * Fresnel;
+	color += 0.00000000001 * Wireframe * Gamma * Contrast * Unsaturate * Tint * Vignetting * Volumetric * Scattering * Fresnel * Sky;
 	
 	// Debug controls
    	if( DebugMode == ColorView ) {
 	    color = 4.0 * color.rgb * occlusion;
 	} else if( DebugMode == LightView ) {
-		color = 4.0 * light; // NOTE: Fresnel and Tone mapping are not included
+		color = 4.0 * light;
 	} else if( DebugMode == NormalView ) {
 		color = normalize(vec3(normal.xy/scale, normal.z))*0.5 + 0.5;
 	} 
