@@ -36,7 +36,7 @@ struct Controls
 
 	enum constants {	WIREFRAME, DEBUGMODE, DIFFUSE, SPECULAR,
 						INDIRECT, SKY, FRESNEL, SCATTERING, 
-                        TESSELLATOR, BUMPS, SHADOWS, VOLUMETRIC, 
+                        TESSELLATOR, BUMPS, SHADOWS, PBR, 
 						GAMMA, CONTRAST, UNSATURATE, TINT, VIGNETTING, 
 						CONTROLCOUNT };
 
@@ -60,7 +60,7 @@ struct Controls
 		literals[TESSELLATOR]	.push("Tessellator");	// Micropolygons
 		literals[BUMPS]	        .push("Bumps");
 		literals[SHADOWS]		.push("Shadows");		// Low-Frequency lambertian filter
-        literals[VOLUMETRIC]	.push("Volumetric");	// Volumetric rendering for volumetric clouds
+        literals[PBR]			.push("PBR");
 
 		literals[GAMMA]			.push("Gamma");
 		literals[CONTRAST]		.push("Contrast");
@@ -84,7 +84,7 @@ struct Controls
 		values[Bindings[TESSELLATOR]]	= 1;
 		values[Bindings[BUMPS]]         = 1;
 		values[Bindings[SHADOWS]]		= 1;
-		values[Bindings[VOLUMETRIC]]	= 0;
+		values[Bindings[PBR]]			= 0;
 		
 		values[Bindings[GAMMA]]			= 1;
 		values[Bindings[CONTRAST]]		= 0;
