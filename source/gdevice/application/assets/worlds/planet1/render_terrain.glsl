@@ -546,46 +546,32 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
 
 vec3 fresnelSchlick(float cosTheta, vec3 F0)
 {
-    return F0 + (1.0 - F0)*pow(1.0 - cosTheta + 0.000001, 5.0);
+    return F0 + (1.0 - F0)*pow(1.000001 - cosTheta, 5.0);
 }
 
-vec3 computeReflectance(vec3 N, vec3 V, vec3 F0, vec3 albedo, vec3 L, vec3 lightColor, float lightIntensity, float metallic, float roughness)
+// https://typhomnt.github.io/teaching/ray_tracing/pbr_intro/
+// https://learnopengl.com/PBR/Lighting
+// TODO disentangle matColor and F0 
+vec3 garciaReflectance( vec3 V, vec3 N, // surface hit
+				vec3 matColor, vec3 F0, float roughness, float metallic, // material
+				vec3 L)
 {
-    vec3 H = normalize(V + L);
+	vec3 H = normalize(V + L);
 
     // cook-torrance brdf
     float NDF = DistributionGGX(N, H, roughness);
-    float G   = GeometrySmith(N, V, L,roughness);
+    float G   = GeometrySmith(N, V, L, roughness);
     vec3 F    = fresnelSchlick(max(dot(H, V), 0.0), F0);
 
     vec3 kS = F;
     vec3 kD = vec3(1.0) - kS;
     kD *= 1.0 - metallic;
 
-    vec3 nominator    = NDF * G * F;
-    float denominator = 4 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.00001/* avoid divide by zero*/;
-    vec3 specular     = nominator / denominator;
+    vec3 numerator    = NDF * G * F;
+    float denominator = 4 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.00001;
+    vec3 specular     = numerator / denominator;
 
-    // add to outgoing radiance Lo
-    float NdotL = max(dot(N, L), 0.0);
-    vec3 diffuseRadiance = kD * (albedo)/ PI;
-
-    return (diffuseRadiance + specular) * lightColor * lightIntensity * NdotL;
-}
-
-vec3 garciaPRB( vec3 V, vec3 N, // surface hit
-				vec3 color, float roughness, float metallic, float ao, // material
-				vec3 L, vec3 lightColor, float lightIntensity) // light type: (positional, direction), center, direction..
-{
-    vec3 ambient = vec3(0.03) * color * (1.0 - ao);
-    vec3 F0 = mix(vec3(0.04), color, metallic);			// Average F0 for dielectric materials
-/*
-    if(lightType == PointLight) {
-        float dist = distance(hitPoint, lightPoint);
-        lightIntensity = lightIntensity/(dist*dist);
-    } else lightIntensity = 1.0f;
-*/
-    return ambient + computeReflectance(N, V, F0, color, L, lightColor, lightIntensity /*1.0 when directional*/, metallic, roughness);
+    return (kD*matColor/PI + specular) * max(dot(N, L), 0.0);
 }
 
 // https://learnopengl.com/PBR/Lighting
@@ -858,26 +844,20 @@ void main()
 	vec3 light = vec3(0.0);
 	
 if( bool(PBR) ) {
-    // TODO
-/*    
-	float indirect  = occlusion * daylight * max(0.0, dot(NN,II)); 
-	float specEN    = pow(1.0 - abs(dot(E,N)), dot(mixmap, specpow));
-	float fresnel   = mix(F0*specEN, F0 + specEN, 0.1); // 1.0 => pure Schlick's approximation
-	float sky		= occlusion * NN.z;
 
-	light += 0.300 * Diffuse  * diffuse  * occlusion * daylight * lfShadow * sunColor;
-	light += 0.100 * Specular * specular * reliefMap * daylight * mix(0.1, 1.0, lfShadow) * specularColor;
-	light += 0.010 * Fresnel  * fresnel  * reliefMap * (fresnelColor - light);
-	light += 0.010 * Fresnel  * sky		 * zenithColor;
-	light += 0.020 * Indirect * indirect * sunColor;
-	*/
 	vec3 sampleColor  = sunColor; //PBR_HDRCubemap( sampleDir, angularRange/MIPMAP_SWITCH);
+	
 	float roughness = 0.85;
-	vec3 F00 = vec3(1.600,0.912,0.695);
 	float metallic = 0.0;
-    //vec3 contribution = //PBR_Equation(E, L, N, roughness, F00, metallic);
-    //light += contribution*sampleColor;
-    light += garciaPRB(E, N, matColor.rgb, roughness, metallic, occlusion, L, sunColor, 1.0);
+	vec3 F0 = mix(vec3(0.04), matColor.rgb, metallic);	// Average F0 for dielectric materials
+	
+	vec3 indirectReflectance = vec3(0.04) * matColor.rgb * (1.0 - occlusion);
+	vec3 directReflectance = garciaReflectance(E, N, matColor.rgb, F0, roughness, metallic, L);
+	
+    light += indirectReflectance;
+    light += 1.00 * Diffuse * diffuse  * occlusion * daylight * lfShadow * sunColor * directReflectance;
+    
+    
         
 } else { // NPR1
 	float indirect  = occlusion * daylight * max(0.0, dot(NN,II)); 
