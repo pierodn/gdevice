@@ -552,85 +552,30 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
 // https://typhomnt.github.io/teaching/ray_tracing/pbr_intro/
 // https://learnopengl.com/PBR/Lighting
 // TODO disentangle matColor and F0 
-vec3 garciaReflectance( vec3 V, vec3 N, // surface hit
-				vec3 matColor, vec3 F0, float roughness, float metallic, // material
-				vec3 L)
+vec3 REFLECTANCE(vec3 L, vec3 E, vec3 N, vec3 matColor, vec3 F0, float roughness, float metallic)
 {
-	vec3 H = normalize(V + L);
+	vec3 H = normalize(E + L);
 
     // cook-torrance brdf
     float NDF = DistributionGGX(N, H, roughness);
-    float G   = GeometrySmith(N, V, L, roughness);
-    vec3 F    = fresnelSchlick(max(dot(H, V), 0.0), F0);
-
-    vec3 kS = F;
-    vec3 kD = vec3(1.0) - kS;
-    kD *= 1.0 - metallic;
+    float G   = GeometrySmith(N, E, L, roughness);
+    vec3 F    = fresnelSchlick(max(dot(H, E), 0.0), F0); // Ks
+    
+    vec3 kD = (vec3(1.0) - F) * (1.0 - metallic);
 
     vec3 numerator    = NDF * G * F;
-    float denominator = 4 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.00001;
+    float denominator = 4 * max(dot(N, E), 0.0) * max(dot(N, L), 0.0) + 0.00001;
     vec3 specular     = numerator / denominator;
 
-    return (kD*matColor/PI + specular) * max(dot(N, L), 0.0);
+    return (kD*matColor/PI + specular /* *reliefMap*/) * max(dot(N, L), 0.0);
 }
 
 // https://learnopengl.com/PBR/Lighting
-vec3 PBR_Equation(vec3 V, vec3 L, vec3 N, float roughness, vec3 F0, float metallic)
-{
 // From: https://www.shadertoy.com/view/ld3SRr
 // Other sources:
 // - learnopengl: https://learnopengl.com/PBR/Lighting
 // - filament: https://google.github.io/filament/Filament.html
 
-/*
-    float cosT = clamp(dot(L, N), 0.0, 1.0);
-    float sinT = sqrt(1.0 - cosT * cosT);
-    
-	vec3 H = normalize(L + V);
-	float NdotH = dot(N, H);
-	float NdotL = dot(N, L);
-	float VdotH = dot(V, H);
-    float NdotV = dot(N, V);
-    
-    // Distribution Term
-    float a = roughness * roughness;
-    float a2 = a * a;
-    float denom = NdotH*NdotH*(a2 - 1.0) + 1.0;
-    denom = PI * denom * denom;
-    float NDF = a2/max(denom, 0.0000001);
-	
-    //Fresnel Term
-	vec3 F;
-    if(metallic)
-    {
-        float cos_theta = 1.0-NdotV;
-        F =  ((ior_n-1.)*(ior_n-1.)+ior_k*ior_k+4.*ior_n*pow(1.-cos_theta,5.))
-		    /((ior_n+1.)*(ior_n+1.)+ior_k*ior_k);
-    }
-    else //Dielectric (Note: R/G/B do not really differ for dielectric materials)
-    {
-        float F0 = pow((1.0 - ior_n.x) / (1.0 + ior_n.x),2.0);
-  		F = vec3(F0 + (1.-F0) * pow( 1. - VdotH, 5.));
-    }
-    
-    //Geometric term (Source: Real Shading in Unreal Engine 4 2013 Siggraph Presentation p.3/59)
-    //k = Schlick model (IBL) : Disney's modification to reduce hotness (point light)
-    float k = bIBL ? roughness*roughness/2.0 : (roughness + 1.0)*(roughness + 1.0)/8.0; 
-    float Gl = max(NdotL, 0.0)/(NdotL*(1.0 - k) + k);
-    float Gv = max(NdotV, 0.0)/(NdotV*(1.0 - k) + k);
-    float G = Gl*Gv;
-    
-    float softTr = 0.1; // Valid range : [0.001-0.25]. Transition softness factor, close from dot(L,N) ~= 0
-    float angleLim = 0.0;//2.75; // Valid range : [0-0.75]. Compensates for IBL integration suface size.
-    //sinT = 1.;
-    if(bIBL)
-        return F*G*(angleLim + sinT)/(angleLim + 1.0) / (4.0*NdotV*clamp(NdotH, 0.0, 1.0)*(1.0 - softTr) + softTr);
-    else
-        return D*F*G / (4.0*NdotV*NdotL*(1.0 - softTr) + softTr);
-        */
-        
-    return vec3(1,0,0);
-}
 
 ////////////////////////////////////////////////////////////
 // Tone mapping
@@ -811,28 +756,26 @@ void main()
 	/////////////////////////
 	// Lighting
 	//
-    vec3 E = normalize(gVertex.E); 
-	vec3 L = normalize(gVertex.L);
-    vec3 N = normalize(NormalMatrix * normal);
-	
-    float lfShadow  = clamp(2.0*dot(normalize(gVertex.N0),L), 1.0 - Shadows, 1.0);
 	
 	// Model space
     vec2 ndcoords = gl_FragCoord.xy/viewport*2.0 - 1.0;
-	vec3 EE = normalize((InverseRotationProjection * vec4(ndcoords,0,1)).xyz);
-	vec3 LL = normalize(Light0_position.xyz);
-	vec3 II = normalize(vec3(-LL.x, -LL.y, 0.0)); // Indirect light from mountains
-	vec3 NN = normalize(vec3(normal.xy/scale, normal.z));
+	vec3 E = normalize((InverseRotationProjection * vec4(ndcoords,0,1)).xyz);
+	vec3 L = normalize(Light0_position.xyz);
+	vec3 I = normalize(vec3(-L.x, -L.y, 0.0)); // Indirect light from mountains
+	vec3 N = normalize(vec3(normal.xy/scale, normal.z));
+	
+	vec3 N0 = normalize(vec3(gVertex.gradient.zw/scale, 1));
+	float lfShadow  = clamp(1.0*dot(N0,L), 1.0 - Shadows, 1.0);
 
 	// Sampling ambient light
-	float daylight		= smoothstep(0.0, 0.1, LL.z);
-	float sunHaloWidth  = mix(2, 30, smoothstep(0.0, 0.4, LL.z));
-	vec3 sunColor		= mix(vec3(0.80, 0.40, 0.20), vec3(1.00, 0.90, 0.75), smoothstep( 0.0, 0.3, LL.z));
-	vec3 zenithColor	= mix(vec3(0.01, 0.02, 0.04), vec3(0.35, 0.48, 0.60), smoothstep(-0.8, 0.0, LL.z));
-	vec3 horizonColor	= mix(vec3(0.02, 0.03, 0.04), sunColor,               smoothstep(-0.4, 0.5, LL.z));
-	vec3 groundColor	= vec3( dot( mix(0.03*zenithColor, 1.4*zenithColor,   smoothstep( 0.0, 0.4, LL.z)), vec3(0.22,0.33,0.45)) );
-	vec3 specularColor	= sampleAmbient(reflect(LL,NN), LL, sunColor, zenithColor, horizonColor, groundColor, lfShadow, sunHaloWidth);
-	vec3 fresnelColor	= sampleAmbient(reflect(EE,NN), LL, sunColor, zenithColor, horizonColor, groundColor, lfShadow, sunHaloWidth);
+	float daylight		= smoothstep(0.0, 0.1, L.z);
+	float sunHaloWidth  = mix(2, 30, smoothstep(0.0, 0.4, L.z));
+	vec3 sunColor		= mix(vec3(0.80, 0.40, 0.20), vec3(1.00, 0.90, 0.75), smoothstep( 0.0, 0.3, L.z));
+	vec3 zenithColor	= mix(vec3(0.01, 0.02, 0.04), vec3(0.35, 0.48, 0.60), smoothstep(-0.8, 0.0, L.z));
+	vec3 horizonColor	= mix(vec3(0.02, 0.03, 0.04), sunColor,               smoothstep(-0.4, 0.5, L.z));
+	vec3 groundColor	= vec3( dot( mix(0.03*zenithColor, 1.4*zenithColor,   smoothstep( 0.0, 0.4, L.z)), vec3(0.22,0.33,0.45)) );
+	vec3 specularColor	= sampleAmbient(reflect(L,N), L, sunColor, zenithColor, horizonColor, groundColor, lfShadow, sunHaloWidth);
+	vec3 fresnelColor	= sampleAmbient(reflect(E,N), L, sunColor, zenithColor, horizonColor, groundColor, lfShadow, sunHaloWidth);
 
 	float occlusion = pow(luma, 1.0);
 	float reliefMap = smoothstep(0.2, 0.7, luma);
@@ -840,6 +783,9 @@ void main()
 
 	float diffuse   = max(0.0, dot(N,L));
 	float specular  = F0 * pow(max(0.0, dot(E, reflect(L, N))), dot(mixmap, specpow));
+	float specEN    = pow(1.0 - abs(dot(E,N)), dot(mixmap, specpow));
+	float fresnel   = mix(F0*specEN, F0 + specEN, 0.1); // 1.0 => pure Schlick's approximation
+	float indirect  = max(0.0, dot(N,I)); 
 	
 	vec3 light = vec3(0.0);
 	
@@ -851,30 +797,24 @@ if( bool(PBR) ) {
 	float metallic = 0.0;
 	vec3 F0 = mix(vec3(0.04), matColor.rgb, metallic);	// Average F0 for dielectric materials
 	
-	vec3 indirectReflectance = vec3(0.04) * matColor.rgb * (1.0 - occlusion);
-	vec3 directReflectance = garciaReflectance(E, N, matColor.rgb, F0, roughness, metallic, L);
-	
-    light += indirectReflectance;
-    light += 1.00 * Diffuse * diffuse  * occlusion * daylight * lfShadow * sunColor * directReflectance;
+    light += 0.00 * zenithColor * matColor.rgb * (1.0 - occlusion); // Ambient ?
+    light += 1.40 * Diffuse  * 2.0*occlusion * daylight * lfShadow * sunColor * REFLECTANCE(L, E, N, matColor.rgb, F0, roughness, metallic);
+    light += 0.20 * Indirect * occlusion * daylight * sunColor * REFLECTANCE(I, E, N, matColor.rgb, F0, roughness, metallic);
+    light += 0.01 * Sky		 * occlusion * zenithColor * N.z; //REFLECTANCE(vec3(0,0,-1), E, N, matColor.rgb, F0, roughness, metallic);
+    light += 0.01 * Fresnel  * fresnel  * reliefMap * (fresnelColor - light); //REFLECTANCE(L, E, N, matColor.rgb, F0, roughness, metallic);
     
-    
-        
-} else { // NPR1
-	float indirect  = occlusion * daylight * max(0.0, dot(NN,II)); 
-	float specEN    = pow(1.0 - abs(dot(E,N)), dot(mixmap, specpow));
-	float fresnel   = mix(F0*specEN, F0 + specEN, 0.1); // 1.0 => pure Schlick's approximation
-	float sky		= occlusion * NN.z;
-	
-	light += 0.300 * Diffuse  * diffuse  * occlusion * daylight * lfShadow * sunColor;
-	light += 0.100 * Specular * specular * reliefMap * daylight * mix(0.1, 1.0, lfShadow) * specularColor;
-	light += 0.010 * Fresnel  * fresnel  * reliefMap * (fresnelColor - light);
-	light += 0.010 * Sky      * sky		 * zenithColor;
-	light += 0.020 * Indirect * indirect * sunColor;
+} else { 
+	// TODO ambient = 0.04 * (1.0-occlusion) * sunColor; ?
+	light += 0.30 * Diffuse  * diffuse  * occlusion * daylight * lfShadow * sunColor;
+	light += 0.10 * Specular * specular * reliefMap * daylight * mix(0.1, 1.0, lfShadow) * specularColor;
+	light += 0.02 * Indirect * indirect * occlusion * daylight * sunColor;
+	light += 0.01 * Sky      * occlusion * zenithColor * N.z;
+	light += 0.01 * Fresnel  * fresnel  * reliefMap * (fresnelColor - light);
 }
     
     // Tone mapping
     vec3 color = tone(1.00*light*matColor.rgb, 0.1); 
-
+/*
     // Volumetric
     Plane plane;
     plane.origin = vec3(gVertex.position.xy, 0.3);
@@ -882,12 +822,13 @@ if( bool(PBR) ) {
     Ray ray; // = {vec3(), vec3()};
     ray.origin = vec3(gVertex.position.xyz); // ?
     ray.direction = E;
-
+*/
 	// Scattering
 	if( Scattering > 0 ) {
+		//dist = length(EE); //?
 	    float EdotL = max(0.0, dot(E,L));
-	    float scattering = smoothstep(+0.05, 0.5, LL.z)*(1.0-exp(-0.0200*dist))*pow(EdotL, 8.0);
-	    scattering = min(8.0*scattering, 0.1);
+	    float scattering = smoothstep(+0.05, 0.5, L.z)*(1.0-exp(-0.0200*dist))*pow(EdotL, 8.0);
+	    scattering = min(8.0*scattering, 0.1); // lens effect
 		color += mix(lfShadow, 1.0, 0.6)*scattering * sunColor;
 		color = mix(color, groundColor, vec3(0.98,1.00,1.09)*smoothstep(0.0, visibileDistance, dist /*+ 0.0*volumetric*/));
 	}
@@ -903,7 +844,7 @@ if( bool(PBR) ) {
 	color *= mix(1.0, pow(2.0*(ndcoords.x*ndcoords.x-1.0)*(ndcoords.y*ndcoords.y-1), 0.20), 0.5 * Vignetting);
 
     // TEMP
-	color += 0.00000000001 * Wireframe * Fresnel * Scattering * PBR * Sky * Gamma * Contrast * Unsaturate * Tint * Vignetting ;
+	color += 0.00000000001 * Wireframe * Fresnel * Scattering * PBR * Sky * Gamma * Contrast * Unsaturate * Tint * Vignetting * NormalMatrix[0].x ;
 	
 	// Debug controls
    	if( DebugMode == ColorView ) {
