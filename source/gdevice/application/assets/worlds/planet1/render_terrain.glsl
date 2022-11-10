@@ -567,7 +567,7 @@ vec3 REFLECTANCE(vec3 L, vec3 E, vec3 N, vec3 matColor, vec3 F0, float roughness
     float denominator = 4 * max(dot(N, E), 0.0) * max(dot(N, L), 0.0) + 0.00001;
     vec3 specular     = numerator / denominator;
 
-    return (kD*matColor/PI + specular /* *reliefMap*/) * max(dot(N, L), 0.0);
+    return (Diffuse*kD*matColor/PI + Specular*specular /* *reliefMap*/) * max(dot(N, L), 0.0);
 }
 
 // https://learnopengl.com/PBR/Lighting
@@ -761,11 +761,14 @@ void main()
     vec2 ndcoords = gl_FragCoord.xy/viewport*2.0 - 1.0;
 	vec3 E = normalize((InverseRotationProjection * vec4(ndcoords,0,1)).xyz);
 	vec3 L = normalize(Light0_position.xyz);
-	vec3 I = normalize(vec3(-L.x, -L.y, 0.0)); // Indirect light from mountains
+	vec3 I = normalize(vec3(-L.x, -L.y, 0.0));
 	vec3 N = normalize(vec3(normal.xy/scale, normal.z));
-	
 	vec3 N0 = normalize(vec3(gVertex.gradient.zw/scale, 1));
-	float lfShadow  = clamp(1.0*dot(N0,L), 1.0 - Shadows, 1.0);
+	
+	// Ambient occluders
+	float lfShadow = clamp(2.0*dot(N0,L), 1.0 - Shadows, 1.0); // why 2x ?
+	float occlusion = pow(luma, 1.0);
+	float relief	= smoothstep(0.2, 0.7, luma);
 
 	// Sampling ambient light
 	float daylight		= smoothstep(0.0, 0.1, L.z);
@@ -776,40 +779,46 @@ void main()
 	vec3 groundColor	= vec3( dot( mix(0.03*zenithColor, 1.4*zenithColor,   smoothstep( 0.0, 0.4, L.z)), vec3(0.22,0.33,0.45)) );
 	vec3 specularColor	= sampleAmbient(reflect(L,N), L, sunColor, zenithColor, horizonColor, groundColor, lfShadow, sunHaloWidth);
 	vec3 fresnelColor	= sampleAmbient(reflect(E,N), L, sunColor, zenithColor, horizonColor, groundColor, lfShadow, sunHaloWidth);
-
-	float occlusion = pow(luma, 1.0);
-	float reliefMap = smoothstep(0.2, 0.7, luma);
+	
+	// Fresnel
 	float F0		= dot(mixmap, specmap);
-
-	float diffuse   = max(0.0, dot(N,L));
-	float specular  = F0 * pow(max(0.0, dot(E, reflect(L, N))), dot(mixmap, specpow));
-	float specEN    = pow(1.0 - abs(dot(E,N)), dot(mixmap, specpow));
-	float fresnel   = mix(F0*specEN, F0 + specEN, 0.1); // 1.0 => pure Schlick's approximation
-	float indirect  = max(0.0, dot(N,I)); 
+	float specPower	= dot(mixmap, specpow);
+	float specular  = F0 * pow(max(0.0, dot(E, reflect(L, N))), specPower);
+	float fresnel0   = pow(1.0 - abs(dot(E,N)), specPower);
+	float fresnel   = mix(F0*fresnel0, F0 + fresnel0, 0.1); // 1.0 => pure Schlick's approximation
 	
 	vec3 light = vec3(0.0);
 	
-if( bool(PBR) ) {
-
-	vec3 sampleColor  = sunColor; //PBR_HDRCubemap( sampleDir, angularRange/MIPMAP_SWITCH);
-	
-	float roughness = 0.85;
+if( bool(PBR) ) 
+{
 	float metallic = 0.0;
-	vec3 F0 = mix(vec3(0.04), matColor.rgb, metallic);	// Average F0 for dielectric materials
+	float roughness = 0.0;
+	vec3 diffuseColor = matColor.rgb;
 	
-    light += 0.00 * zenithColor * matColor.rgb * (1.0 - occlusion); // Ambient ?
-    light += 1.40 * Diffuse  * 2.0*occlusion * daylight * lfShadow * sunColor * REFLECTANCE(L, E, N, matColor.rgb, F0, roughness, metallic);
-    light += 0.20 * Indirect * occlusion * daylight * sunColor * REFLECTANCE(I, E, N, matColor.rgb, F0, roughness, metallic);
-    light += 0.01 * Sky		 * occlusion * zenithColor * N.z; //REFLECTANCE(vec3(0,0,-1), E, N, matColor.rgb, F0, roughness, metallic);
-    light += 0.01 * Fresnel  * fresnel  * reliefMap * (fresnelColor - light); //REFLECTANCE(L, E, N, matColor.rgb, F0, roughness, metallic);
-    
-} else { 
+	vec3 F0 = mix(vec3(0.04), diffuseColor, metallic);	// Average F0 for dielectric materials
+	
+    //light += 0.00 * zenithColor * matColor.rgb * (1.0 - occlusion); // Ambient ?
+    light += 2.00 * Diffuse  * occlusion * daylight * lfShadow * sunColor * REFLECTANCE(L, E, N, diffuseColor, F0, roughness, metallic);
+    light += 0.20 * Indirect * occlusion * daylight * sunColor * REFLECTANCE(I, E, N, diffuseColor, F0, roughness, metallic);
+    light += 0.01 * Sky		 * occlusion *			  zenithColor * N.z; //REFLECTANCE(vec3(0,0,-1), E, N, diffuseColor, F0, roughness, metallic);
+    light += 0.01 * Fresnel  * relief	 * (fresnelColor - light) * fresnel;
+} 
+else 
+{ 
+	// This formulation is based on:
+	// - a simplified model of GI where specular-fresnel-sky complement one another and an extra indirect source of light is added.
+	// - the specular component is not masked out completely with lambertian (neither N.L or N0.L) and no conservation of energy is applied.
+	// - Fresnel is applied with a tweaked formula that includes the Schlick approximation.
+
+	// TODO: make input for the material: metallicity, roughness and diffuseColor
+	// TODO: make input for the pixel: relief, AO, etc.. (TBD)
+
 	// TODO ambient = 0.04 * (1.0-occlusion) * sunColor; ?
-	light += 0.30 * Diffuse  * diffuse  * occlusion * daylight * lfShadow * sunColor;
-	light += 0.10 * Specular * specular * reliefMap * daylight * mix(0.1, 1.0, lfShadow) * specularColor;
-	light += 0.02 * Indirect * indirect * occlusion * daylight * sunColor;
-	light += 0.01 * Sky      * occlusion * zenithColor * N.z;
-	light += 0.01 * Fresnel  * fresnel  * reliefMap * (fresnelColor - light);
+	light += 0.40 * Diffuse  * occlusion * daylight * lfShadow * sunColor * max(0.0, dot(N,L)) ;//* (1.0 - specular);
+	light += 0.06 * Specular * relief	 * daylight * mix(0.2, 1.0, lfShadow) * specularColor * specular;//* max(0.0, dot(N,L));
+	light += 0.02 * Indirect * occlusion * daylight * sunColor * max(0.0, dot(N,I)); 
+	light += 0.003 * Sky      * occlusion *			  zenithColor * N.z;
+	light += 0.01 * Fresnel  * relief	 * (fresnelColor - light) * fresnel;
 }
     
     // Tone mapping
@@ -827,10 +836,10 @@ if( bool(PBR) ) {
 	if( Scattering > 0 ) {
 		//dist = length(EE); //?
 	    float EdotL = max(0.0, dot(E,L));
-	    float scattering = smoothstep(+0.05, 0.5, L.z)*(1.0-exp(-0.0200*dist))*pow(EdotL, 8.0);
-	    scattering = min(8.0*scattering, 0.1); // lens effect
-		color += mix(lfShadow, 1.0, 0.6)*scattering * sunColor;
-		color = mix(color, groundColor, vec3(0.98,1.00,1.09)*smoothstep(0.0, visibileDistance, dist /*+ 0.0*volumetric*/));
+	    float scattering = smoothstep(+0.05, 0.5, L.z) * (1.0 - exp(-0.0200*dist)) * pow(EdotL, 8.0);
+	    scattering = min(4.0*scattering, 0.1); // lens effect
+		color += mix(lfShadow, 1.0, 0.6) * scattering * sunColor;
+		color = mix(color, groundColor, vec3(0.98,1.00,1.09) * smoothstep(0.0, visibileDistance, dist /*+ 0.0*volumetric*/));
 	}
 
 

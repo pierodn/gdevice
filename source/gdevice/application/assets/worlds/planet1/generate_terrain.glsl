@@ -14,7 +14,7 @@ uniform float size;
 #define RES 33      //17	// NOTE change also into gdevice_parameters.h
 
 #define SCALE 130
-#define OCTAVES 13
+#define OCTAVES 11
 const vec3 worldScale = vec3(vec2(1.0/SCALE), SCALE);
 
 layout (binding=0, rgba32f) uniform writeonly image2D quartetsIU;
@@ -307,9 +307,8 @@ Vertex getVertex(ivec2 ij)
 
     int octaves = OCTAVES; 
     int lodOctaveBudget = int(octaves - 0.0*log2(size)); // TODO: enable
-    int shadowfreq = int(lodOctaveBudget*0.50); // 0.40
-    int spikesfreq = int(lodOctaveBudget*0.20); // 0.20
-    int terrainFreq = lodOctaveBudget - shadowfreq - spikesfreq;
+    int shadowfreq = int(lodOctaveBudget*0.40);
+    int terrainFreq = lodOctaveBudget - shadowfreq;
 
     vec4 signal = vec4(0.0);
     vec4 weight = vec4(0.0, 0.0, 0.17, 0.0);
