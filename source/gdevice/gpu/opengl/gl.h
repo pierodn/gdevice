@@ -1159,32 +1159,34 @@ namespace GL
 	        return successful;
         }
 
-        void printSource(char* source, int length, int focusLine = -1) {
+        void printSource(char* source, int length, int focusLine = -1)
+		{
             ASSERT( length <= MAX_PROGRAM_SOURCE_LENGTH );
 
 	        char buffer[MAX_PROGRAM_SOURCE_LENGTH];
 	        strncpy(buffer, source, length);
 
-	        char* s = buffer;
-            char line[256];
-	        for( int i=1; *s; i++ ) {
-		        char* n = strstr2( s, "\n" );
-		        if( n==0 ) break;
+	        char* p = buffer;
+            char lineText[256];
+	        for(int line = 2; *p; line++) 
+			{
+		        char* nIndex = strstr2(p, "\n");
+		        if(nIndex==0) break;
 
-                if( (focusLine < 0) || (focusLine >= 0) && (focusLine-6 <= i) && (i <= focusLine+3) ) { 
-		            int l = n-s;			
-		            strncpy( line, s, l );
-		            line[l] = 0;
+                if((focusLine < 0) || (focusLine >= 0) && (focusLine-6 <= line) && (line <= focusLine+3)) { 
+		            int length = nIndex - p;			
+		            strncpy(lineText, p, length);
+		            lineText[length] = 0;
 
-                    if( i == focusLine ) {
-                        color(CMD_RED, CMD_DARKGRAY); 
+                    if(line == focusLine) {
+                        color(CMD_WHITE, CMD_RED); 
                     } else {
                         color(CMD_LIGHTGRAY, 0); 
                     }
-		            printf( "%i: %s\n", i, line );
+		            printf("%i: %s\n", line, lineText);
                 }
 
-		        s = n+1;
+		        p = nIndex + 1;
 	        }
         }
 
