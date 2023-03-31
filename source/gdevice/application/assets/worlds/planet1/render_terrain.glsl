@@ -766,7 +766,7 @@ void main()
 	vec3 N0 = normalize(vec3(gVertex.gradient.zw/scale, 1));
 	
 	// Ambient occluders
-	float lfShadow = clamp(2.0*dot(N0,L), 1.0 - Shadows, 1.0); // why 2x ?
+	float lfShadow = clamp(4.0*dot(N0,L), 1.0 - Shadows, 1.0);
 	float occlusion = pow(luma, 1.0);
 	float relief	= smoothstep(0.2, 0.7, luma);
 
@@ -817,8 +817,8 @@ else
 	light += 0.40 * Diffuse  * occlusion * daylight * lfShadow * sunColor * max(0.0, dot(N,L)) ;//* (1.0 - specular);
 	light += 0.06 * Specular * relief	 * daylight * mix(0.2, 1.0, lfShadow) * specularColor * specular;//* max(0.0, dot(N,L));
 	light += 0.02 * Indirect * occlusion * daylight * sunColor * max(0.0, dot(N,I)); 
-	light += 0.003 * Sky      * occlusion *			  zenithColor * N.z;
-	light += 0.01 * Fresnel  * relief	 * (fresnelColor - light) * fresnel;
+	light += 0.02 * Sky      * occlusion *			  zenithColor * N.z;
+	light += 0.04 * Fresnel  * relief	 * (fresnelColor - light) * fresnel;
 }
     
     // Tone mapping
