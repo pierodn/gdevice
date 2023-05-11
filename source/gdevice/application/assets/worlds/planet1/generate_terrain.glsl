@@ -55,6 +55,7 @@ vec4 noise(vec2 point)
 // Noise algebra
 //
 const vec4 unit = vec4(0.0, 0.0, 1.0, 0.0);
+const mat2 identity = mat2(1.0,0.0,0.0,1.0);
 vec4 noise(vec2 point, mat2 scale)  { vec4 n = noise(scale*point); n.xy *= scale; return n; }
 vec4 noise(vec2 point, float scale) { vec4 n = noise(scale*point); n.xy *= scale; return n; }
 vec4 bias(vec4 n, float offset )    { return n + offset * unit; }
@@ -76,17 +77,11 @@ vec4 invert(vec4 n)                 { float z = 1.0/(n.z + 1.0); return vec4(-z*
 vec4 invert2(vec4 n)			    { return vec4(-n.xy, 1.0 - n.z, 0.0); }
 vec4 minus(float t, vec4 n)         { return vec4(-n.xy, t - n.z, 0.0); }
 vec4 tone(vec4 n, float t)			{ return smoothStep(0.0, 1.0, multiply(n, invert(bias(n,t))))*(1.0 + t); }
-vec4 smoothFloor(vec4 n, float c) 
-{
-    vec4 a = vec4(n.xy, fract(n.z), 0.0);
-    vec4 b = vec4(0.0, 0.0, floor(n.z), 0.0);
-    return ((power(a,c) - power(invert2(a),c))/2.0) + b;
-}
 
 //
 // Triangular noise
 // 
-vec4 triangle(in vec2 p, float pack = 0.12, float erode = 0.47)
+vec4 triangle(in vec2 p, float pack, float erode)
 {
     p = fract(p) - 0.5;
     
@@ -101,7 +96,7 @@ vec4 triangle(in vec2 p, float pack = 0.12, float erode = 0.47)
     return t;
 }
 
-vec4 triangular(vec2 point, float scale, float low, float high )
+vec4 triangular(vec2 point, float scale, float low, float high)
 {
     point *= scale;
     
@@ -136,10 +131,11 @@ vec4 triangular(vec2 point, float scale, float low, float high )
 //                                                                                                   
 
 vec4 fbm(vec2 p, int octaves, 
-    float amplitude = 1.0,
-    float gain = 0.5,
-    mat2 frequency = mat2(1.0,0.0,0.0,1.0),
-    mat2 lacunarity = 2.03*mat2(0.8,-0.6,0.6,0.8) )
+    float amplitude, // = 1.0,
+    float gain, // = 0.5,
+    mat2 frequency, // = mat2(1.0,0.0,0.0,1.0),
+    mat2 lacunarity // = 2.03*mat2(0.8,-0.6,0.6,0.8) 
+    )
 {
     vec4 signal = vec4(0.0);
     for( int i=0; i<octaves; i++ ) {
@@ -149,21 +145,9 @@ vec4 fbm(vec2 p, int octaves,
     }
     return signal;
 }
-    
-vec4 fbm_triangular(vec2 p, int octaves, 
-        float pack = 0.12, float erode = 0.30,
-    float gain = 0.5,
-    mat2 frequency = mat2(1.0,0.0,0.0,1.0),
-    mat2 lacunarity = 2.03*mat2(0.8,-0.6,0.6,0.8) )
-{
-    vec4 signal = vec4(0.0);
-    float amplitude = 1.0;
-    for( int i=0; i<octaves; i++ ) {
-        signal += triangular(p, frequency, pack, erode);
-		amplitude *= gain;
-		frequency *= lacunarity;
-    }
-    return signal;
+
+vec4 fbm(vec2 p, int octaves) {
+	return fbm(p, octaves, 1.0, 0.5, mat2(1.0,0.0,0.0,1.0), 2.03*mat2(0.8,-0.6,0.6,0.8));
 }
     
 vec4 hybrid(vec2 point, int octaves, 
@@ -319,8 +303,9 @@ Vertex getVertex(ivec2 ij)
     // Domain warping  // NOTE: Must apply to gradient as well.
     float dwFrequency = 1.2; // 2.0
     float dwAmplitude = 0.2; // 1.0 // NOTE: Set to zero to disable
-    vec4 dwPointU = dwAmplitude * fbm((point + 0.000)*dwFrequency, 4);
-    vec4 dwPointV = dwAmplitude * fbm((point + 123.1)*dwFrequency, 4);
+    const mat2 lacunarity = 2.03*mat2(0.8,-0.6,0.6,0.8);
+    vec4 dwPointU = dwAmplitude * fbm((point + 0.000)*dwFrequency, 4, 1.0, 0.5, identity, lacunarity);
+    vec4 dwPointV = dwAmplitude * fbm((point + 123.1)*dwFrequency, 4, 1.0, 0.5, identity, lacunarity);
     dwPointU.xy *= dwFrequency;
     dwPointV.xy *= dwFrequency;
     dwPointU = vec4(dwPointU.xy + vec2(1.0, 0.0), dwPointU.z + point.x, 0.0);
@@ -387,37 +372,6 @@ Vertex getVertex(ivec2 ij)
     t0.xy *= worldScale.z;
     t1.xy *= worldScale.z;
     
-	
-    // Post processing
-#if 0
-	float tr4scale = 31.0;
-    vec4 tr4 = fbm_triangular(-point*tr4scale, 4, 0.20, 0.30, 0.5) * vec4(-tr4scale, -tr4scale, 1.0, 1.0); 
-
-    // Spike clamping
-    #if 0
-        vec4 t01 = multiply(invert2(t0), power(multiply(t1-t0, invert2(t0)), 2.0)) * 50.0; // Great dump
-        vec4 h0 = 0.0025*unit;           
-	    vec4 h1 = h0 + 0.005*bias(tr4*0.2, +0.1) + 0.001*saturate(0.5+noise(point, scale0*0.1), 0.2, 0.5);
-    #else
-        vec4 t01 = t1-t0;
-        vec4 h0 = 0.009*unit;           
-	    vec4 h1 = h0 + 0.009*bias(tr4*0.2, +0.1) + 0.002*saturate(0.5 + noise(point, scale0*0.1), 0.2, 0.5);
-    #endif	
- 
-	vec4 dump = t0 + saturate(t01, 0.0*unit, h0);
-	vec4 rock = bias(saturate(t01, h0, h1), -h0.z);// + 0.021*(0.5+noise(point, scale0*0.01));
-	
-    // Add some plateaus on the rock
-    {   float stepHeight = 3771.0; // * (0.1+0.5*fbm((point + 0.000)*dwFrequency, 4).z);// * (0.1 + 0.9*tr4.z);
-        float hardness = 4.0;
-        rock = smoothFloor(rock*stepHeight, hardness)/stepHeight;
-    }
-
-    // Clamp the spikes and raise rocks
-	t1 = dump + 3.0*rock;//maximum(2.0*rock, 0.0*bias(0.014*tr4, -0.015) ); // + 0.0*multiply(rock, spikes);
-    //t1 = t1*0.000000000001 + 0.004*tr4;
-#endif
-
 	Substance substance = getSubstance(t1, worldScale);
 	
     t1.z *= worldScale.z; 
