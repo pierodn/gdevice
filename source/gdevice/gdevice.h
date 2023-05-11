@@ -144,7 +144,8 @@ public:
 		    int(speedFactor),
 		    controls_string, 
 		    int(time), int(fract(time)*60),
-		    str(METERS_PER_TILE * camera.position) 
+		    camera_position,
+			camera_rotation
 	    );
 	    previous_pos = camera.position;
 
