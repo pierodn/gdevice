@@ -132,7 +132,13 @@ public:
             interval = fpsTimer.elapsed()/FPS_FREQUENCY;
 	    int fps = (int)(1.0/interval);
 
-	    window.setTitle("FPS=%i%s Speed=%.2fkmh (x%i) Renderer=[%s] Time=%02i.%02i GPS=( %s)", 
+		char camera_position[256];
+		STR(METERS_PER_TILE * camera.position, camera_position);
+
+		char camera_rotation[256];
+		STR(camera.rotation, camera_rotation);
+
+	    window.setTitle("FPS=%i%s Speed=%.2fkmh (x%i) Renderer=[%s] Time=%02i.%02i POS=(%s) DIR=(%s)", 
 		    fps, fps<100 ? "  " : "",
 		    distance(camera.position, previous_pos) * METERS_PER_TILE/interval * 3600/1000,
 		    int(speedFactor),

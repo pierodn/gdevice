@@ -1730,6 +1730,16 @@ template<int N> inline char* str(vec<double,N> v)
 	return buffer;
 }
 
+
+// TEMP just to prove the side effect between calls
+template<int N> inline void STR(vec<double,N> v, char* buffer)
+{
+    buffer[0] = 0;
+    char* p = buffer;
+	for(int i = 0; i < N; i++)
+		p += sprintf(p, "%+.2f ", v[i]);
+}
+
 template<int N> inline char* str(vec<int,N> v)
 {
     static char buffer[256];
