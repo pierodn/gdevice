@@ -39,13 +39,14 @@ vec4 noise(vec2 point)
 	vec2 u = f*f*(3.0-2.0*f);  //f*f*f*(f*(6.0*f-15.0)+10.0);
 	vec2 du = 6.0*f*(1.0-f);   //30.0*f*f*(f*(f-2.0)+1.0);
 	
-    vec4 L = vec4(0.0, 1.0, 57.0, 1.0 + 57.0);	
+	const float WIDTH = 0.3137; // 13.0
+    vec4 L = vec4(0.0, 1.0, WIDTH, WIDTH + 1.0);	
 #if 0
     L = fract(43758.5453123 * sin(L + dot(i, L.yz)));
 #else
-    L = fract((L + dot(i, L.yz))*0.1301);
-    L += 1.17*L*(L + 17.11);
-    L = fract(2.71*L*L) - 0.5;
+    L = fract((L + dot(i, L.yz))*0.1731);
+    L += L*(L + 1.0);
+    L = fract(7.7771*L*L) - 0.5;
 #endif
 	L = vec4(L.x, L.y-L.x, L.z-L.x, L.x-L.y-L.z+L.w);
 	return vec4(du*(L.yz + L.w*u.yx), L.x + L.y*u.x + L.z*u.y + L.w*u.x*u.y, 0.0 );
