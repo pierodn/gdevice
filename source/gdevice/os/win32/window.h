@@ -201,7 +201,7 @@ public:
 			va_list ap;
 			va_start(ap, format);
 				vsprintf(buffer, format, ap);
-			va_end( ap );
+			va_end(ap);
 		}
 
 		SetWindowText( hWnd, buffer );

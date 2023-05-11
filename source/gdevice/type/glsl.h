@@ -1725,8 +1725,8 @@ template<int N> inline char* str(vec<double,N> v)
     static char buffer[256];
     buffer[0] = 0;
     char* p = buffer;
-	for( int i = 0; i < N; i++ )
-		p += sprintf( p, "%+.2f ", v[i] );
+	for(int i = 0; i < N; i++)
+		p += sprintf(p, "%+.2f ", v[i]);
 	return buffer;
 }
 
@@ -1736,7 +1736,7 @@ template<int N> inline char* str(vec<int,N> v)
     buffer[0] = 0;
     char* p = buffer;
 	for( int i = 0; i < N; i++ )
-		p += sprintf( p, "%+i ", v[i] );
+		p += sprintf(p, "%+i ", v[i]);
 	return buffer;
 }
 

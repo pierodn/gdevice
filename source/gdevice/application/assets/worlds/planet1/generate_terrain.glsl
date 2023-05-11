@@ -344,8 +344,8 @@ Vertex getVertex(ivec2 ij)
         vec2 point1 = point*scale1;
         // TODO: t2 = warp(t, 0.4, 0.7);
         float f = 0.4, a = 0.7;
-        vec4 nu = a*vec4(f,f,1,0)*fbm((point1.xy+0.000)*f, 5);
-        vec4 nv = a*vec4(f,f,1,0)*fbm((point1.yx+123.1)*f, 5);
+        vec4 nu = a * vec4(f,f,1,0) * fbm((point1.xy+0.000)*f, 5);
+        vec4 nv = a * vec4(f,f,1,0) * fbm((point1.yx+123.1)*f, 5);
         vec4 u = vec4(nu.xy + vec2(1.0, 0.0), nu.z + point1.x, 0.0);
         vec4 v = vec4(nv.xy + vec2(0.0, 1.0), nv.z + point1.y, 0.0);
         vec2 uv = vec2(u.z,v.z);
