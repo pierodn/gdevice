@@ -300,7 +300,12 @@ Vertex getVertex(ivec2 ij)
     float scale0 = 1200*worldScale.x; 
     float frequency = 0.73;
    
-#if 1 
+#if 0
+    vec4 c0 = hybrid(point, shadowfreq-1,   signal, weight, scale0, frequency);
+    vec4 t0 = hybrid(point, 1,              signal, weight, scale0, frequency);
+    vec4 c1 = hybrid(point, terrainFreq-1,  signal, weight, scale0, frequency);
+    vec4 t1 = hybrid(point, 1,              signal, weight, scale0, frequency);
+#else
     // Domain warping  // NOTE: Must apply to gradient as well.
     float dwFrequency = 1.2; // 2.0
     float dwAmplitude = 0.2; // 1.0 // NOTE: Set to zero to disable
@@ -353,12 +358,6 @@ Vertex getVertex(ivec2 ij)
 			t1 = aa * multiply(t, a0*smoothStep(0.25, 0.50, t1) + a1*smoothStep(0.40, 0.50, t1)); 
 		#endif 
     #endif
-
-#else
-    vec4 c0 = hybrid(point, shadowfreq-1,   signal, weight, scale0, frequency);
-    vec4 t0 = hybrid(point, 1,              signal, weight, scale0, frequency);
-    vec4 c1 = hybrid(point, terrainFreq-1,  signal, weight, scale0, frequency);
-    vec4 t1 = hybrid(point, 1,              signal, weight, scale0, frequency);
 #endif
 
     // The domain scale is applied to gradient as well.
@@ -375,8 +374,27 @@ Vertex getVertex(ivec2 ij)
     
 	Substance substance = getSubstance(t1, worldScale);
 	
-    t1.z *= worldScale.z; 
+    t1.z *= worldScale.z;
     
+#if 1
+	// TODO insert samples
+	float w = 0.002; 
+	vec2 c = vec2(0.0);
+	//vec2 a = c - w;
+	//vec2 b = c + w;
+	vec2 i0 = step(c - w, point);
+	vec2 i1 = step(point, c + w);
+	vec2 ii = i0*i1;
+	float x = ii.x * ii.y;
+	if(x > 0) {
+		// TODO calculate derivatives
+		vec2 dxdy = vec2(0.0);
+		t0 = t1 = vec4(dxdy, 1.0, 0.0);
+		substance.color  = vec4(1.0, 0.0, 0.0, 0.0);
+		substance.mixmap = vec4(1.0, 0.0, 0.0, 0.0);
+	}
+#endif
+
 	vec4 position = t1; // Here only z is actually used.
     vec4 gradient = vec4(t1.xy, t0.xy) * size; // Applying tile domain scale to gradient.
     vec4 color    = substance.color;
