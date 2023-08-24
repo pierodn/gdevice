@@ -17,17 +17,14 @@
 //////////////////////////////////
 // Configuration
 #if defined(_DEBUG)
-	#pragma message( "----->  DEBUG" )
-	// TODO
-#else
-	// TODO
+	#pragma message(" -----> DEBUG")
 #endif
 
 #if defined(_CONSOLE)
-	#pragma message( "----->  CONSOLE" )
-	#pragma comment(linker,"/SUBSYSTEM:CONSOLE")
+	#pragma message(" -----> CONSOLE")
+	#pragma comment(linker, "/SUBSYSTEM:CONSOLE")
 #else
-	#pragma comment(linker,"/SUBSYSTEM:WINDOWS")
+	#pragma comment(linker, "/SUBSYSTEM:WINDOWS")
 #endif
 
 #if defined(_MSC_VER)
@@ -67,7 +64,7 @@ int main();
 void printh( const char* header="" )
 {
 	static char line[] = "------------------------------------------------------";
-	printf("\n\n");
+	printf("\n");
 	// TODO avoid printing spaces around the header string when it is empty ("")
 	printf( "------  %s  %s\n", header, line + min(6+2+2+strlen(header), sizeof(line)) );
 	printf("\n");
@@ -128,8 +125,8 @@ inline void printf(void* x)			{ printf("%08X", x); };
     #define ASSERT(statement)     (void)((statement) || (_ASSERT(#statement, __FUNCTION__, __FILE__, __LINE__),0))
     #define CRITICAL(message)     _CRITICAL((message), __FUNCTION__, __FILE__, __LINE__)
 
-// NOTE: Enabling DEBUG macros for RELEASE too, makes it not crash.
-#if defined(_DEBUG) || 1 // TODO Investigate
+// NOTE: Enabling DEBUG macros for RELEASE too, makes it not crash. TODO: Fix bug.
+#if defined(_DEBUG)
     #define DEBUG_PRINT                 printf
     #define DEBUG_ASSERT(statement)     (void)((statement) || (_ASSERT(#statement, __FUNCTION__, __FILE__, __LINE__),0))
     #define DEBUG_CHECKPOINT_AUTO       _PRINT_PATH(__FUNCTION__, __FILE__, __LINE__); color(CMD_WHITE,CMD_CYAN); printf(__COUNTER__); color(15,0);

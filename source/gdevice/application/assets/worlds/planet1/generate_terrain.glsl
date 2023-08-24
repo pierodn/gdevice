@@ -300,12 +300,7 @@ Vertex getVertex(ivec2 ij)
     float scale0 = 1200*worldScale.x; 
     float frequency = 0.73;
    
-#if 0
-    vec4 c0 = hybrid(point, shadowfreq-1,   signal, weight, scale0, frequency);
-    vec4 t0 = hybrid(point, 1,              signal, weight, scale0, frequency);
-    vec4 c1 = hybrid(point, terrainFreq-1,  signal, weight, scale0, frequency);
-    vec4 t1 = hybrid(point, 1,              signal, weight, scale0, frequency);
-#else
+#if 1 
     // Domain warping  // NOTE: Must apply to gradient as well.
     float dwFrequency = 1.2; // 2.0
     float dwAmplitude = 0.2; // 1.0 // NOTE: Set to zero to disable
@@ -358,6 +353,12 @@ Vertex getVertex(ivec2 ij)
 			t1 = aa * multiply(t, a0*smoothStep(0.25, 0.50, t1) + a1*smoothStep(0.40, 0.50, t1)); 
 		#endif 
     #endif
+
+#else
+    vec4 c0 = hybrid(point, shadowfreq-1,   signal, weight, scale0, frequency);
+    vec4 t0 = hybrid(point, 1,              signal, weight, scale0, frequency);
+    vec4 c1 = hybrid(point, terrainFreq-1,  signal, weight, scale0, frequency);
+    vec4 t1 = hybrid(point, 1,              signal, weight, scale0, frequency);
 #endif
 
     // The domain scale is applied to gradient as well.

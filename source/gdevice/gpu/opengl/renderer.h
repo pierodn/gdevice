@@ -68,15 +68,11 @@ public:
 		//
 		// Hardware detection  
         // 
-#if defined(_DEBUG) // TEMP
-		printh( "GRAPHICS ENGINE" );
-		DEBUG_PRINT( TAB32 ": %s\n",   "OpenGL vendor",  GL::vendor() );
-		DEBUG_PRINT( TAB32 ": %.1f\n", "OpenGL version", GL::version() );
-		DEBUG_PRINT( TAB32 ": %.2f\n", "GLSL version",   GL::GLSL::version() );
-#else 
-        color(15,0); 
-        DEBUG_PRINT( "OpenGL %.1f\n\n", GL::version() );
-#endif
+        DEBUG_TRACE(GL::renderer());
+        DEBUG_TRACE(GL::version());
+        DEBUG_PRINT("\n");
+
+        DEBUG_ASSERT( GL::version() >= 4.3 );
 
 	    GL::Texturing::available();
 	    GL::Texturing::textureNonPowerOfTwoAvailable();
@@ -167,8 +163,6 @@ public:
 		//
 		// Initialize function
 		//
-		DEBUG_ASSERT( GL::version() >= 4.3 );
-
         GL::GLSL::unbind();
 
         DEBUG_PRINT("\n");

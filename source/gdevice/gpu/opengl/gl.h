@@ -76,6 +76,11 @@ namespace GL
 		return (const char *)glGetString(GL_VENDOR);
 	}
 
+    inline const char* renderer()
+	{
+        return (const char *)glGetString(GL_RENDERER);
+    }
+
 	double version()
 	{
 		return atof((const char *)glGetString(GL_VERSION));
