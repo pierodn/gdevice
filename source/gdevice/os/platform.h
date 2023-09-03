@@ -115,8 +115,8 @@ inline void _PRINT_PATH(char* function, char* filename, int line) {
 
 inline void printf(int d)			{ printf("%d", d); };
 inline void printf(unsigned int d)  { printf("%d", d); };
-inline void printf(float f)			{ printf("%f", f); };
-inline void printf(double f)		{ printf("%f", f); };
+inline void printf(float f)			{ printf("%.2f", f); };
+inline void printf(double f)		{ printf("%.4f", f); };
 inline void printf(void* x)			{ printf("%08X", x); };
 
 /////////////////////////////////////////

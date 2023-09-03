@@ -81,7 +81,7 @@ namespace GL
         return (const char *)glGetString(GL_RENDERER);
     }
 
-	double version()
+	float version()
 	{
 		return atof((const char *)glGetString(GL_VERSION));
 	}

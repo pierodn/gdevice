@@ -818,7 +818,7 @@ else
 	light += 0.06 * Specular * relief	 * daylight * mix(0.2, 1.0, lfShadow) * specularColor * specular;//* max(0.0, dot(N,L));
 	light += 0.02 * Indirect * occlusion * daylight * sunColor * max(0.0, dot(N,I)); 
 	light += 0.02 * Sky      * occlusion *			  zenithColor * N.z;
-	light += 0.06 * Fresnel  * relief	 * (fresnelColor - light) * fresnel;
+	light += 0.04 * Fresnel  * relief	 * (fresnelColor - light) * fresnel;
 }
     
     // Tone mapping
