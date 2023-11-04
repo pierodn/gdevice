@@ -66,7 +66,7 @@
 				UsePrecompiledHeader="0"
 				AssemblerOutput="0"
 				WarningLevel="3"
-				DebugInformationFormat="2"
+				DebugInformationFormat="1"
 				CallingConvention="0"
 			/>
 			<Tool
@@ -89,6 +89,7 @@
 				SubSystem="1"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
+				LinkTimeCodeGeneration="0"
 				RandomizedBaseAddress="2"
 				FixedBaseAddress="0"
 				TargetMachine="1"
@@ -251,6 +252,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\type\cpu.h"
+				>
+			</File>
+			<File
 				RelativePath=".\type\functors.h"
 				>
 			</File>
@@ -291,11 +296,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\os\keyboard.h"
+				RelativePath=".\os\win32\keyboard.h"
 				>
 			</File>
 			<File
-				RelativePath=".\os\win32\keyboard.h"
+				RelativePath=".\os\keyboard.h"
 				>
 			</File>
 			<File
@@ -307,11 +312,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\os\win32\mutex.h"
+				RelativePath=".\os\mutex.h"
 				>
 			</File>
 			<File
-				RelativePath=".\os\mutex.h"
+				RelativePath=".\os\win32\mutex.h"
 				>
 			</File>
 			<File
@@ -335,11 +340,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\gpu\renderer.h"
+				RelativePath=".\gpu\opengl\renderer.h"
 				>
 			</File>
 			<File
-				RelativePath=".\gpu\opengl\renderer.h"
+				RelativePath=".\gpu\renderer.h"
 				>
 			</File>
 			<File
@@ -351,11 +356,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\os\win32\thread.h"
+				RelativePath=".\os\thread.h"
 				>
 			</File>
 			<File
-				RelativePath=".\os\thread.h"
+				RelativePath=".\os\win32\thread.h"
 				>
 			</File>
 			<File
@@ -375,11 +380,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\os\window.h"
+				RelativePath=".\os\win32\window.h"
 				>
 			</File>
 			<File
-				RelativePath=".\os\win32\window.h"
+				RelativePath=".\os\window.h"
 				>
 			</File>
 		</Filter>
@@ -409,6 +414,10 @@
 		</File>
 		<File
 			RelativePath=".\application\assets\worlds\planet1\generate_terrain.glsl"
+			>
+		</File>
+		<File
+			RelativePath=".\type\glsl_tests.h"
 			>
 		</File>
 		<File

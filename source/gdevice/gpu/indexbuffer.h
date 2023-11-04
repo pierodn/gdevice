@@ -1,18 +1,13 @@
 #pragma once
 
-#include "type/glsl.h"
-//#include "type/transformations.h"
-//#include "type/functors.h"
-//#include "type/geometry.h"
+#include "type/cpu.h"
 #include "type/array.h"
 
 #include "__temp/texture.h"
 
 
-
 // PROP 
 // struct IndexBuffer : Array<ivec2>, Cacheable
-
 
 
 struct IndexBuffer : public Cacheable

@@ -1,49 +1,31 @@
 #pragma once
 
-//#include <cmath>
+// TODO specialize with SSE intrinsics
 
-//#define __SSE__
+#include <math.h>
+#undef min
+#undef max
 
-/*
-	Only some operations (specialized for T=float and N=4) are 
-	explicitly optimized with SSE intrinsics. 
-	All others rely on specific compiler optimizations such as 
-	unrolling, RVO and SSE code generation. 
-	So wisely arrange your compiler configuration.
-*/
+// Disable warnings for possible loss of data in this file only.
+#if defined(_MSC_VER) 
+    //#pragma warning( push )
+	#pragma warning(disable: 4244) 
+#endif
 
 
-//
-// Abstract types
-//
+
+// ======================================
+// ABSTRACT TYPES - Forward definition
+// ======================================
+
 template<class T, int N> union vec;
 template<class T, int N, int M=N> union mat;
 
-//
-// CPU types
-//
-typedef char				int8;
-typedef short				int16;
-typedef int					int32;
-typedef long long			int64;
-typedef unsigned char		uint8;
-typedef unsigned short		uint16;
-typedef unsigned int		uint32;
-typedef unsigned long long	uint64;
-typedef unsigned char		byte;
-typedef vec<byte,4> 		rgba;
-typedef vec<float,8>		vec8;		// TEMP terrain
 
-#define PRECISION 16
-typedef long long			fixed;
-typedef vec<fixed,2>		fpvec2;
-typedef vec<fixed,3>		fpvec3;
+// ======================================
+// GLSL TYPES
+// ======================================
 
-
-
-//
-// GPU types
-//
 typedef unsigned int	 uint;
 typedef vec<float, 2>    vec2;
 typedef vec<float, 3>    vec3;
@@ -86,69 +68,70 @@ typedef mat<double,4,3> dmat4x3;
 typedef mat<double,4,4> dmat4x4;
 
 
-//
-// Constants
-//
-//#if !defined(PI)
-const double PI			= 3.14159265358979323846;
-//#endif 
+
+// ======================================
+// SCALARS
+// ======================================
+
+const double PI			= 3.141592653589793238462;
 const double LN2		= 0.693147180559945309417;
-const double EPSILON	= 0.00001f;
+const double EULER		= 2.718281828459045235360;
+const double EPSILON	= 0.0002;//0.000001;
+const float  pi         = float(PI);
+const float  euler      = float(EULER);
 
+// Functions
+template<class T> inline T radians(T x)		{ return (PI/180)*x; }
+template<class T> inline T degrees(T x)		{ return (180/PI)*x; }
+template<class T> inline T sin(T x)			{ return T(::sin(x)); }
+template<class T> inline T cos (T x)		{ return T(::cos(x)); }
+template<class T> inline T tan (T x)		{ return T(::tan(x)); }
+template<class T> inline T asin(T x)		{ return T(::asin(x)); }
+template<class T> inline T acos(T x)		{ return T(::acos(x)); }
+template<class T> inline T atan(T x)		{ return T(::atan(x)); }
+template<class T> inline T atan(T x, T y)	{ return T(::atan(x,y)); }
+template<class T> inline T sinh(T x, T y)	{ return T(::sinh(x,y)); }
+template<class T> inline T cosh(T x, T y)	{ return T(::cosh(x,y)); }
+template<class T> inline T tanh(T x, T y)	{ return T(::tanh(x,y)); }
+template<class T> inline T asinh(T x, T y)	{ return T(::asinh(x,y)); }
+template<class T> inline T acosh(T x, T y)	{ return T(::acosh(x,y)); }
+template<class T> inline T atanh(T x, T y)	{ return T(::atanh(x,y)); }
+template<class T> inline T pow (T x, T y)	{ return T(::pow(x,y)); }
+template<class T> inline T exp (T x)		    { return T(::exp(x)); }
+template<class T> inline T log (T x)		    { return T(::log(x)); }
+template<class T> inline T exp2(T x)		    { return T(::exp(x*LN2)); }
+template<class T> inline T log2(T x)		    { return T(::log(x)/LN2); }
+template<class T> inline T sqrt(T x)		    { return T(::sqrt(x)); }
+template<class T> inline T inversesqrt(T x)	{ return T(1/::sqrt(x)); }
+template<class T> inline T abs(T x)			{ return x<0 ? -x : x; }
+template<class T> inline T sign(T x)		    { return x>0 ? 1.0 : x<0 ? -1.0 : 0.0; }
+template<class T> inline T floor(T x)		{ return T(::floor(x)); }
+template<class T> inline T ceil(T x)		    { return T(::ceil(x)); }
+template<class T> inline T fract(T x)        { return T(x - ::floor(x)); }
+template<class T> inline T mod(T x, T y)     { return T(::fmod(x,y)); }
+template<class T> inline T min(T x, T y)	    { return x < y ? x : y; }
+template<class T> inline T max(T x, T y)	    { return x > y ? x : y; }
+template<class T> inline T clamp(T x, T x0 = T(0), T x1 = T(1)) { return x<x0 ? x0 : x>x1 ? x1 : x; }
+template<class T> inline T mix(T x0, T x1, float a) { return x0*(1-a) + x1*a; }
+template<class T> inline T step(T x0, T x)   { return x<=x0 ? 0.0f : 1.0f; }
+template<class T> inline T smoothstep(T x0, T x1, T x)  { T t = clamp((x-x0)/(x1-x0), T(0), T(1)); return t*t*(3 - 2*t); }
+//template<class T> inline bool equal(T a, T b, T epsilon=T(EPSILON)) { return abs(a-b)<epsilon; }
 
-//
-// Abstract functions
-//
-template<class T> inline T radians(T x)			{ return (PI/180)*x; }
-template<class T> inline T degrees(T x)			{ return (180/PI)*x; }
-/*template<class T> inline T sin (T x)			{ return static_cast<T>(::sin(x)); }
-template<class T> inline T cos (T x)			{ return static_cast<T>(::cos(x)); }
-template<class T> inline T tan (T x)			{ return static_cast<T>(::tan(x)); }
-template<class T> inline T asin(T x)			{ return static_cast<T>(::asin(x)); }
-template<class T> inline T acos(T x)			{ return static_cast<T>(::acos(x)); }
-template<class T> inline T atan(T x)			{ return static_cast<T>(::atan(x)); }
-template<class T> inline T atan(T x, T y)		{ return static_cast<T>(::atan(x,y)); }
-// TODO sinh, cosh, tanh, asinh, acosh, atanh
-template<class T> inline T pow (T x, T y)		{ return static_cast<T>(::pow(x,y)); }
-template<class T> inline T exp (T x)			{ return static_cast<T>(::exp(x)); }*/
-template<class T> inline T log (T x)			{ return static_cast<T>(::log(x)); }
-template<class T> inline T exp2(T x)			{ return static_cast<T>(::exp(x*LN2)); }
-template<class T> inline T log2(T x)			{ return static_cast<T>(::log(x)/LN2); }
-//template<class T> inline T sqrt(T x)			{ return static_cast<T>(::sqrt(x)); }
-template<class T> inline T inversesqrt(T x)		{ return static_cast<T>(1/::sqrt(x)); }
-//template<class T> inline T abs(T x)				{ return x<0 ? -x : x; }
-template<class T> inline T sign(T x)			{ return x>0 ? 1.0 : x<0 ? -1.0 : 0.0; }
-//template<class T> inline T floor(T x)			{ return static_cast<T>(::floor(x)); }
-//template<class T> inline T ceil(T x)			{ return static_cast<T>(::ceil(x)); }
-template<class T> inline T fract(const T x)			{ return static_cast<T>(x-::floor(x)); }
-template<class T> inline T mod(T x, T y)		{ return static_cast<T>(::fmod(x,y)); }
-template<class T> inline T clamp(T x,T x0=T(0),T x1=T(1)) { return x<x0 ? x0 : x>x1 ? x1 : x; }
-template<class T> inline T mix(T x0, T x1, float a)	{ return x0*(1-a) + x1*a; }
-template<class T> inline T step(T x0, T x)		{ return x<=x0 ? 0.0f : 1.0f; }
-template<class T> inline T smoothstep(T x0, T x1, T x) { T t = clamp((x-x0)/(x1-x0), static_cast<T>(0), static_cast<T>(1)); return t*t*(3 - 2*t); }
-template<class T> inline T length(T x)          { return ::sqrt(x*x); }
+// Geometric functions
+template<class T> inline T length(T x)       { return ::sqrt(x*x); }
 template<class T> inline T distance(T p0, T p1) { return length(p0-p1); }
-template<class T> inline T dot(T x, T y)        { return x*y; }
-template<class T> inline T normalize(T)         { return 1; }
+template<class T> inline T dot(T x, T y)     { return x*y; }
+template<class T> inline T normalize(T)      { return 1; }
 template<class T> inline T faceforward(T n, T i, T nref) { return nref*i < 0 ? n : -n; }
-template<class T> inline T reflect(T i, T n)    { return i - 2*dot(n,i)*n; }
-template<class T> inline T refract(T i, T n, float eta) { T k = 1 - eta*eta*(1-dot(n,i)*dot(n,i)); return k<0 ? 0 : eta*i - (eta*dot(n,i) + sqrt(k))*n; }
-#undef min
-#undef max
-template<class T> inline T min(T x, T y)		{ return x<y ? x : y; }
-template<class T> inline T max(T x, T y)		{ return x>y ? x : y; }
-template<class T> inline void swap(T& a, T& b)  { T t; t=a; a=b; b=t; }
-
-//inline bool equal(float a, float b, float epsilon=EPSILON) { return fabs(a-b)<epsilon; }
-template<class T> inline void equal(T a, T b, T epsilon=T(EPSILON)) { return abs(a-b)<epsilon; }
-template<class T> inline T amod(T x, T y)		{ return (x/y - floor(x/y))*y; }
-
-// TODO? lerp, coserp, hermite2, cubic..
+template<class T> inline T reflect(T i, T n) { return i - 2*dot(n,i)*n; }
+template<class T> inline T refract(T i, T n, double eta) { T k = 1 - eta*eta*(1-dot(n,i)*dot(n,i)); return k<0 ? 0 : eta*i - (eta*dot(n,i) + sqrt(k))*n; }
 
 
-//
-// Definitions for generic T and N
-//
+
+// ======================================
+// VECTORS
+// ======================================
+
 template<class T, int N> union vec
 {
 	T array[N];
@@ -162,433 +145,145 @@ template<class T, int N> union vec
 	inline vec( const vec<T,N-1>& v, const T s ) { for( int i=0; i<N-1; i++ ) array[i] = v[i]; array[N-1] = s; }
 };
 
-/* PROP1
-// TODO use reinterpret_cast ? 
-
-template<class T, int N, T f(const T&)> inline vec<T,N> functor1( const vec<T,N>& a )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = f(a[i]);
-	return temp;
-}
-template<class T, int N, T f(const T&,const T&) > inline vec<T,N> functor2( const vec<T,N>& a, const vec<T,N>& b )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = f(a[i],b[i]);
-	return temp;
-}
-template<class T, int N, T f(T&,T&,T&) > inline vec<T,N> 
-	functor2( const vec<T,N>& a, const vec<T,N>& b, const vec<T,N>& c )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = f(a[i],b[i],c[i]);
-	return temp;
-}
+/*
+// TODO TEMP
+#define OUT_SCALAR template<class T> inline T
+#define OUT_VECTOR template<class T, int N> inline vec<T,N>
+#define OUT_MATRIX template<class T, int N, int M> inline mat<T,N,M>
+#define IN_SCALAR const T&
+#define IN_VECTOR const vec<T,N>&
+#define IN_MATRIX const mat<T,N,M>&
+#define SCALAR T
+#define VECTOR vec<T,N>
+#define MATRIX mat<T,N,M>
 */
 
-/* PROP2
-template<class T, int N> inline vec<T,N> atan22( const vec<T,N>& a, const vec<T,N>& b ) { return functor<T,N,atan2>(a,b); }
-*/
+#define _OUT(type) template<class T, int N> inline type<T,N>
+#define _IN(type) const type<T,N>&
+#define SCALAR const T& 
 
-/* PROP3
-VEC operator+	( VECREF v, SCALAR s)				RETURN_VEC( v[i]+s );
-VEC abs			( VECREF v )						RETURN_VEC( fabs(v[i]) );
-VEC clamp		( VECREF v, SCALAR v0, SCALAR v1 )	RETURN_VEC( clamp(v[i], v0[i], v1[i]) );
-*/
+#define var(type) type<T,N>
+#define FOR_EACH(f) {var(vec) t; for(int i=0; i<N; i++) (t)[i] = (f); return t;}
 
-template<class T, int N> inline vec<T,N> operator-( const vec<T,N>& a )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = -a[i];
-	return temp;
-}
+_OUT(vec) operator-(_IN(vec) a)            FOR_EACH(-a[i])
+_OUT(vec) operator+(_IN(vec) a, _IN(vec) b) FOR_EACH(a[i]+b[i])
+_OUT(vec) operator-(_IN(vec) a, _IN(vec) b) FOR_EACH(a[i]-b[i])
+_OUT(vec) operator*(_IN(vec) a, _IN(vec) b) FOR_EACH(a[i]*b[i])
+_OUT(vec) operator/(_IN(vec) a, _IN(vec) b) FOR_EACH(a[i]/b[i])
 
-template<class T, int N> inline vec<T,N> operator+( const vec<T,N>& a, const vec<T,N>& b )
-{ 
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = a[i]+b[i];
-	return temp;
-}
-template<class T, int N> inline vec<T,N> operator-( const vec<T,N>& a, const vec<T,N>& b )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = a[i]-b[i];
-	return temp;
-}
-template<class T, int N> inline vec<T,N> operator*( const vec<T,N>& a, const vec<T,N>& b )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = a[i]*b[i];
-	return temp;
-}
-template<class T, int N> inline vec<T,N> operator/( const vec<T,N>& a, const vec<T,N>& b )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = a[i]/b[i];
-	return temp;
-}
+_OUT(vec) operator+(_IN(vec) a, SCALAR s) FOR_EACH(a[i]+s)
+_OUT(vec) operator-(_IN(vec) a, SCALAR s) FOR_EACH(a[i]-s)
+_OUT(vec) operator*(_IN(vec) a, SCALAR s) FOR_EACH(a[i]*s)
+_OUT(vec) operator/(_IN(vec) a, SCALAR s) FOR_EACH(a[i]/s)
 
-template<class T, int N> inline vec<T,N> operator+( const vec<T,N>& a, const T& s )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = a[i]+s;
-	return temp;
-}
-template<class T, int N> inline vec<T,N> operator-( const vec<T,N>& a, const T& s )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = a[i]-s;
-	return temp;
-}
-template<class T, int N> inline vec<T,N> operator*( const vec<T,N>& a, const T& s )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = a[i]*s;
-	return temp;
-}
-template<class T, int N> inline vec<T,N> operator/( const vec<T,N>& a, const T& s)
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = a[i]/s;
-	return temp;
-}
+_OUT(vec) operator+(SCALAR s, _IN(vec) a) FOR_EACH(s+a[i])
+_OUT(vec) operator-(SCALAR s, _IN(vec) a) FOR_EACH(s-a[i])
+_OUT(vec) operator*(SCALAR s, _IN(vec) a) FOR_EACH(s*a[i])
+_OUT(vec) operator/(SCALAR s, _IN(vec) a) FOR_EACH(s/a[i])
 
-template<class T, int N> inline vec<T,N> operator+( const T& s, const vec<T,N>& a )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = s+a[i];
-	return temp;
-}
-template<class T, int N> inline vec<T,N> operator-( const T& s, const vec<T,N>& a )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = s-a[i];
-	return temp;
-}
-template<class T, int N> inline vec<T,N> operator*( const T& s, const vec<T,N>& a )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = s*a[i];
-	return temp;
-}
-template<class T, int N> inline vec<T,N> operator/( const T& s, const vec<T,N>& a )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = s/a[i];
-	return temp;
-}
+_OUT(vec)& operator+=(var(vec)& a, _IN(vec) b)   {a = a + b; return a;}
+_OUT(vec)& operator-=(var(vec)& a, _IN(vec) b)   {a = a - b; return a;}
+_OUT(vec)& operator*=(var(vec)& a, _IN(vec) b)   {a = a * b; return a;}
+_OUT(vec)& operator/=(var(vec)& a, _IN(vec) b)   {a = a / b; return a;}
 
-template<class T, int N> inline vec<T,N>& operator+=( vec<T,N>& a, const vec<T,N>& b)
+_OUT(vec)& operator+=(var(vec)& a, SCALAR s)   {a = a + s; return a;}
+_OUT(vec)& operator-=(var(vec)& a, SCALAR s)   {a = a - s; return a;}
+_OUT(vec)& operator*=(var(vec)& a, SCALAR s)   {a = a * s; return a;}
+_OUT(vec)& operator/=(var(vec)& a, SCALAR s)   {a = a / s; return a;}
+
+_OUT(vec) radians(_IN(vec) a)               FOR_EACH(radians(a[i]))
+_OUT(vec) degrees(_IN(vec) a)               FOR_EACH(degrees(a[i]))
+_OUT(vec) sin(_IN(vec) a)                   FOR_EACH(sin(a[i]))
+_OUT(vec) cos(_IN(vec) a)                   FOR_EACH(cos(a[i]))
+_OUT(vec) tan(_IN(vec) a)                   FOR_EACH(tan(a[i]))
+_OUT(vec) asin(_IN(vec) a)                  FOR_EACH(asin(a[i]))
+_OUT(vec) acos(_IN(vec) a)                  FOR_EACH(acos(a[i]))
+_OUT(vec) atan(_IN(vec) a)                  FOR_EACH(atan(a[i]))
+// TODO with scalar
+_OUT(vec) atan(_IN(vec) y, _IN(vec) x)       FOR_EACH(atan2(y[i],x[i]))
+_OUT(vec) pow(_IN(vec) y, _IN(vec) x)        FOR_EACH(pow(y[i],x[i]))
+_OUT(vec) pow(_IN(vec) y, SCALAR s)         FOR_EACH(pow(y[i],s))
+_OUT(vec) exp(_IN(vec) a)                   FOR_EACH(exp(a[i]))
+_OUT(vec) log(_IN(vec) a)                   FOR_EACH(log(a[i]))
+_OUT(vec) exp2(_IN(vec) a)                  FOR_EACH(exp2(a[i]))
+_OUT(vec) log2(_IN(vec) a)                  FOR_EACH(log2(a[i]))
+_OUT(vec) sqrt(_IN(vec) a)                  FOR_EACH(sqrt(a[i]))
+_OUT(vec) inversesqrt(_IN(vec) a)           FOR_EACH(inversesqrt(a[i]))
+_OUT(vec) abs(_IN(vec) a)                   FOR_EACH(abs(a[i]))
+_OUT(vec) sign(_IN(vec) a)                  FOR_EACH(sign(a[i]))
+_OUT(vec) floor(_IN(vec) a)                 FOR_EACH(floor(a[i]))
+_OUT(vec) ceil(_IN(vec) a)                  FOR_EACH(ceil(a[i]))
+_OUT(vec) fract(_IN(vec) a)                 FOR_EACH(fract(a[i]))
+
+_OUT(vec) mod(_IN(vec) a, SCALAR b)         FOR_EACH(mod(a[i],b))
+_OUT(vec) mod(SCALAR a, _IN(vec) b)         FOR_EACH(mod(a,b[i]))
+_OUT(vec) mod(_IN(vec) a, _IN(vec) b)         FOR_EACH(mod(a[i],b[i]))
+
+_OUT(vec) min(_IN(vec) a, SCALAR b)         FOR_EACH(min(a[i],b))
+_OUT(vec) min(SCALAR a, _IN(vec) b)         FOR_EACH(min(a,b[i]))
+_OUT(vec) min(_IN(vec) a, _IN(vec) b)         FOR_EACH(min(a[i],b[i]))
+
+_OUT(vec) max(_IN(vec) a, SCALAR b)         FOR_EACH(max(a[i],b))
+_OUT(vec) max(SCALAR a, _IN(vec) b)         FOR_EACH(max(a,b[i]))
+_OUT(vec) max(_IN(vec) a, _IN(vec) b)         FOR_EACH(max(a[i],b[i]))
+
+_OUT(vec) clamp(_IN(vec) a, SCALAR b, SCALAR c) FOR_EACH(clamp(a[i],b,c))
+_OUT(vec) clamp(_IN(vec) a, _IN(vec) b, _IN(vec) c) FOR_EACH(clamp(a[i],b[i],c[i]))
+
+_OUT(vec) mix(_IN(vec) a, _IN(vec) b, SCALAR c) FOR_EACH(mix(a[i],b[i],c))
+_OUT(vec) mix(_IN(vec) a, _IN(vec) b, _IN(vec) c) FOR_EACH(mix(a[i],b[i],c[i]))
+
+_OUT(vec) step(_IN(vec) a, _IN(vec) b)        FOR_EACH(step(a[i],b[i]))
+_OUT(vec) smoothstep(_IN(vec) a, _IN(vec) b, _IN(vec) c) FOR_EACH(smoothstep(a[i],b[i],c[i]))
+
+_OUT(vec) normalize(_IN(vec) a)
 {
-	a = a + b;
-	return a;
+	T len = length(a);
+	if (len  == 0) return a;
+	return a/len;
 }
-template<class T, int N> inline vec<T,N>& operator-=( vec<T,N>& a, const vec<T,N>& b)
+_OUT(vec) faceforward(_IN(vec) a, _IN(vec) b, _IN(vec) c) { return dot(c,b) < 0 ? a : -a; }
+_OUT(vec) reflect(_IN(vec) a, _IN(vec) b) { return a - 2*dot(b,a)*b; }
+_OUT(vec) refract(_IN(vec) a, _IN(vec) b, const float& c)
 {
-	a = a - b;
-	return a;
-}
-template<class T, int N> inline vec<T,N>& operator*=( vec<T,N>& a, const vec<T,N>& b)
-{
-	a = a * b;
-	return a;
-}
-template<class T, int N> inline vec<T,N>& operator/=( vec<T,N>& a, const vec<T,N>& b)
-{
-	a = a / b;
-	return a;
+	T d = dot(b,a);
+	T k = 1 - c*c*( 1 - d*d );
+	return k<0 ? T(0) : c*a - (c*d + sqrt(k))*b;
 }
 
-template<class T, int N> inline vec<T,N>& operator+=( vec<T,N>& a, const T& s )
-{
-	a = a + s;
-	return a;
-}
-template<class T, int N> inline vec<T,N>& operator-=( vec<T,N>& a, const T& s )
-{
-	a = a - s;
-	return a;
-}
-template<class T, int N> inline vec<T,N>& operator*=( vec<T,N>& a, const T& s )
-{
-	a = a * s;
-	return a;
-}
-template<class T, int N> inline vec<T,N>& operator/=( vec<T,N>& a, const T& s )
-{
-	a = a / s;
-	return a;
-}
 
-// vec functions
-template<class T, int N> inline vec<T,N> radians( const vec<T,N>& v )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = radians(v[i]);
-	return temp;
-}
-template<class T, int N> inline vec<T,N> degrees( const vec<T,N>& v )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = degrees(v[i]);
-	return temp;
-}
-template<class T, int N> inline vec<T,N> sin( const vec<T,N>& v )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = sin(v[i]);
-	return temp;
-}
-template<class T, int N> inline vec<T,N> cos( const vec<T,N>& v )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = cos(v[i]);
-	return temp;
-}
-template<class T, int N> inline vec<T,N> tan( const vec<T,N>& v )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = tan(v[i]);
-	return temp;
-}
-template<class T, int N> inline vec<T,N> asin( const vec<T,N>& v )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = asin(v[i]);
-	return temp;
-}
-template<class T, int N> inline vec<T,N> acos( const vec<T,N>& v )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = acos(v[i]);
-	return temp;
-}
-template<class T, int N> inline vec<T,N> atan( const vec<T,N>& v )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = atan(v[i]);
-	return temp;
-}
-template<class T, int N> inline vec<T,N> atan( const vec<T,N>& y, const vec<T,N>& x )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = atan2(y[i],x[i]);
-	return temp;
-}
+#define OUT_SCALAR_TN(type) template<class T, int N> inline type
 
-template<class T, int N> inline vec<T,N> pow( const vec<T,N>& a, const vec<T,N>& x )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = pow(a[i],x[i]);
-	return temp;
-}
-template<class T, int N> inline vec<T,N> exp2( const vec<T,N>& v )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = exp2(v[i]);
-	return temp;
-}
-template<class T, int N> inline vec<T,N> log2( const vec<T,N>& v )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = log2(v[i]);
-	return temp;
-}
-template<class T, int N> inline vec<T,N> exp( const vec<T,N>& v )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = ::exp(v[i]);
-	return temp;
-}
-template<class T, int N> inline vec<T,N> log( const vec<T,N>& v )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = ::log(v[i]);
-	return temp;
-}
-template<class T, int N> inline vec<T,N> sqrt( const vec<T,N>& v )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = sqrt(v[i]);
-	return temp;
-}
-template<class T, int N> inline vec<T,N> inversesqrt( const vec<T,N>& v )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = inversesqrt(v[i]);
-	return temp;
-}
-
-template<class T, int N> inline vec<T,N> abs( const vec<T,N>& v )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = fabs(v[i]);
-	return temp;
-}
-template<class T, int N> inline vec<T,N> sign( const vec<T,N>& v )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = sign(v[i]);
-	return temp;
-}
-template<class T, int N> inline vec<T,N> floor( const vec<T,N>& v )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = floor(v[i]);
-	return temp;
-}
-template<class T, int N> inline vec<T,N> ceil( const vec<T,N>& v )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = ceil(v[i]);
-	return temp;
-}
-template<class T, int N> inline vec<T,N> fract( const vec<T,N>& v )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = fract(v[i]);
-	return temp;
-}
-template<class T, int N> inline vec<T,N> mod( const vec<T,N>& v, T& s )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = mod(v[i],s);
-	return temp;
-}
-template<class T, int N> inline vec<T,N> mod( T& s, const vec<T,N>& v )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = mod(s,v[i]);
-	return temp;
-}
-template<class T, int N> inline vec<T,N> mod( const vec<T,N>& y, const vec<T,N>& x )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = mod(y[i],x[i]);
-	return temp;
-}
-template<class T, int N> inline vec<T,N> min( const vec<T,N>& v, const T& s )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = min(v[i],s);
-	return temp;
-}
-template<class T, int N> inline vec<T,N> min( const vec<T,N>& y, const vec<T,N>& x )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = min(y[i],x[i]);
-	return temp;
-}
-template<class T, int N> inline vec<T,N> max( const vec<T,N>& v, const T& s )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = max(v[i],s);
-	return temp;
-}
-template<class T, int N> inline vec<T,N> max( const vec<T,N>& y, const vec<T,N>& x )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = max(y[i],x[i]);
-	return temp;
-}
-template<class T, int N> inline vec<T,N> clamp( const vec<T,N>& x, const T& x0, const T& x1 )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = clamp(x[i],x0,x1);
-	return temp;
-}
-template<class T, int N> inline vec<T,N> clamp( const vec<T,N>& x, const vec<T,N>& x0, const vec<T,N>& x1 )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = clamp(x[i],x0[i],x1[i]);
-	return temp;
-}
-template<class T, int N> inline vec<T,N> mix( const vec<T,N>& a, const vec<T,N>& b, const float& s )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = mix(a[i],b[i],s);
-	return temp;
-}
-template<class T, int N> inline vec<T,N> mix( const vec<T,N>& a, const vec<T,N>& b, const vec<float,N>& c )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = mix(a[i],b[i],c[i]);
-	return temp;
-}
-template<class T, int N> inline vec<T,N> step( const vec<T,N>& edge, const vec<T,N>& x )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = step(edge[i],x[i]);
-	return temp;
-}
-template<class T, int N> inline vec<T,N> smoothstep( const vec<T,N>& edge0, const vec<T,N>& edge1, const vec<T,N>& x )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = smoothstep(edge0[i],edge1[i],x[i]);
-	return temp;
-}
-
-template<class T, int N> inline T length( const vec<T,N>& v )
-{
-	return static_cast<T>(sqrt(dot(v,v)));
-}
-template<class T, int N> inline T distance( const vec<T,N>& a, const vec<T,N>& b )
-{
-	return length(a-b);
-}
-template<class T, int N> inline T dot( const vec<T,N>& a, const vec<T,N>& b )
+OUT_SCALAR_TN(T) length(_IN(vec) a)                { return T(sqrt(dot(a,a)));}
+OUT_SCALAR_TN(T) distance(_IN(vec) a, _IN(vec) b)  { return length(a-b); }
+OUT_SCALAR_TN(T) dot(_IN(vec) a, _IN(vec) b)
 {
 	T t = 0;
 	for( int i=0; i<N; i++ ) t += a[i]*b[i];
 	return t;
 }
 
-template<class T, int N> inline vec<T,N> normalize( const vec<T,N>& v )
-{
-	T len = length(v);
-	if (len  == 0) return v;
-	return v/len;
-}
-template<class T, int N> inline vec<T,N> faceforward( const vec<T,N>& n, const vec<T,N>& i, const vec<T,N>& nref )
-{
-	return dot(nref,i) < 0 ? n : -n;
-}
-template<class T, int N> inline vec<T,N> reflect( const vec<T,N>& i, const vec<T,N>& n )
-{
-	return i - 2*dot(n,i)*n;
-}
-template<class T, int N> inline vec<T,N> refract( const vec<T,N>& i, const vec<T,N>& n, const float& eta )
-{
-	T d = dot(n,i);
-	T k = 1 - eta*eta*( 1 - d*d );
-	return k<0 ? T(0) : eta*i - ( eta*d + sqrt(k) )*n;
-}
-
-template<class T, int N> inline bool operator==( const vec<T,N>& a, const vec<T,N>& b )
+// TODO use distance
+OUT_SCALAR_TN(bool) operator==(_IN(vec) a, _IN(vec) b)
 {
 	for( int i=0; i<N; i++ ) if( a[i]!=b[i] ) return false;
 	return true;
 }
-template<class T, int N> inline bool operator!=( const vec<T,N>& a, const vec<T,N>& b )
+OUT_SCALAR_TN(bool) operator!=(_IN(vec) a, _IN(vec) b)
 {
 	for( int i=0; i<N; i++ ) if( a[i]==b[i] ) return false;
 	return true;
 }
-template<class T, int N> inline bool equal( const vec<T,N>& a, const vec<T,N>& b, const T& epsilon=T(EPSILON) )
+OUT_SCALAR_TN(bool) equal(_IN(vec) a, _IN(vec) b, const T& epsilon=T(EPSILON))
 {
-	for( int i=0; i<N; i++ ) if( abs(a[i]-b[i])>epsilon ) return false;
+	for(int i=0; i<N; i++) if(abs(a[i]-b[i])>epsilon) return false;
 	return true;
 }
 
-template<class T, int N> inline vec<T,N> amod( const vec<T,N>& v, T& s )
-{
-	vec<T,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = amod(v[i],s);
-	return temp;
-}
 
-// TODO noise1, noise2..
-
+// ======================================
+// MATRICES
+// ======================================
 
 template<class T, int N, int M> union mat
 {
@@ -599,7 +294,7 @@ template<class T, int N, int M> union mat
 
 	inline mat() {}
 	inline mat( const T& s )		{ diag( vec<T,N>(s) ); }
-	inline mat( const vec<T,N>& v ) { diag(v); }
+	inline mat( _IN(vec) v ) { diag(v); }
 
 	inline mat( const mat<T,N-1>& m ) 
 	{ 
@@ -609,114 +304,103 @@ template<class T, int N, int M> union mat
 		for( int j=0; j<N-1; j++ ) array[j*N + N-1] = 0;
 		for( int i=0; i<N-1; i++ ) array[(N-1)*N + i] = 0; 
 		array[N*N-1] = T(1);
-	}
-	/*
-// TEMP
-	inline void diag( const vec<T,N>& v )
-	{
-		for( int i=0; i<N*N; i++) array[i] = T(0);
-		for( int i=0; i<N; i++) array[i*N+i] = v[i];
-	}*/
+	} 
 };
 
-template<class T, int N> inline mat<T,N> operator+( const mat<T,N>& a, const mat<T,N>& b ) 
+#define _OUTM template<class T, int N, int M> inline mat<T,N,M>
+#define _INM const mat<T,N,M>&
+#define _INS const T&
+#define _FORM(f) {mat<T,N,M> t; for(int i=0; i<N*M; i++) (t)[i] = (f); return t;}
+_OUTM operator-(_INM a) _FORM(-a[i])
+_OUTM operator+(_INM a, _INM b) _FORM(a[i]+b[i])
+_OUTM operator-(_INM a, _INM b) _FORM(a[i]-b[i])
+_OUTM matrixCompMult(_INM a, _INM b) _FORM(a[i]*b[i])
+_OUTM operator/(_INM a, _INM b) _FORM(a[i]/b[i])
+_OUTM operator+(_INM a, _INS s) _FORM(a[i]+s)
+_OUTM operator-(_INM a, _INS s) _FORM(a[i]-s)
+_OUTM operator*(_INM a, _INS s) _FORM(a[i]*s)
+_OUTM operator/(_INM a, _INS s) _FORM(a[i]/s)
+_OUTM operator+(_INS s, _INM a) _FORM(s+a[i])
+_OUTM operator-(_INS s, _INM a) _FORM(s-a[i])
+_OUTM operator*(_INS s, _INM a) _FORM(s*a[i])
+_OUTM operator/(_INS s, _INM a) _FORM(s/a[i])
+_OUTM& operator+=(mat<T,N,M>& a, _INM b)   {a = a + b; return a;}
+_OUTM& operator-=(mat<T,N,M>& a, _INM b)   {a = a - b; return a;}
+_OUTM& operator*=(mat<T,N,M>& a, _INM b)   {a = a * b; return a;}
+_OUTM& operator/=(mat<T,N,M>& a, _INM b)   {a = a / b; return a;}
+_OUTM& operator+=(mat<T,N,M>& a, SCALAR s)   {a = a + s; return a;}
+_OUTM& operator-=(mat<T,N,M>& a, SCALAR s)   {a = a - s; return a;}
+_OUTM& operator*=(mat<T,N,M>& a, SCALAR s)   {a = a * s; return a;}
+_OUTM& operator/=(mat<T,N,M>& a, SCALAR s)   {a = a / s; return a;}
+
+// Geometric operations
+
+template<class T, int N, int M> inline T distance(const mat<T,N,M>& A, const mat<T,N,M>& B)
 {
-	mat<T,N> temp;
-	for (int i = 0; i < N*N; i++) temp[i] = a[i]+b[i];
-	return temp;
-}
-template<class T, int N> inline mat<T,N> operator-( const mat<T,N>& a, const mat<T,N>& b ) 
-{
-	mat<T,N> temp;
-	for (int i = 0; i < N*N; i++) temp[i] = a[i]-b[i];
-	return temp;
-}
-template<class T, int N> inline mat<T,N> operator+( const mat<T,N>& m, const T& s ) 
-{
-	mat<T,N> temp;
-	for (int i = 0; i < N*N; i++) temp[i] = s+m[i];
-	return temp;
-}
-template<class T, int N> inline mat<T,N> operator+( const T& s, const mat<T,N>& m )
-{
-    return m + s;
-}
-template<class T, int N> inline mat<T,N> operator-( const T& s, const mat<T,N>& m ) 
-{
-	mat<T,N> temp;
-	for (int i = 0; i < N*N; i++) temp[i] = s-m[i];
-	return temp;
-}
-template<class T, int N> inline mat<T,N> operator-( const mat<T,N>& m, const T& s ) 
-{
-	mat<T,N> temp;
-	for (int i = 0; i < N*N; i++) temp[i] = m[i]-s;
-	return temp;
-}
-template<class T, int N> inline mat<T,N> operator*( const T& s, const mat<T,N>& m ) 
-{
-	mat<T,N> temp;
-	for (int i = 0; i < N*N; i++) temp[i] = s*m[i];
-	return temp;
-}
-template<class T, int N> inline mat<T,N> operator*( const mat<T,N>& m, const T& s ) 
-{ 
-	return s*m; 
+    T result = T(0.0);
+    for(int i=0; i<N*M; i++)
+    {
+        result += (A[i]-B[i])*(A[i]-B[i]);
+    }
+    return sqrt(result);
 }
 
-template<class T, int N> inline mat<T,N> operator/( const mat<T,N>& m, const T& s ) 
-{ 
-	mat<T,N> temp;
-	for (int i = 0; i < N*N; i++) temp[i] = m[i]/s;
-	return temp;
-}
-
-template<class T, int N> inline mat<T,N> operator/=( const mat<T,N>& m, const T& s ) 
-{ 
-	return m/s;
-}
-
-template<class T, int N> inline vec<T,N> operator*( const mat<T,N>& m, const vec<T,N>& v )
+template<class T, int N, int M> inline T distance2(const mat<T,N,M>& A, const mat<T,N,M>& B)
 {
-	vec<T,N> temp;
+    T result = T(0.0);
+    for(int i=0; i<N*M; i++)
+    {
+        result += abs(A[i]-B[i]);
+    }
+
+    return result;
+}
+
+
+_OUT(vec) operator*( const mat<T,N>& m, _IN(vec) v )
+{
+	vec<T,N> t;
 	for(int j=0; j<N; j++)
 	{
-		temp[j] = 0;
+		t[j] = 0;
 		for(int i=0; i<N; i++)
-			temp[j] += m[j+N*i] * v[i];
+			t[j] += m[j+N*i] * v[i];
 	}
-	return temp;
+	return t;
 }
 
-template<class T, int N> inline vec<T,N> operator*( const vec<T,N>& v, const mat<T,N>& m )
+_OUT(vec) operator*( _IN(vec) v, const mat<T,N>& m )
 {
-	vec<T,N> temp;
+	vec<T,N> t;
 	for(int j=0; j<N; j++) 
 	{
-		temp[j] = 0;
+		t[j] = 0;
 		for(int i=0; i<N; i++)
-			temp[j] += m[i+N*j] * v[i];
+			t[j] += m[i+N*j] * v[i];
 	}
-	return temp;
+	return t;
 }
-template<class T, int N> inline vec<T,N>& operator*=( vec<T,N>& a, const mat<T,N>& m )
+_OUT(vec)& operator*=( vec<T,N>& a, const mat<T,N>& m )
 {
 	a = a * m;
 	return a;
 }
 
+// Geometric matrix operations
+
 // matrix-matrix multiplication
+// TODO N*M version
 template<class T, int N> inline mat<T,N> operator*( const mat<T,N>& a, const mat<T,N>& b )
 {
-	mat<T,N> temp;
+	mat<T,N> t;
 	for(int i=0; i<N; i++)
 	for(int j=0; j<N; j++)
 	{
-		temp[j+i*N] = 0;
+		t[j+i*N] = 0;
 		for(int k=0; k<N; k++)
-			temp[j+i*N] += a[j+k*N] * b[k+i*N];
+			t[j+i*N] += a[j+k*N] * b[k+i*N];
 	}
-	return temp;
+	return t;
 }
 
 
@@ -726,42 +410,40 @@ template<class T, int N> inline mat<T,N>& operator*=( mat<T,N>& a, const mat<T,N
 	return a;
 }
 
-template<class T, int N, int M> inline mat<T,N,M> matrixcompmult( const mat<T,N,M>& a, const mat<T,N,M>& b )
-{
-	mat<T,N,M> temp;
-	for(int i=0; i<N*M; i++) temp[i] = a[i]*b[i];
-	return temp;
-}
 
-template<class T, int N, int M> inline mat<T,M,N> outerProduct( const vec<T,M>& a, const vec<T,N>& b )
+
+template<class T, int N, int M> inline mat<T,M,N> outerProduct( const vec<T,M>& a, _IN(vec) b )
 {
-	mat<T,N,M> temp;
+	mat<T,N,M> t;
 	for(int j=0; j<M; j++)
 	for(int i=0; i<N; i++)
-		temp[j*N+i] = a[j]*b[i];
-	return temp;
+		t[j*N+i] = a[j]*b[i];
+	return t;
 }
 
 template<class T, int N, int M> inline mat<T,M,N> transpose( const mat<T,N,M>& a )
 {
-	mat<T,M,N> temp;
+	mat<T,M,N> t;
 	for(int j=0; j<N; j++ )
 	for(int i=0; i<M; i++ )
-		temp[j*M+i] = a[i*N+j];
-	return temp;
+		t[j*M+i] = a[i*N+j];
+	return t;
 }
 /*
 template<class T, int N, int M> inline mat<T,M,N> determinant( const mat<T,N,M>& a )
 {
-	T temp;
+	T t;
 	// TODO
-	return temp;
+	return t;
 }
+
+// https://chi3x10.wordpress.com/2008/05/28/calculate-matrix-inversion-in-c/
+// https://www.tutorialspoint.com/cplusplus-program-to-find-inverse-of-a-graph-matrix
 template<class T, int N, int M> inline mat<T,M,N> inverse( const mat<T,N,M>& a )
 {
-	mat<T,M,N> temp;
+	mat<T,M,N> t;
 	// TODO
-	return temp;
+	return t;
 }
 */
 template<class T, int N, int M> inline bool equal( const mat<T,N,M>& a, const mat<T,N,M>& b, const T& epsilon=T(EPSILON) )
@@ -769,6 +451,13 @@ template<class T, int N, int M> inline bool equal( const mat<T,N,M>& a, const ma
 	for( int i=0; i<N*M; i++ ) if( !equal(a[i],b[i],epsilon) ) return false;
 	return true;
 }
+
+
+
+
+// ======================================
+// SPECIALIZATIONS
+// ======================================
 
 
 //
@@ -845,11 +534,11 @@ template<class T> union vec<T,3>
 
 template<class T> inline vec<T,3> cross( const vec<T,3>& a, const vec<T,3>& b )
 {
-	vec<T,3> temp;
-	temp[0] = a[1]*b[2] - a[2]*b[1];
-	temp[1] = a[2]*b[0] - a[0]*b[2];
-	temp[2] = a[0]*b[1] - a[1]*b[0];
-	return temp;
+	vec<T,3> t;
+	t[0] = a[1]*b[2] - a[2]*b[1];
+	t[1] = a[2]*b[0] - a[0]*b[2];
+	t[2] = a[0]*b[1] - a[1]*b[0];
+	return t;
 }
 
 template<class T> union mat<T,3>
@@ -919,12 +608,12 @@ template<class T> union vec<T,4>
 
 template<class T> inline vec<T,4> cross( const vec<T,4>& a, const vec<T,4>& b )
 {
-	vec<T,4> temp;
-	temp[0] = a[1]*b[2] - a[2]*b[1];
-	temp[1] = a[2]*b[0] - a[0]*b[2];
-	temp[2] = a[0]*b[1] - a[1]*b[0];
-	temp[3] = 1;
-	return temp;
+	vec<T,4> t;
+	t[0] = a[1]*b[2] - a[2]*b[1];
+	t[1] = a[2]*b[0] - a[0]*b[2];
+	t[2] = a[0]*b[1] - a[1]*b[0];
+	t[3] = 1;
+	return t;
 }
 
 template<class T> union mat<T,4>
@@ -968,6 +657,7 @@ template<class T> union mat<T,4>
 	}
 };
 
+/*
 // TEMP
 template<class T> union vec<T,8>
 {
@@ -981,48 +671,48 @@ template<class T> union vec<T,8>
 	inline vec( const T& s1 ) { left = vec<T,4>(s1); right = vec<T,4>(s1); }
 	inline vec( const vec<T,4>& c, const vec<T,4>& d ) { color = c; detail = d; }
 };
-
+*/
 
 
 
 //
 // Partial specializations for T==bool
 //
-template<class T, int N> inline vec<bool,N> lessThan( const vec<T,N>& a, const vec<T,N>& b )
+template<class T, int N> inline vec<bool,N> lessThan( _IN(vec) a, _IN(vec) b )
 {
-	vec<bool,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = a[i] < b[i];
-	return temp;
+	vec<bool,N> t;
+	for( int i=0; i<N; i++ ) t[i] = a[i] < b[i];
+	return t;
 }
-template<class T, int N> inline vec<bool,N> lessThanEqual( const vec<T,N>& a, const vec<T,N>& b )
+template<class T, int N> inline vec<bool,N> lessThanEqual( _IN(vec) a, _IN(vec) b )
 {
-	vec<bool,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = a[i] <= b[i];
-	return temp;
+	vec<bool,N> t;
+	for( int i=0; i<N; i++ ) t[i] = a[i] <= b[i];
+	return t;
 }
-template<class T, int N> inline vec<bool,N> greaterThan( const vec<T,N>& a, const vec<T,N>& b )
+template<class T, int N> inline vec<bool,N> greaterThan( _IN(vec) a, _IN(vec) b )
 {
-	vec<bool,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = a[i] > b[i];
-	return temp;
+	vec<bool,N> t;
+	for( int i=0; i<N; i++ ) t[i] = a[i] > b[i];
+	return t;
 }
-template<class T, int N> inline vec<bool,N> greaterThanEqual( const vec<T,N>& a, const vec<T,N>& b )
+template<class T, int N> inline vec<bool,N> greaterThanEqual( _IN(vec) a, _IN(vec) b )
 {
-	vec<bool,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = a[i] >= b[i];
-	return temp;
+	vec<bool,N> t;
+	for( int i=0; i<N; i++ ) t[i] = a[i] >= b[i];
+	return t;
 }
-template<class T, int N> inline vec<bool,N> equal( const vec<T,N>& a, const vec<T,N>& b )
+template<class T, int N> inline vec<bool,N> equal( _IN(vec) a, _IN(vec) b )
 {
-	vec<bool,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = equal(a[i],b[i]); //a[i] == b[i];
-	return temp;
+	vec<bool,N> t;
+	for( int i=0; i<N; i++ ) t[i] = equal(a[i],b[i]); //a[i] == b[i];
+	return t;
 }
-template<class T, int N> inline vec<bool,N> notEqual( const vec<T,N>& a, const vec<T,N>& b )
+template<class T, int N> inline vec<bool,N> notEqual( _IN(vec) a, _IN(vec) b )
 {
-	vec<bool,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = !equal(a[i],b[i]); //a[i] != b[i];
-	return temp;
+	vec<bool,N> t;
+	for( int i=0; i<N; i++ ) t[i] = !equal(a[i],b[i]); //a[i] != b[i];
+	return t;
 }
 template<int N> inline bool any( const vec<bool,N>& v )
 {
@@ -1037,17 +727,17 @@ template<int N> inline bool all( const vec<bool,N>& v )
 #ifndef __GNUC__
 template<int N> inline vec<bool,N> not( const vec<bool,N>& v )
 {
-	vec<bool,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = !v[i];
-	return temp;
+	vec<bool,N> t;
+	for( int i=0; i<N; i++ ) t[i] = !v[i];
+	return t;
 }
 #endif
 // this operator!() can be used instead of the above not()
 template<int N> inline vec<bool,N> operator!( const vec<bool,N>& v )
 {
-	vec<bool,N> temp;
-	for( int i=0; i<N; i++ ) temp[i] = !v[i];
-	return temp;
+	vec<bool,N> t;
+	for( int i=0; i<N; i++ ) t[i] = !v[i];
+	return t;
 }
 
 
@@ -1059,14 +749,14 @@ template<int N> inline vec<bool,N> operator!( const vec<bool,N>& v )
 /* TODO verify 
 template<> inline float sqrt(float x)
 {
-	float temp;
+	float t;
 	_asm
 	{
 		movupd xmm0, x;
 		sqrtss xmm0, xmm0;
 		movupd temp, xmm0;
 	}
-	return temp;
+	return t;
 }
 */
 
@@ -1079,7 +769,7 @@ template<> inline float sqrt(float x)
 #if 0
 template<> inline vec<float,2> operator*( const vec<float,2>& a, const vec<float,2>& b )
 { 
-	vec<float,2> temp; 
+	vec<float,2> t; 
 /*	__asm {
 		mov   eax,a
 		movss xmm0,[eax]a.x
@@ -1094,47 +784,67 @@ template<> inline vec<float,2> operator*( const vec<float,2>& a, const vec<float
 	} */
 	temp.x = a.x * b.x;
 	temp.y = a.y * b.y;
-	return temp;
+	return t;
 }
 #endif
 
+
+// Geometric operations
+/*
+float distance(mat2 A, mat2 B)
+{
+    float result = 0.0;
+    for(int i=0; i<=3; i++)
+    {
+        result += (A[i]-B[i])*(A[i]-B[i]);
+    }
+    return sqrt(result);
+}
+*/
 
 // TODO transformation factory: translation matrix, rotation matrix, scale matrix
 
 inline mat2 rotate( float angle )
 {
-	mat2 temp;
+	mat2 t;
 
 	float A  = (float) cos( angle * PI / (-180.0) ); // meno !?
 	float B  = (float) sin( angle * PI / (-180.0) );
 
-	temp[0] =  A;
-	temp[1] = -B;
-	temp[2] =  B;
-	temp[3] =  A;
+	t[0] =  A;
+	t[1] = -B;
+	t[2] =  B;
+	t[3] =  A;
 
-	return temp;
+	return t;
 }
 
 inline dmat2 rotate( double angle )
 {
-	dmat2 temp;
+	dmat2 t;
 
 	double A  = cos( angle * PI / (-180.0f) ); // meno !?
 	double B  = sin( angle * PI / (-180.0f) );
 
-	temp[0] =  A;
-	temp[1] = -B;
-	temp[2] =  B;
-	temp[3] =  A;
+	t[0] =  A;
+	t[1] = -B;
+	t[2] =  B;
+	t[3] =  A;
 
-	return temp;
+	return t;
 }
 
 
-inline float det( const mat2& m )
+inline float determinant(const mat2& m)
 {
-	return m.a*m.d - m.b*m.c;
+	return m[0]*m[3] - m[1]*m[2];
+}
+
+inline mat2 inverse(const mat2& m)
+{
+	mat2 t = mat2(m[3], -m[1], -m[2], m[0]);
+	t /= determinant(m);
+	return t;
 }
 
 
@@ -1146,7 +856,7 @@ inline float det( const mat2& m )
 /* TODO debug
 inline vec3 normalize( const vec3& v )
 {
-	vec3 temp;
+	vec3 t;
 	__asm {
 		mov   eax,v
 		movss xmm0,[eax]v.x
@@ -1173,7 +883,7 @@ inline vec3 normalize( const vec3& v )
 		movss [eax]temp.y,xmm5
 		movss [eax]temp.z,xmm6
 	} 
-	return temp;
+	return t;
 }
 */
 
@@ -1181,7 +891,7 @@ inline vec3 normalize( const vec3& v )
 
 inline mat3 rotate( float pitch, float yaw, float roll )
 {
-	mat3 temp;
+	mat3 t;
 	float Cx, Sx, Cy, Sy, Cz, Sz, CxSy, SxSy;
 
 	Cx  = (float) cos( pitch * PI / (-180.0) );
@@ -1193,17 +903,17 @@ inline mat3 rotate( float pitch, float yaw, float roll )
 	CxSy = Cx * Sy;
 	SxSy = Sx * Sy;
 
-	temp[0] =    Cy * Cz;
-	temp[1] =  SxSy * Cz + Cx * Sz;
-	temp[2] = -CxSy * Cz + Sx * Sz;
-	temp[3] =   -Cy * Sz;
-	temp[4] = -SxSy * Sz + Cx * Cz;
-	temp[5] =  CxSy * Sz + Sx * Cz;
-	temp[6] =    Sy;
-	temp[7] =   -Sx * Cy;
-	temp[8] =    Cx * Cy;
+	t[0] =    Cy * Cz;
+	t[1] =  SxSy * Cz + Cx * Sz;
+	t[2] = -CxSy * Cz + Sx * Sz;
+	t[3] =   -Cy * Sz;
+	t[4] = -SxSy * Sz + Cx * Cz;
+	t[5] =  CxSy * Sz + Sx * Cz;
+	t[6] =    Sy;
+	t[7] =   -Sx * Cy;
+	t[8] =    Cx * Cy;
 
-	return temp;
+	return t;
 }
 
 inline mat3 rotate( const vec3& rotation )
@@ -1220,7 +930,7 @@ inline mat3 transform( float rotation, float scale, float translation )
 // TODO templatize
 inline dmat3 rotate( double pitch, double yaw, double roll )
 {
-	dmat3 temp;
+	dmat3 t;
 	double Cx, Sx, Cy, Sy, Cz, Sz, CxSy, SxSy;
 
 	Cx  = (double) cos( pitch * PI / (-180.0) );
@@ -1232,17 +942,17 @@ inline dmat3 rotate( double pitch, double yaw, double roll )
 	CxSy = Cx * Sy;
 	SxSy = Sx * Sy;
 
-	temp[0] =    Cy * Cz;
-	temp[1] =  SxSy * Cz + Cx * Sz;
-	temp[2] = -CxSy * Cz + Sx * Sz;
-	temp[3] =   -Cy * Sz;
-	temp[4] = -SxSy * Sz + Cx * Cz;
-	temp[5] =  CxSy * Sz + Sx * Cz;
-	temp[6] =    Sy;
-	temp[7] =   -Sx * Cy;
-	temp[8] =    Cx * Cy;
+	t[0] =    Cy * Cz;
+	t[1] =  SxSy * Cz + Cx * Sz;
+	t[2] = -CxSy * Cz + Sx * Sz;
+	t[3] =   -Cy * Sz;
+	t[4] = -SxSy * Sz + Cx * Cz;
+	t[5] =  CxSy * Sz + Sx * Cz;
+	t[6] =    Sy;
+	t[7] =   -Sx * Cy;
+	t[8] =    Cx * Cy;
 
-	return temp;
+	return t;
 }
 
 inline dmat3 rotate( const dvec3& rotation )
@@ -1269,36 +979,36 @@ inline float determinant( const mat3& m )
 
 inline mat3 inverse( const mat3& m )
 {
-	mat3 temp;
-	temp[0] = + (m[4] * m[8] - m[5] * m[7]);
-	temp[1] = - (m[1] * m[8] - m[2] * m[7]);
-	temp[2] = + (m[1] * m[5] - m[2] * m[4]);
-	temp[3] = - (m[3] * m[8] - m[5] * m[6]);
-	temp[4] = + (m[0] * m[8] - m[2] * m[6]);
-	temp[5] = - (m[0] * m[5] - m[2] * m[3]);
-	temp[6] = + (m[3] * m[7] - m[4] * m[6]);
-	temp[7] = - (m[0] * m[7] - m[1] * m[6]);
-	temp[8] = + (m[0] * m[4] - m[1] * m[3]);
-	temp /= determinant(m);
+	mat3 t;
+	t[0] = + (m[4] * m[8] - m[5] * m[7]);
+	t[1] = - (m[1] * m[8] - m[2] * m[7]);
+	t[2] = + (m[1] * m[5] - m[2] * m[4]);
+	t[3] = - (m[3] * m[8] - m[5] * m[6]);
+	t[4] = + (m[0] * m[8] - m[2] * m[6]);
+	t[5] = - (m[0] * m[5] - m[2] * m[3]);
+	t[6] = + (m[3] * m[7] - m[4] * m[6]);
+	t[7] = - (m[0] * m[7] - m[1] * m[6]);
+	t[8] = + (m[0] * m[4] - m[1] * m[3]);
+	t /= determinant(m);
 
-	return temp;
+	return t;
 }
 
 inline mat3 inverseTranspose( const mat3& m )
 {
-	mat3 temp;
-	temp[0] = + (m[4] * m[8] - m[5] * m[7]);
-	temp[1] = - (m[3] * m[8] - m[5] * m[6]);
-	temp[2] = + (m[3] * m[7] - m[4] * m[6]);
-	temp[3] = - (m[1] * m[8] - m[2] * m[7]);
-	temp[4] = + (m[0] * m[8] - m[2] * m[6]);
-	temp[5] = - (m[0] * m[7] - m[1] * m[6]);
-	temp[6] = + (m[1] * m[5] - m[2] * m[4]);
-	temp[7] = - (m[0] * m[5] - m[2] * m[3]);
-	temp[8] = + (m[0] * m[4] - m[1] * m[3]);
-	temp /= determinant(m);
+	mat3 t;
+	t[0] = + (m[4] * m[8] - m[5] * m[7]);
+	t[1] = - (m[3] * m[8] - m[5] * m[6]);
+	t[2] = + (m[3] * m[7] - m[4] * m[6]);
+	t[3] = - (m[1] * m[8] - m[2] * m[7]);
+	t[4] = + (m[0] * m[8] - m[2] * m[6]);
+	t[5] = - (m[0] * m[7] - m[1] * m[6]);
+	t[6] = + (m[1] * m[5] - m[2] * m[4]);
+	t[7] = - (m[0] * m[5] - m[2] * m[3]);
+	t[8] = + (m[0] * m[4] - m[1] * m[3]);
+	t /= determinant(m);
 
-	return temp;
+	return t;
 }
 
 // TODO inline mat4 inverse( const mat4& m )
@@ -1439,7 +1149,7 @@ template<> union mat<float,4>
 
 inline vec4 operator*( const mat4& m, const vec4& v )
 {
-	vec4 v0, v1, v2, v3, temp;
+	vec4 v0, v1, v2, v3, t;
 	v0.m = _mm_set_ps( v.x, v.x, v.x, v.x );
 	v1.m = _mm_set_ps( v.y, v.y, v.y, v.y );
 	v2.m = _mm_set_ps( v.z, v.z, v.z, v.z );
@@ -1451,7 +1161,7 @@ inline vec4 operator*( const mat4& m, const vec4& v )
 	temp.m = _mm_add_ps( v0.m, v1.m );
 	temp.m = _mm_add_ps( temp.m, v2.m );
 	temp.m = _mm_add_ps( temp.m, v3.m );
-	return temp;
+	return t;
 }
 */
 /*
@@ -1459,7 +1169,7 @@ inline mat4 transpose( const mat4& a )
 {
 	mat4 temp(a);
 	_MM_TRANSPOSE4_PS( temp.r0.m, temp.r1.m, temp.r2.m, temp.r3.m );
-	return temp;
+	return t;
 }
 */
 // TODO more functions
@@ -1474,10 +1184,10 @@ inline mat4 projection( vec2 viewport, double fov, double near_plane, double far
 	double f0 = (near_plane + far_plane) / (near_plane - far_plane);
 	double f1 = (2*near_plane*far_plane) / (near_plane - far_plane);
 
-	return mat4(   yf,  0,  0,  0,
-					0, xf,  0,  0,
-					0,  0, f0, -1,
-					0,  0, f1,  0   );
+	return mat4( yf,  0,  0,  0,
+			      0, xf,  0,  0,
+				  0,  0, f0, -1,
+				  0,  0, f1,  0  );
 }
 
 inline mat4 inverseProjection( mat4& p )
@@ -1495,11 +1205,6 @@ inline mat4 transform( const vec3& rotation, const vec3& scale, const vec3& tran
 {
 	mat3 r = rotate( rotation );
 
-/*	return mat4(r[0], r[1], r[2], translation.x,
-				r[3], r[4], r[5], translation.y,
-				r[6], r[7], r[8], translation.z,
-				   0,    0,    0, 1);
-*/
 	return mat4(r[0]*scale.x, r[3]*scale.x, r[6]*scale.x, 0,
 				r[1]*scale.y, r[4]*scale.y, r[7]*scale.y, 0,
 				r[2]*scale.z, r[5]*scale.z, r[8]*scale.z, 0,
@@ -1607,26 +1312,6 @@ inline mat4 TransformationMatrix( const mat3& transform )
 }
 
 
-// RGBA 
-inline rgba average( const rgba& color1, const rgba& color2 )
-{ 
-	rgba temp;
-	temp.r = (int(color1.r) + int(color2.r))/int(2);
-	temp.g = (int(color1.g) + int(color2.g))/int(2);
-	temp.b = (int(color1.b) + int(color2.b))/int(2);
-	temp.a = (int(color1.a) + int(color2.a))/int(2);
-	return temp;
-}
-
-inline rgba average( const rgba& color1, const rgba& color2, const rgba& color3, const rgba& color4 )
-{ 
-	rgba temp;
-	temp.r = (int(color1.r) + int(color2.r) + int(color3.r) + int(color4.r))/int(4);
-	temp.g = (int(color1.g) + int(color2.g) + int(color3.g) + int(color4.g))/int(4);
-	temp.b = (int(color1.b) + int(color2.b) + int(color3.b) + int(color4.b))/int(4);
-	temp.a = (int(color1.a) + int(color2.a) + int(color3.a) + int(color4.a))/int(4);
-	return temp;
-}
 
 //
 // Packing
@@ -1658,50 +1343,6 @@ vec4 unpack( const float x )
 }
 */
 
-// TODO use exponent bits too
-float pack2( const vec4& c )
-{
-	const float B = 64.0;
-	vec4 t = floor( c * (B-1) );
-	return dot(t, vec4(B*B*B, B*B, B, 1));
-}
-float pack2( const rgba& c )
-{
-	vec4 t = vec4( float(c.r), float(c.g), float(c.b), float(c.a) ) / 255.0f;
-	return pack2( t ); 
-}
-vec4 unpack2( float x )
-{
-	const float B = 64.0;
-	vec4 t = fract( x * vec4(1/(B*B*B*B), 1/(B*B*B), 1/(B*B), 1/B) );
-	return t * B/(B-1);
-}
-
-float packNormal( const vec3& n )
-{
-	float BASE = 256.0f;
-	return dot(vec4(floor((n + 1.0f)*0.5f*(BASE-1)),0.0f), vec4(1.0f, BASE, BASE*BASE, BASE*BASE*BASE))/(BASE*BASE*BASE*BASE);;
-}
-
-vec4 unpackNormal( float f )
-{
-	float BASE = 256.0f;
-	return (mod(f*(BASE*BASE*BASE*BASE)/vec4(1.0f, BASE, BASE*BASE, BASE*BASE*BASE), BASE)/(BASE-1))*2.0f - 1.0f;
-}
-
-
-
-// Clipmap stuff
-inline float scrollValue( double x, double y )
-{
-	return float(fract(x/y)*y);
-}
-
-// TODO shall return int
-inline float tileValue( double x, double y )
-{
-	return float(floor(x/y));
-}
 
 
 
@@ -1730,7 +1371,7 @@ template<int N> inline char* str(vec<double,N> v)
 	return buffer;
 }
 
-
+/*
 // TEMP just to prove the side effect between calls
 template<int N> inline void STR(vec<double,N> v, char* buffer)
 {
@@ -1763,7 +1404,7 @@ template<int N,int M> inline char* str( mat<float,N,M> a )
 	}
 	return buffer;
 }
-
+*/
 
 template<class T, int N> inline T max( vec<T,N>& x )
 {
@@ -1985,3 +1626,7 @@ void test_sum_the_other_way()
 }
 */
 
+// Restore warning for possible loss of data
+#if defined(_MSC_VER) 
+    //#pragma warning(pop) 
+#endif
