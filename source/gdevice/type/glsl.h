@@ -75,10 +75,7 @@ typedef mat<double,4,4> dmat4x4;
 
 const double PI			= 3.141592653589793238462;
 const double LN2		= 0.693147180559945309417;
-const double EULER		= 2.718281828459045235360;
 const double EPSILON	= 0.0002;//0.000001;
-const float  pi         = float(PI);
-const float  euler      = float(EULER);
 
 // Functions
 template<class T> inline T radians(T x)		{ return (PI/180)*x; }
@@ -124,7 +121,18 @@ template<class T> inline T dot(T x, T y)     { return x*y; }
 template<class T> inline T normalize(T)      { return 1; }
 template<class T> inline T faceforward(T n, T i, T nref) { return nref*i < 0 ? n : -n; }
 template<class T> inline T reflect(T i, T n) { return i - 2*dot(n,i)*n; }
-template<class T> inline T refract(T i, T n, double eta) { T k = 1 - eta*eta*(1-dot(n,i)*dot(n,i)); return k<0 ? 0 : eta*i - (eta*dot(n,i) + sqrt(k))*n; }
+/*
+template<class T> inline T refract(T i, T n, double eta) { 
+    float k = 1.0 - eta*eta*(1.0 - dot(n,i)*dot(n,i)); 
+    return k < 0.0 ? 0.0 : eta*i - (eta*dot(n,i) + sqrt(k))*n; 
+}
+*/ /*
+float refract(float i, float n, double eta) { 
+    float k = 1.0 - eta*eta*(1.0 - dot(n,i)*dot(n,i)); 
+    return k < 0.0 ? 0.0 : eta*i - (eta*dot(n,i) + sqrt(k))*n; 
+}*/
+
+
 
 
 
@@ -165,7 +173,8 @@ template<class T, int N> union vec
 #define var(type) type<T,N>
 #define FOR_EACH(f) {var(vec) t; for(int i=0; i<N; i++) (t)[i] = (f); return t;}
 
-_OUT(vec) operator-(_IN(vec) a)            FOR_EACH(-a[i])
+_OUT(vec) operator+(_IN(vec) a)             { return a; }
+_OUT(vec) operator-(_IN(vec) a)             FOR_EACH(-a[i])
 _OUT(vec) operator+(_IN(vec) a, _IN(vec) b) FOR_EACH(a[i]+b[i])
 _OUT(vec) operator-(_IN(vec) a, _IN(vec) b) FOR_EACH(a[i]-b[i])
 _OUT(vec) operator*(_IN(vec) a, _IN(vec) b) FOR_EACH(a[i]*b[i])
@@ -236,6 +245,16 @@ _OUT(vec) mix(_IN(vec) a, _IN(vec) b, _IN(vec) c) FOR_EACH(mix(a[i],b[i],c[i]))
 _OUT(vec) step(_IN(vec) a, _IN(vec) b)        FOR_EACH(step(a[i],b[i]))
 _OUT(vec) smoothstep(_IN(vec) a, _IN(vec) b, _IN(vec) c) FOR_EACH(smoothstep(a[i],b[i],c[i]))
 
+#define OUT_SCALAR_TN(type) template<class T, int N> inline type
+OUT_SCALAR_TN(T) dot(_IN(vec) a, _IN(vec) b)
+{
+	T t = 0;
+	for( int i=0; i<N; i++ ) t += a[i]*b[i];
+	return t;
+}
+OUT_SCALAR_TN(T) length(_IN(vec) a)                 { return T(sqrt(dot(a,a))); }
+OUT_SCALAR_TN(T) distance(_IN(vec) a, _IN(vec) b)   { return length(a-b); }
+
 _OUT(vec) normalize(_IN(vec) a)
 {
 	T len = length(a);
@@ -247,21 +266,14 @@ _OUT(vec) reflect(_IN(vec) a, _IN(vec) b) { return a - 2*dot(b,a)*b; }
 _OUT(vec) refract(_IN(vec) a, _IN(vec) b, const float& c)
 {
 	T d = dot(b,a);
-	T k = 1 - c*c*( 1 - d*d );
-	return k<0 ? T(0) : c*a - (c*d + sqrt(k))*b;
+	T k = 1.0f - c*c*( 1 - d*d );
+	return k<0.0f ? T(0.0f) : c*a - (c*d + sqrt(k))*b;
 }
 
 
-#define OUT_SCALAR_TN(type) template<class T, int N> inline type
 
-OUT_SCALAR_TN(T) length(_IN(vec) a)                { return T(sqrt(dot(a,a)));}
-OUT_SCALAR_TN(T) distance(_IN(vec) a, _IN(vec) b)  { return length(a-b); }
-OUT_SCALAR_TN(T) dot(_IN(vec) a, _IN(vec) b)
-{
-	T t = 0;
-	for( int i=0; i<N; i++ ) t += a[i]*b[i];
-	return t;
-}
+
+
 
 // TODO use distance
 OUT_SCALAR_TN(bool) operator==(_IN(vec) a, _IN(vec) b)
@@ -344,7 +356,7 @@ template<class T, int N, int M> inline T distance(const mat<T,N,M>& A, const mat
     }
     return sqrt(result);
 }
-
+/*
 template<class T, int N, int M> inline T distance2(const mat<T,N,M>& A, const mat<T,N,M>& B)
 {
     T result = T(0.0);
@@ -385,7 +397,7 @@ _OUT(vec)& operator*=( vec<T,N>& a, const mat<T,N>& m )
 	a = a * m;
 	return a;
 }
-
+*/
 // Geometric matrix operations
 
 // matrix-matrix multiplication
@@ -1342,6 +1354,8 @@ vec4 unpack( const float x )
 	return c;
 }
 */
+
+
 
 
 

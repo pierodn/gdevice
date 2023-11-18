@@ -75,9 +75,15 @@ void test_all()
 {
     printf("Executing %s in %s\n\n", __FUNCTION__, __FILE__);
 
-    // Testing constructors
+    //
+    // Construction
+    //
+    const float  pi         = float(PI);
+    const double EULER		= 2.718281828459045235360;
+    const float  euler      = float(EULER);
 
     float s = 0.5;
+
     vec2 u = vec2(1.0, 2.0);
     vec2 v = vec2(3.0, 4.0);
     vec3 a = vec3(1.0, 2.0, 3.0);
@@ -90,16 +96,30 @@ void test_all()
     mat3 B = inverse(A);
     mat4 T = mat4(-2, -2, 3, 0, 0, 1, -1, 0, 0.5, 0, -0.5, 0, 0, 0, 0, 1);
     mat4 Q = inverse(T);
+/*
+    //
+    // Component access
+    //
+    ASSERT_EQUAL(u.x, 1.0f);
+    ASSERT_EQUAL(u.y, 2.0f);
+    ASSERT_EQUAL(a.x, 1.0f);
+    ASSERT_EQUAL(a.y, 2.0f);
+    ASSERT_EQUAL(a.z, 3.0f);
+    ASSERT_EQUAL(a.xy, vec2(1.0, 2.0));
+    ASSERT_EQUAL(a.yz, vec2(2.0, 3.0));
+    ASSERT_EQUAL(p.x, 1.0f);
+    ASSERT_EQUAL(p.y, 2.0f);
+    ASSERT_EQUAL(p.z, 3.0f);
+    ASSERT_EQUAL(p.w, 4.0f);
+    ASSERT_EQUAL(p.xy, vec2(1.0, 2.0));
+    ASSERT_EQUAL(p.yz, vec2(2.0, 3.0));
+    ASSERT_EQUAL(p.zw, vec2(3.0, 4.0));
+    ASSERT_EQUAL(p.xyz, vec3(1.0, 2.0, 3.0));
+    ASSERT_EQUAL(p.yzw, vec3(2.0, 3.0, 4.0));
 
-    // Swizzling (limited)
-
-    // PROP testing inverse only or all geometric functions
-
-
-
-
-    // Testing operators
-/*    
+    //
+    // Component-wise operations
+    //
     ASSERT_EQUAL(1.0 + 1.0, 2.0);
 
     ASSERT_EQUAL(   -v, vec2(-3.0, -4.0));
@@ -143,11 +163,11 @@ void test_all()
     ASSERT_EQUAL(s - q, vec4(-4.5, -5.5, -6.5, -7.5));
     ASSERT_EQUAL(s * q, vec4(2.5, 3.0, 3.5, 4.0));
     ASSERT_EQUAL(s / q, vec4(0.1, 0.0833333, 0.071428, 0.0625));
-
+*/
     ASSERT_EQUAL(   -N, mat2(2, 1, 5, 3));
     ASSERT_EQUAL(M + N, mat2(-5, 0, 0, -5));
     ASSERT_EQUAL(M - N, mat2(-1, 2, 10, 1));
-    ASSERT_EQUAL(M * N, mat2(1));  // Geometric function!
+    //ASSERT_EQUAL(M * N, mat2(1));
     ASSERT_EQUAL(matrixCompMult(M, N), mat2(6, -1, -25, 6)); // M * N is a geometric function
     ASSERT_EQUAL(M / N, mat2(1.5, -1, -1, 0.666666));
     ASSERT_EQUAL(M + s, mat2(-2.5, 1.5, 5.5, -1.5));
@@ -162,7 +182,7 @@ void test_all()
     ASSERT_EQUAL(   -B, mat3(-4, 5, 2, -5, 6, 2, 8, -9, -3));
     ASSERT_EQUAL(A + B, mat3(4, -8, -4, 6, -10, -4, -11, 13, 4));
     ASSERT_EQUAL(A - B, mat3(-4, 2, 0, -4, 2, 0, 5, -5, -2));
-    ASSERT_EQUAL(A * B, mat3(1)); // Geometric function!
+    //ASSERT_EQUAL(A * B, mat3(1));
     ASSERT_EQUAL(matrixCompMult(A, B), mat3(0, 15, 4, 5, 24, 4, 24, 36, 3));
     ASSERT_EQUAL(A / B, mat3(0, 0.6, 1, 0.2, 0.666666, 1, 0.375, 0.444444, 0.333333));
     ASSERT_EQUAL(A + s, mat3(0.5, -2.5, -1.5, 1.5, -3.5, -1.5, -2.5, 4.5, 1.5));
@@ -177,7 +197,6 @@ void test_all()
     ASSERT_EQUAL(   -Q, mat4(1, 2, 2, 0, 1, 1, 4, 0, 1, 2, 4, 0, 0, 0, 0, -1)); 
     ASSERT_EQUAL(T + Q, mat4(-3, -4, 1, 0, -1, 0, -5, 0, -0.5, -2, -4.5, 0, 0, 0, 0, 2));
     ASSERT_EQUAL(T - Q, mat4(-1, 0, 5, 0, 1, 2, 3, 0, 1.5, 2, 3.5, 0, 0, 0, 0, 0));
-    ASSERT_EQUAL(T * Q, mat4(1)); // Geometric function!
     ASSERT_EQUAL(matrixCompMult(T, Q), mat4(2, 4, -6, 0, -0, -1, 4, 0, -0.5, -0, 2, 0, 0, 0, 0, 1));
     ASSERT_EQUAL(T / (Q + s), mat4(4, 4/3.0, -2, 0, -0, -2, 0.285714, 0, -1, -0, 0.142857, 0, 0, 0, 0, 0.666666));
     ASSERT_EQUAL(T + s, mat4(-1.5, -1.5, 3.5, 0.5, 0.5, 1.5, -0.5, 0.5, 1, 0.5, 0, 0.5, 0.5, 0.5, 0.5, 1.5));
@@ -189,7 +208,7 @@ void test_all()
     ASSERT_EQUAL(s * Q, mat4(-0.5, -1, -1, 0, -0.5, -0.5, -2, 0, -0.5, -1, -2, 0, 0, 0, 0, 0.5));
     ASSERT_EQUAL(s / (Q + s), mat4(-1, -1/3.0, -1/3.0, 1, -1, -1, -0.142857, 1, -1, -1/3.0, -0.142857, 1, 1, 1, 1, 1/3.0));
 
-    // Testing functions
+    // Functions
 
     ASSERT_EQUAL(radians(180.0), PI);
     ASSERT_EQUAL(degrees(PI), 180.0);
@@ -275,7 +294,7 @@ void test_all()
     ASSERT_EQUAL(mix(a, b, 0.5),    (a+b)*0.5f);
     ASSERT_EQUAL(step(a, b/2.0f),   vec3(1, 1, 0));
     ASSERT_EQUAL(smoothstep(a, b, b/2.0f), vec3(0.25925928, 0.074074082, 0));
-*/
+
     //vec4 r = pow(vec4(2.0), p);
     ASSERT_EQUAL(radians(180.0f*p), pi*p);
     ASSERT_EQUAL(degrees(q*pi),     q*180.0f);
@@ -296,59 +315,73 @@ void test_all()
     ASSERT_EQUAL(floor(p*pi),       3.0f*p);
     ASSERT_EQUAL(ceil(p*pi),        3.0f*p + 1.0f);
     ASSERT_EQUAL(fract(p*pi),       p*pi - floor(p*pi));
-    ASSERT_EQUAL(mod(p*pi, q),      p*pi - floor(p*pi/q));
+    ASSERT_EQUAL(mod(p*pi, euler),  p*pi - floor(p*pi/euler)*euler);
     ASSERT_EQUAL(min(p*pi, pi),     vec4(pi));
-    ASSERT_EQUAL(max(p*pi, pi),     vec4(4.0f*pi));
+    ASSERT_EQUAL(max(p*pi, p.y*pi), vec4(p.y, p.yzw)*pi);
     ASSERT_EQUAL(clamp(0.5f*p, 0.5f, 2.0f), vec4(0.5, 1.0, 1.5, 2.0));
-    ASSERT_EQUAL(mix(p, q, 0.5),    (p+q)*0.5f);
-    ASSERT_EQUAL(step(p, q/2.0f),   vec4(1, 1, 0, 0));
-    ASSERT_EQUAL(smoothstep(p, q, q/2.0f), vec4(0.25925928, 0.074074082, 0, 0));
+    ASSERT_EQUAL(mix(p, q, 0.5),    (p + q)*0.5f);
+    ASSERT_EQUAL(step(p, q*0.5f),   vec4(1, 1, 1, 0));
+    ASSERT_EQUAL(smoothstep(p, q, q/2.0f), vec4(0.31640625, 0.15625, 0.04296875, 0));
 
-    // scalar geometric operations/functions
+    //
+    // Geometric functions
+    //
+// Reference: https://shaderific.com/glsl/geometric_functions.html
+// https://glm.g-truc.net/0.9.4/api/a00131.html
     ASSERT_EQUAL(length(PI), PI);
+    ASSERT_EQUAL(length(u), 2.236068f);
+    ASSERT_EQUAL(length(a), 3.7416575f);
+    ASSERT_EQUAL(length(p), 5.4772258f);
+
     ASSERT_EQUAL(distance(PI, LN2), PI - LN2);
+    ASSERT_EQUAL(distance(u, v), 2.8284271f);
+    ASSERT_EQUAL(distance(a, b), 5.1961522f);
+    ASSERT_EQUAL(distance(p, q), 8.0f);
+
     ASSERT_EQUAL(dot(PI, LN2), PI*LN2);
+    ASSERT_EQUAL(dot(u, v), 11.0f);
+    ASSERT_EQUAL(dot(a, b), 32.0f);
+    ASSERT_EQUAL(dot(p, q), 70.0f);
+
+    ASSERT_EQUAL(cross(a, b), vec3(-3, 6, -3));
+
     ASSERT_EQUAL(normalize(PI), 1.0);
+    ASSERT_EQUAL(normalize(u), vec2(0.44721359, 0.89442718));
+    ASSERT_EQUAL(normalize(a), vec3(0.26726124, 0.53452247, 0.80178368));
+    ASSERT_EQUAL(normalize(p), vec4(0.18257418, 0.36514837, 0.54772258, 0.73029673));
+
     ASSERT_EQUAL(faceforward(PI, -1.0, LN2), +PI );
-    ASSERT_EQUAL(faceforward(PI, +1.0, LN2), -PI );
+    ASSERT_EQUAL(faceforward(v, u, -u), vec2(3, 4) );
+    ASSERT_EQUAL(faceforward(a, vec3(+1.0), b), -a );
+    ASSERT_EQUAL(faceforward(p, -vec4(1.0), q), +p );
+
     ASSERT_EQUAL(reflect(PI, LN2), 0.122817);
-    ASSERT_EQUAL(refract(PI, LN2, 0.5), -0.1482120);
+    ASSERT_EQUAL(reflect(u, v), vec2(-65, -86));
+    ASSERT_EQUAL(reflect(a, b), vec3(-255, -318, -381));
+    ASSERT_EQUAL(reflect(p, q), vec4(-699, -838, -977, -1116));
+
+//    ASSERT_EQUAL(refract(PI, LN2, 0.5), -0.1482120);
+    ASSERT_EQUAL(refract(u, v, 0.5), vec2(-32.703293, -43.271057));
+    ASSERT_EQUAL(refract(a, b, 0.5), vec3(-127.59369, -159.11711, -190.64053));
+    ASSERT_EQUAL(refract(p, q, 0.5), vec4(-349.55356, -419.06427, -488.57498, -558.08569));
 
 
-    // vec2 swizzling
-    // vec2 geometric operations/functions
-
-    // vec3 functions
-    // vec3 operations
-    // vec3 swizzling
-    // vec3 geometric operations/functions 
-
-    // vec4 functions
-    // vec4 operations
-    // vec4 swizzling
-    // vec4 geometric operations/functions (quaternions)
-
-    
-    // Vector functions for vec4
-
-    // Vector geometric functions for vec2
-    // Vector geometric functions for vec3 (mat3 * vec3)
-    // Vector geometric functions for vec4 (quaternions) 
-    /*    
+/*    
     vec3 qtransform(vec4 q, vec3 v) { 
 	    return v + 2.0*cross(cross(v, q.xyz ) + q.w*v, q.xyz);
 	} 
 */
+
+
+    ASSERT_EQUAL(M * N, mat2(1));
+    ASSERT_EQUAL(A * B, mat3(1));
+    ASSERT_EQUAL(T * Q, mat4(1));
+
+
+
 // https://www.geeks3d.com/20141201/how-to-rotate-a-vertex-by-a-quaternion-in-glsl/
 
-    // Vector swizzling for vec2
-    // Vector swizzling for vec3
-    // Vector swizzling for vec4
     // Vector Pack/unpack
-
-    // Matrix operations
-    // Matrix functions
-    // Matrix geometric functions
 
 
 }

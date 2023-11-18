@@ -108,7 +108,7 @@ inline char* _REMOVE_PATH(char* filename) {
 inline void _PRINT_PATH(char* function, char* filename, int line) {
     color(CMD_GREEN,0); printf("%X ", GetCurrentThreadId()); 
     color(CMD_LIGHTGRAY,0); printf("%s:%d ", _REMOVE_PATH(filename), line);
-    color(CMD_DARKGRAY,0); printf("%s() ", function); 
+    color(CMD_CYAN,0); printf("%s() ", function); 
     color(15,0);
 }
 
