@@ -1,21 +1,18 @@
 #pragma once
 
-// TODO specialize with SSE intrinsics
-
 #include <math.h>
 #undef min
 #undef max
 
-// Disable warnings for possible loss of data in this file only.
 #if defined(_MSC_VER) 
     //#pragma warning( push )
-	#pragma warning(disable: 4244) 
+	#pragma warning(disable: 4244) // Disable warnings for possible loss of data 
 #endif
 
 
 
 // ======================================
-// ABSTRACT TYPES - Forward definition
+// BASE TEMPLATE FORWARD DEFINITIONS
 // ======================================
 
 template<class T, int N> union vec;
@@ -166,6 +163,8 @@ template<class T, int N> union vec
 #define MATRIX mat<T,N,M>
 */
 
+// TODO if defined push etc.
+
 #define _OUT(type) template<class T, int N> inline type<T,N>
 #define _IN(type) const type<T,N>&
 #define SCALAR const T& 
@@ -270,27 +269,9 @@ _OUT(vec) refract(_IN(vec) a, _IN(vec) b, const float& c)
 	return k<0.0f ? T(0.0f) : c*a - (c*d + sqrt(k))*b;
 }
 
-
-
-
-
-
-// TODO use distance
-OUT_SCALAR_TN(bool) operator==(_IN(vec) a, _IN(vec) b)
-{
-	for( int i=0; i<N; i++ ) if( a[i]!=b[i] ) return false;
-	return true;
-}
-OUT_SCALAR_TN(bool) operator!=(_IN(vec) a, _IN(vec) b)
-{
-	for( int i=0; i<N; i++ ) if( a[i]==b[i] ) return false;
-	return true;
-}
-OUT_SCALAR_TN(bool) equal(_IN(vec) a, _IN(vec) b, const T& epsilon=T(EPSILON))
-{
-	for(int i=0; i<N; i++) if(abs(a[i]-b[i])>epsilon) return false;
-	return true;
-}
+OUT_SCALAR_TN(bool) operator==(_IN(vec) a, _IN(vec) b) { return distance(a,b) < EPSILON; }
+OUT_SCALAR_TN(bool) operator!=(_IN(vec) a, _IN(vec) b) { return distance(a,b) > EPSILON; }
+//OUT_SCALAR_TN(bool) equal(_IN(vec) a, _IN(vec) b, const T& epsilon = T(EPSILON)) { return distance(a,b) < epsilon; }
 
 
 // ======================================
@@ -367,7 +348,7 @@ template<class T, int N, int M> inline T distance2(const mat<T,N,M>& A, const ma
 
     return result;
 }
-
+*/
 
 _OUT(vec) operator*( const mat<T,N>& m, _IN(vec) v )
 {
@@ -397,7 +378,7 @@ _OUT(vec)& operator*=( vec<T,N>& a, const mat<T,N>& m )
 	a = a * m;
 	return a;
 }
-*/
+
 // Geometric matrix operations
 
 // matrix-matrix multiplication
@@ -553,37 +534,6 @@ template<class T> inline vec<T,3> cross( const vec<T,3>& a, const vec<T,3>& b )
 	return t;
 }
 
-template<class T> union mat<T,3>
-{
-	T array[9];
-	struct { vec<T,3> xAxis,yAxis,zAxis; };
-	struct { vec<T,3> position,rotation,scale; };
-
-	inline T& operator[](int i) { return array[i]; }
-	inline const T& operator[](int i) const { return array[i]; }
-
-	inline mat() {}
-	inline mat(const T& s)  { set( s, 0, 0, 0, s, 0, 0, 0, s ); }
-	inline mat(const T& m0, const T& m1, const T& m2, 
-			   const T& m3, const T& m4, const T& m5, 
-			   const T& m6, const T& m7, const T& m8) {  set( m0, m1, m2, m3, m4, m5, m6, m7, m8 ); }
-	
-	inline mat(const vec<T,3>& v) { set( v[0], 0, 0, 0, v[1], 0,    0,    0, v[2] ); }
-	inline mat(const vec<T,2>& v) { set(    0, 0, 0, 0,    0, 0, v[0], v[1], 1 ); }
-	inline mat(const mat<T,2>& m) { set( m[0], m[1], 0, m[2], m[3], 0, 0, 0, 1 ); }
-	inline mat(const mat<T,4>& m) { set( m[0], m[1], m[2], m[4], m[5], m[6], m[8], m[9], m[10]); }
-	inline mat(const mat<T,2>& m, const vec<T,2>& v) { set( m[0], m[1], 0, m[2], m[3], 0, v[0], v[1], 1 ); }
-
-	inline void set( const T& m0, const T& m1, const T& m2, 
-					 const T& m3, const T& m4, const T& m5, 
-					 const T& m6, const T& m7, const T& m8 )
-	{
-		array[0] = m0;  array[1] = m1;  array[2] = m2;
-		array[3] = m3;  array[4] = m4;  array[5] = m5;
-		array[6] = m6;  array[7] = m7;  array[8] = m8;
-	}
-};
-
 //
 // Partial specializations for N=4
 //
@@ -628,6 +578,48 @@ template<class T> inline vec<T,4> cross( const vec<T,4>& a, const vec<T,4>& b )
 	return t;
 }
 
+
+
+
+// TODO lookat
+// TODO slerp
+
+
+// ======================================
+// MATRIX PARTIAL SPECIALIZATIONS
+// ======================================
+
+template<class T> union mat<T,3>
+{
+	T array[9];
+	struct { vec<T,3> xAxis,yAxis,zAxis; };
+	struct { vec<T,3> position,rotation,scale; };
+
+	inline T& operator[](int i) { return array[i]; }
+	inline const T& operator[](int i) const { return array[i]; }
+
+	inline mat() {}
+	inline mat(const T& s)  { set( s, 0, 0, 0, s, 0, 0, 0, s ); }
+	inline mat(const T& m0, const T& m1, const T& m2, 
+			   const T& m3, const T& m4, const T& m5, 
+			   const T& m6, const T& m7, const T& m8) {  set( m0, m1, m2, m3, m4, m5, m6, m7, m8 ); }
+	
+	inline mat(const vec<T,3>& v) { set( v[0], 0, 0, 0, v[1], 0,    0,    0, v[2] ); }
+	inline mat(const vec<T,2>& v) { set(    0, 0, 0, 0,    0, 0, v[0], v[1], 1 ); }
+	inline mat(const mat<T,2>& m) { set( m[0], m[1], 0, m[2], m[3], 0, 0, 0, 1 ); }
+	inline mat(const mat<T,4>& m) { set( m[0], m[1], m[2], m[4], m[5], m[6], m[8], m[9], m[10]); }
+	inline mat(const mat<T,2>& m, const vec<T,2>& v) { set( m[0], m[1], 0, m[2], m[3], 0, v[0], v[1], 1 ); }
+
+	inline void set( const T& m0, const T& m1, const T& m2, 
+					 const T& m3, const T& m4, const T& m5, 
+					 const T& m6, const T& m7, const T& m8 )
+	{
+		array[0] = m0;  array[1] = m1;  array[2] = m2;
+		array[3] = m3;  array[4] = m4;  array[5] = m5;
+		array[6] = m6;  array[7] = m7;  array[8] = m8;
+	}
+};
+
 template<class T> union mat<T,4>
 {
 	T array[16]; 
@@ -668,23 +660,6 @@ template<class T> union mat<T,4>
 		array[12] = m12; array[13] = m13; array[14] = m14; array[15] = m15;
 	}
 };
-
-/*
-// TEMP
-template<class T> union vec<T,8>
-{
-    T array[8];
-	struct { vec<T,4> color; vec<T,4> detail; };
-   
-	inline T& operator[](int i) { return array[i]; }
-	inline const T& operator[](int i) const { return array[i]; }
-
-	inline vec() {}
-	inline vec( const T& s1 ) { left = vec<T,4>(s1); right = vec<T,4>(s1); }
-	inline vec( const vec<T,4>& c, const vec<T,4>& d ) { color = c; detail = d; }
-};
-*/
-
 
 
 //
@@ -1189,6 +1164,12 @@ inline mat4 transpose( const mat4& a )
 
 #endif // __SSE__
 
+
+// ======================================
+// NON STANDARD FUNCTIONS
+// ======================================
+
+
 inline mat4 projection( vec2 viewport, double fov, double near_plane, double far_plane )
 {
 	double yf = 1 / tan( fov * PI/360 );
@@ -1323,6 +1304,48 @@ inline mat4 TransformationMatrix( const mat3& transform )
 	return RotationMatrix(transform.rotation) * t;
 }
 
+//
+    // Quaternion
+    //
+
+    // https://github.com/mattatz/ShibuyaCrowd/blob/master/source/shaders/common/quaternion.glsl
+    // https://www.geeks3d.com/20141201/how-to-rotate-a-vertex-by-a-quaternion-in-glsl/
+
+    vec4 qmul(vec4 q1, vec4 q2) {
+	    return vec4(
+		    q2.xyz * q1.w + q1.xyz * q2.w + cross(q1.xyz, q2.xyz),
+		    q1.w * q2.w - dot(q1.xyz, q2.xyz)
+	    );
+    }
+/*    
+    vec3 qtransform(vec4 q, vec3 v) { 
+	    return v + 2.0*cross(cross(v, q.xyz ) + q.w*v, q.xyz);
+	} 
+*/
+
+    vec3 rotate_vector(vec3 v, vec4 r) {
+	    vec4 r_c = r * vec4(-1, -1, -1, 1);
+	    return qmul(r, qmul(vec4(v, 0), r_c)).xyz;
+    }
+
+    vec3 rotate_vector_at(vec3 v, vec3 center, vec4 r) {
+	    vec3 dir = v - center;
+	    return center + rotate_vector(dir, r);
+    }
+
+    vec4 rotate_angle_axis(float angle, vec3 axis) {
+	    float sn = sin(angle * 0.5);
+	    float cs = cos(angle * 0.5);
+	    return vec4(axis * sn, cs);
+    }
+
+    vec4 conjugate(vec4 q) {
+	    return vec4(-q.xyz, q.w);
+    }
+
+    vec4 invert(vec4 q) {
+        return vec4(-q.xyz, q.w) / sqrt(dot(q, q));
+    }
 
 
 //
@@ -1357,288 +1380,6 @@ vec4 unpack( const float x )
 
 
 
-
-
-
-//
-// Misc
-//
-//#include <stdio.h>
-
-template<int N> inline char* str(vec<float,N> v)
-{
-    static char buffer[256];
-    buffer[0] = 0;
-    char* p = buffer;
-	for( int i = 0; i < N; i++ )
-		p += sprintf( p, "%+.2f ", v[i] );
-	return buffer;
-}
-
-template<int N> inline char* str(vec<double,N> v)
-{
-    static char buffer[256];
-    buffer[0] = 0;
-    char* p = buffer;
-	for(int i = 0; i < N; i++)
-		p += sprintf(p, "%+.2f ", v[i]);
-	return buffer;
-}
-
-/*
-// TEMP just to prove the side effect between calls
-template<int N> inline void STR(vec<double,N> v, char* buffer)
-{
-    buffer[0] = 0;
-    char* p = buffer;
-	for(int i = 0; i < N; i++)
-		p += sprintf(p, "%+.2f ", v[i]);
-}
-
-template<int N> inline char* str(vec<int,N> v)
-{
-    static char buffer[256];
-    buffer[0] = 0;
-    char* p = buffer;
-	for( int i = 0; i < N; i++ )
-		p += sprintf(p, "%+i ", v[i]);
-	return buffer;
-}
-
-template<int N,int M> inline char* str( mat<float,N,M> a )
-{
-    static char buffer[256];
-    buffer[0] = 0;
-    char* p = buffer;
-	for( int j=0; j<M; j++ )
-	{
-		for( int i=0; i<N; i++ )
-			p += sprintf( p, "%+.2f ", a[j*N+i] );
-		//p += sprintf( p, "\n" );
-	}
-	return buffer;
-}
-*/
-
-template<class T, int N> inline T max( vec<T,N>& x )
-{
-	T t = T(-1E37);
-	for( int i=0; i<N; i++ ) if( x[i]>t ) t = x[i];
-	return t;
-}
-
-/*
-void testPacking()
-{
-	
-//	vec4 x = vec4( 1.10f, 1.17f, -0.79f, 0.52f );
-//	printf( "abs(x) = %s\n", str( abs(x) ) );
-//	printf( "max(abs(x)) = %f\n", max(abs(x)) );
-//	exit_on_error("...");
-
-
-	float tolerance = 0.016;
-	float BASE = 16.0f;
-	
-	for( float i=0.0f; i<BASE*BASE*BASE*BASE; i++ )
-	{
-		vec4 c1 = floor(mod(i/vec4(1.0f, BASE, BASE*BASE, BASE*BASE*BASE), BASE)) / (BASE-1);
-
-		rgba c;
-		c.r = c1.r * 255;
-		c.g = c1.g * 255;
-		c.b = c1.b * 255;
-		c.a = c1.a * 255;
-		
-
-		float f = pack2( c );
-		vec4 c2 = unpack2( f );
-
-		printf( "[%s] [%.2f] [%s] ", str(c1), f, str(c2) );
-
-		vec4 n1 = c1*2.0f - 1.0f;
-		f = packNormal( n1 );
-		vec4 n2 = unpackNormal( f );
-
-		
-	
-		if( max(abs(c1-c2))>tolerance || max(abs(n1-n2).xyz)>tolerance )
-		{
-			exit_on_error("failed");
-		}
-
-		printf("\n");
-	}
-	exit_on_error("done");
-}
-*/
-
-
-/*
-//#include <stdio.h>
-//#include <assert.h>
-
-void test_glsl()
-{
-	vec4 diffuse = vec4( 0.1, 0.2, 0.3, 0.4 );
-    ASSERT( diffuse.x==0.1f && diffuse.y==0.2f && diffuse.z==0.3f && diffuse.w==0.4f );
-    ASSERT( diffuse.r==0.1f && diffuse.g==0.2f && diffuse.b==0.3f && diffuse.a==0.4f );    
-    ASSERT( diffuse.s==0.1f && diffuse.t==0.2f && diffuse.p==0.3f && diffuse.q==0.4f );
-
-//#ifdef _MSC_VER 
-//	ASSERT( diffuse.xy==vec2(0.1,0.2) && diffuse.zw==vec2(0.3,0.4) );
-//	ASSERT( diffuse.rgb==vec3(0.1,0.2,0.3) && diffuse.tpq==vec3(0.2,0.3,0.4) );
-//	diffuse.yz += 1.0f;
-//	ASSERT( diffuse==vec4(0.1, 1.2, 1.3, 0.4) );
-//#endif
-
-	vec3 normal = vec3( -0.7, 0.3, 1.1 );
-	vec3 light = vec3( 12.5, 6.4, 9.3 );
-
-	mat3 m = rot(30,45,80);
-// TODO verify that Rt*R = I
-//	mat3 i = transpose(m) * m;
-//	ASSERT( nearEqual(i,mat3(1)) );
-
-	normal = m * normal;
-	light = m * light;
-
-	ASSERT( equal(normal,vec3(-0.654860, 1.092511, 0.409364)) );
-	ASSERT( equal(light, vec3(-0.584514, -3.414564, 16.483297)) );
-
-	normal = normalize(normal);
-	light = normalize(light);
-
-	ASSERT( equal(length(normal),1) );
-	ASSERT( equal(length(light),1) );
-
-	float NdotL = dot(light, normal);
-	ASSERT( equal(NdotL,0.150877) );
-
-	vec4 color = diffuse * NdotL;
-	ASSERT( equal(color, vec4(0.015088, 0.181052, 0.196140, 0.060351)) );
-
-	mat4 a = mat4( 1.1, 1.2, 1.3, 1.4, 
-				   2.1, 2.2, 2.3, 2.4,
-				   3.1, 3.2, 3.3, 3.4,
-				   4.1, 4.2, 4.3, 4.4);
-	vec4 t = vec4( 6.1, -3.2, 0.1, -2.0 );
-	vec4 result = a * t;
-	result = -result;
-	ASSERT( equal( result, vec4(7.9,7.8,7.7,7.6)) );
-}
-*/
-/*
-#include "os/timer.h"
-
-void test_sse()
-{
-	svec4 v;
-	ASSERT_ALIGNED( v.array, 16 );
-
-const int size = 1024;
-
-	for(int i=0; i<size; i++)
-	{
-		svec4* t = new svec4[11];
-		ASSERT_ALIGNED( t[0].array, 16 );
-		delete[] t;
-	}
-
-	svec4 v1[size];
-	ASSERT_ALIGNED( v1[0].array, 16 );
-
-	svec4* v2 = new svec4[size];
-	svec4* v3 = new svec4[size];
-
-	Timer timer;
-
-for(int t=0; t<1000; t++)
-{
-	svec4* v1_ptr = v1;
-	svec4* v2_ptr = v2;
-	for(int i=0; i<size; i++) 
-	{
-		*v1_ptr++ = svec4(1,2,3,4);
-		*v2_ptr++ = svec4(5,6,7,8);
-	}
-
-	v1_ptr = v1;
-	v2_ptr = v2;
-	svec4* v3_ptr = v3;
-	for(int i=0; i<size; i++)
-	{
-		*v3_ptr++ = (*v1_ptr++) + (*v2_ptr++);
-	}
-
-	v3_ptr = v3;
-	for(int i=0; i<size; i++)
-	{
-//		ASSERT( (*v3_ptr++) == svec4(6,8,10,12) );
-	}
-}
-
-	printf("elapsed %f\n", timer.delta() );
-
-	delete[] v2;
-	delete[] v3;
-}
-*/
-/*
-void test_sum_the_other_way()
-{
-	printf( "test_sum_the_other_way\n" );
-	const int n = 100000000;
-	
-	vec4 a(1),b(2),c(3),d(4);
-
-	//ASSERT_ALIGNED(&a.m,16);
-	//ASSERT_ALIGNED(&b.m,16);
-	//ASSERT_ALIGNED(&c.m,16);
-	//ASSERT_ALIGNED(&d.m,16);
-
-	Timer timer;
-	for(int i=0; i<n/10; i++)
-	{
-		a = fract( atan(b,c) );
-		b = clamp( a,b,c );
-	}
-	printf( "fract atan clamp: elapsed %f\n", timer.delta() );
-
-	for(int i=0; i<n; i++)
-	{
-		a = b - c;
-		b = c - d;
-		c = d + a;
-		d = a + b;
-	}
-	printf( "[+,-]: elapsed %f\n", timer.delta() );
-
-	for(int i=0; i<n; i++)
-	{
-		a = b + c;
-		b = c + d;
-		c = d + a;
-		d = a + b;
-	}
-	printf( "[+]: elapsed %f\n", timer.delta() );
-
-	for(int i=0; i<n; i++)
-	{
-		a += b;
-		b += c;
-		c += d;
-		d += a;
-	}
-	printf( "[+=]: elapsed %f\n", timer.delta() );
-
-	//printf(" results: %s, %s, %s, %s\n", str(x), str(y), str(z), str(w) );
-
-	
-	getc(stdin);
-	exit(0);
-}
-*/
 
 // Restore warning for possible loss of data
 #if defined(_MSC_VER) 

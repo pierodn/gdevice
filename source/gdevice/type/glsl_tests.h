@@ -10,11 +10,6 @@
     #pragma warning(disable: 4996) // Unsafe functions like sprintf
 #endif
 
-// TODO test examples from linmath: https://github.com/datenwolf/linmath.h/blob/master/linmath_test.h
-// TODO more examples: https://gist.github.com/patricknelson/f4dcaedda9eea5f5cf2c359f68aa35fd
-// TODO more examples: https://gist.github.com/rlane/1223480
-// TODO reference: https://en.wikibooks.org/wiki/GLSL_Programming/Vector_and_Matrix_Operations
-
 // TODO Make multi-threaded
 char* format(const char* str, ...) 
 {
@@ -96,7 +91,7 @@ void test_all()
     mat3 B = inverse(A);
     mat4 T = mat4(-2, -2, 3, 0, 0, 1, -1, 0, 0.5, 0, -0.5, 0, 0, 0, 0, 1);
     mat4 Q = inverse(T);
-/*
+
     //
     // Component access
     //
@@ -163,11 +158,10 @@ void test_all()
     ASSERT_EQUAL(s - q, vec4(-4.5, -5.5, -6.5, -7.5));
     ASSERT_EQUAL(s * q, vec4(2.5, 3.0, 3.5, 4.0));
     ASSERT_EQUAL(s / q, vec4(0.1, 0.0833333, 0.071428, 0.0625));
-*/
+
     ASSERT_EQUAL(   -N, mat2(2, 1, 5, 3));
     ASSERT_EQUAL(M + N, mat2(-5, 0, 0, -5));
     ASSERT_EQUAL(M - N, mat2(-1, 2, 10, 1));
-    //ASSERT_EQUAL(M * N, mat2(1));
     ASSERT_EQUAL(matrixCompMult(M, N), mat2(6, -1, -25, 6)); // M * N is a geometric function
     ASSERT_EQUAL(M / N, mat2(1.5, -1, -1, 0.666666));
     ASSERT_EQUAL(M + s, mat2(-2.5, 1.5, 5.5, -1.5));
@@ -182,7 +176,6 @@ void test_all()
     ASSERT_EQUAL(   -B, mat3(-4, 5, 2, -5, 6, 2, 8, -9, -3));
     ASSERT_EQUAL(A + B, mat3(4, -8, -4, 6, -10, -4, -11, 13, 4));
     ASSERT_EQUAL(A - B, mat3(-4, 2, 0, -4, 2, 0, 5, -5, -2));
-    //ASSERT_EQUAL(A * B, mat3(1));
     ASSERT_EQUAL(matrixCompMult(A, B), mat3(0, 15, 4, 5, 24, 4, 24, 36, 3));
     ASSERT_EQUAL(A / B, mat3(0, 0.6, 1, 0.2, 0.666666, 1, 0.375, 0.444444, 0.333333));
     ASSERT_EQUAL(A + s, mat3(0.5, -2.5, -1.5, 1.5, -3.5, -1.5, -2.5, 4.5, 1.5));
@@ -208,8 +201,9 @@ void test_all()
     ASSERT_EQUAL(s * Q, mat4(-0.5, -1, -1, 0, -0.5, -0.5, -2, 0, -0.5, -1, -2, 0, 0, 0, 0, 0.5));
     ASSERT_EQUAL(s / (Q + s), mat4(-1, -1/3.0, -1/3.0, 1, -1, -1, -0.142857, 1, -1, -1/3.0, -0.142857, 1, 1, 1, 1, 1/3.0));
 
+    //
     // Functions
-
+    //
     ASSERT_EQUAL(radians(180.0), PI);
     ASSERT_EQUAL(degrees(PI), 180.0);
     ASSERT_EQUAL(sin(PI), 0.0);
@@ -326,8 +320,6 @@ void test_all()
     //
     // Geometric functions
     //
-// Reference: https://shaderific.com/glsl/geometric_functions.html
-// https://glm.g-truc.net/0.9.4/api/a00131.html
     ASSERT_EQUAL(length(PI), PI);
     ASSERT_EQUAL(length(u), 2.236068f);
     ASSERT_EQUAL(length(a), 3.7416575f);
@@ -365,23 +357,23 @@ void test_all()
     ASSERT_EQUAL(refract(a, b, 0.5), vec3(-127.59369, -159.11711, -190.64053));
     ASSERT_EQUAL(refract(p, q, 0.5), vec4(-349.55356, -419.06427, -488.57498, -558.08569));
 
-
-/*    
-    vec3 qtransform(vec4 q, vec3 v) { 
-	    return v + 2.0*cross(cross(v, q.xyz ) + q.w*v, q.xyz);
-	} 
-*/
-
-
     ASSERT_EQUAL(M * N, mat2(1));
     ASSERT_EQUAL(A * B, mat3(1));
     ASSERT_EQUAL(T * Q, mat4(1));
 
+    // Quaternions
 
 
-// https://www.geeks3d.com/20141201/how-to-rotate-a-vertex-by-a-quaternion-in-glsl/
 
     // Vector Pack/unpack
 
 
+
+
+    // TODO more examples: 
+    // https://gist.github.com/patricknelson/f4dcaedda9eea5f5cf2c359f68aa35fd
+    // https://gist.github.com/rlane/1223480
+    // https://en.wikibooks.org/wiki/GLSL_Programming/Vector_and_Matrix_Operations
+
+    // TODO performance tests
 }
