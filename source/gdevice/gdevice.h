@@ -78,7 +78,7 @@ public:
 	    // Time
 	    float speed = (Key('E').isPressed() ? +1 : Key('R').isPressed() ? -1 : 0) * float(TIME_SPEED) * (wheelSpeed);
 	    time = fmod( time + speed*float(elapsed), 24.0f );
-	    sun.spot_direction = rotate((time-7)*360/24, 40, 0)*vec3(0.2, -0.8, 0.1);
+	    sun.spot_direction = rotate((time-7)*360.0f/24.0f, 40.0f, 0.0f) * vec3(0.2, -0.8, 0.1);
     	
 	    // TODO: Resolve this dependency.
 	    for(int i=0; i<Controls::CONTROLCOUNT; i++) {

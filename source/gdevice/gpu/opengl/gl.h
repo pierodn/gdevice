@@ -290,7 +290,7 @@ namespace GL
                 glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE); 
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); 
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); 
-				glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, texture.size.width, texture.size.height, 
+				glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, texture.size.x, texture.size.y, 
 											 0, format, type, texture.array);
                 texture.videomem_invalidated = false;
 			}
@@ -322,7 +322,7 @@ namespace GL
 
                 // Loading all mipmaps.
                 // https://books.google.dk/books?id=E7eVY78Jo5YC&pg=PA167&lpg=PA167&dq=glTexImage2D+mipmapping&source=bl&ots=D7-QE78mql&sig=gSu2suthOqW5F3oIXYz8D5Xlj7Q&hl=en&sa=X&ved=0ahUKEwiEnb7tosLaAhWGJlAKHQ41DKAQ6AEIiAEwBw#v=onepage&q=glTexImage2D%20mipmapping&f=false                           
-                int lods = log2(float(texture[0].size.width));
+                int lods = log2(float(texture[0].size.x));
                 for(int i = 0; i<lods; i++) {
                     int s = 1<<(lods-i);
 				    glTexImage2D( GL_TEXTURE_2D, i, internalFormat, s, s, 0, format, type, texture[i].array );

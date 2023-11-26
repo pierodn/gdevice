@@ -193,7 +193,7 @@ public:
 	//
 	void setViewport( vec2& viewport )
 	{
-		glViewport( 0, 0, viewport.width, viewport.height );
+		glViewport( 0, 0, viewport.x, viewport.y );
 	}
 
 	vec2 getViewport()

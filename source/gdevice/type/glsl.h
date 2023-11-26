@@ -5,8 +5,8 @@
 #undef max
 
 #if defined(_MSC_VER) 
-    //#pragma warning( push )
-	#pragma warning(disable: 4244) // Disable warnings for possible loss of data 
+    // Disable warnings for possible loss of data. 
+	#pragma warning(disable: 4244)
 #endif
 
 
@@ -109,7 +109,7 @@ template<class T> inline T clamp(T x, T x0 = T(0), T x1 = T(1)) { return x<x0 ? 
 template<class T> inline T mix(T x0, T x1, float a) { return x0*(1-a) + x1*a; }
 template<class T> inline T step(T x0, T x)   { return x<=x0 ? 0.0f : 1.0f; }
 template<class T> inline T smoothstep(T x0, T x1, T x)  { T t = clamp((x-x0)/(x1-x0), T(0), T(1)); return t*t*(3 - 2*t); }
-//template<class T> inline bool equal(T a, T b, T epsilon=T(EPSILON)) { return abs(a-b)<epsilon; }
+template<class T> inline bool equal(T a, T b, T epsilon=T(EPSILON)) { return abs(a-b)<epsilon; }
 
 // Geometric functions
 template<class T> inline T length(T x)       { return ::sqrt(x*x); }
@@ -150,128 +150,202 @@ template<class T, int N> union vec
 	inline vec( const vec<T,N-1>& v, const T s ) { for( int i=0; i<N-1; i++ ) array[i] = v[i]; array[N-1] = s; }
 };
 
-/*
-// TODO TEMP
-#define OUT_SCALAR template<class T> inline T
-#define OUT_VECTOR template<class T, int N> inline vec<T,N>
-#define OUT_MATRIX template<class T, int N, int M> inline mat<T,N,M>
-#define IN_SCALAR const T&
-#define IN_VECTOR const vec<T,N>&
-#define IN_MATRIX const mat<T,N,M>&
-#define SCALAR T
-#define VECTOR vec<T,N>
-#define MATRIX mat<T,N,M>
-*/
-
-// TODO if defined push etc.
-
-#define _OUT(type) template<class T, int N> inline type<T,N>
-#define _IN(type) const type<T,N>&
-#define SCALAR const T& 
-
+// Component-wise operations
+#define scalar const T& 
 #define var(type) type<T,N>
-#define FOR_EACH(f) {var(vec) t; for(int i=0; i<N; i++) (t)[i] = (f); return t;}
+#define out(type) template<class T, int N> inline type<T,N>
+#define in(type) const type<T,N>&
+#define foreach(f) {var(vec) t; for(int i=0; i<N; i++) (t)[i] = (f); return t;}
 
-_OUT(vec) operator+(_IN(vec) a)             { return a; }
-_OUT(vec) operator-(_IN(vec) a)             FOR_EACH(-a[i])
-_OUT(vec) operator+(_IN(vec) a, _IN(vec) b) FOR_EACH(a[i]+b[i])
-_OUT(vec) operator-(_IN(vec) a, _IN(vec) b) FOR_EACH(a[i]-b[i])
-_OUT(vec) operator*(_IN(vec) a, _IN(vec) b) FOR_EACH(a[i]*b[i])
-_OUT(vec) operator/(_IN(vec) a, _IN(vec) b) FOR_EACH(a[i]/b[i])
+out(vec) operator+(in(vec) a)                   { return a; }
+out(vec) operator-(in(vec) a)                   foreach(-a[i])
+out(vec) operator+(in(vec) a, in(vec) b)        foreach(a[i]+b[i])
+out(vec) operator-(in(vec) a, in(vec) b)        foreach(a[i]-b[i])
+out(vec) operator*(in(vec) a, in(vec) b)        foreach(a[i]*b[i])
+out(vec) operator/(in(vec) a, in(vec) b)        foreach(a[i]/b[i])
 
-_OUT(vec) operator+(_IN(vec) a, SCALAR s) FOR_EACH(a[i]+s)
-_OUT(vec) operator-(_IN(vec) a, SCALAR s) FOR_EACH(a[i]-s)
-_OUT(vec) operator*(_IN(vec) a, SCALAR s) FOR_EACH(a[i]*s)
-_OUT(vec) operator/(_IN(vec) a, SCALAR s) FOR_EACH(a[i]/s)
+out(vec) operator+(in(vec) a, scalar s)         foreach(a[i]+s)
+out(vec) operator-(in(vec) a, scalar s)         foreach(a[i]-s)
+out(vec) operator*(in(vec) a, scalar s)         foreach(a[i]*s)
+out(vec) operator/(in(vec) a, scalar s)         foreach(a[i]/s)
 
-_OUT(vec) operator+(SCALAR s, _IN(vec) a) FOR_EACH(s+a[i])
-_OUT(vec) operator-(SCALAR s, _IN(vec) a) FOR_EACH(s-a[i])
-_OUT(vec) operator*(SCALAR s, _IN(vec) a) FOR_EACH(s*a[i])
-_OUT(vec) operator/(SCALAR s, _IN(vec) a) FOR_EACH(s/a[i])
+out(vec) operator+(scalar s, in(vec) a)         foreach(s+a[i])
+out(vec) operator-(scalar s, in(vec) a)         foreach(s-a[i])
+out(vec) operator*(scalar s, in(vec) a)         foreach(s*a[i])
+out(vec) operator/(scalar s, in(vec) a)         foreach(s/a[i])
 
-_OUT(vec)& operator+=(var(vec)& a, _IN(vec) b)   {a = a + b; return a;}
-_OUT(vec)& operator-=(var(vec)& a, _IN(vec) b)   {a = a - b; return a;}
-_OUT(vec)& operator*=(var(vec)& a, _IN(vec) b)   {a = a * b; return a;}
-_OUT(vec)& operator/=(var(vec)& a, _IN(vec) b)   {a = a / b; return a;}
+out(vec)& operator+=(var(vec)& a, in(vec) b)    {a = a + b; return a;}
+out(vec)& operator-=(var(vec)& a, in(vec) b)    {a = a - b; return a;}
+out(vec)& operator*=(var(vec)& a, in(vec) b)    {a = a * b; return a;}
+out(vec)& operator/=(var(vec)& a, in(vec) b)    {a = a / b; return a;}
 
-_OUT(vec)& operator+=(var(vec)& a, SCALAR s)   {a = a + s; return a;}
-_OUT(vec)& operator-=(var(vec)& a, SCALAR s)   {a = a - s; return a;}
-_OUT(vec)& operator*=(var(vec)& a, SCALAR s)   {a = a * s; return a;}
-_OUT(vec)& operator/=(var(vec)& a, SCALAR s)   {a = a / s; return a;}
+out(vec)& operator+=(var(vec)& a, scalar s)   {a = a + s; return a;}
+out(vec)& operator-=(var(vec)& a, scalar s)   {a = a - s; return a;}
+out(vec)& operator*=(var(vec)& a, scalar s)   {a = a * s; return a;}
+out(vec)& operator/=(var(vec)& a, scalar s)   {a = a / s; return a;}
 
-_OUT(vec) radians(_IN(vec) a)               FOR_EACH(radians(a[i]))
-_OUT(vec) degrees(_IN(vec) a)               FOR_EACH(degrees(a[i]))
-_OUT(vec) sin(_IN(vec) a)                   FOR_EACH(sin(a[i]))
-_OUT(vec) cos(_IN(vec) a)                   FOR_EACH(cos(a[i]))
-_OUT(vec) tan(_IN(vec) a)                   FOR_EACH(tan(a[i]))
-_OUT(vec) asin(_IN(vec) a)                  FOR_EACH(asin(a[i]))
-_OUT(vec) acos(_IN(vec) a)                  FOR_EACH(acos(a[i]))
-_OUT(vec) atan(_IN(vec) a)                  FOR_EACH(atan(a[i]))
-// TODO with scalar
-_OUT(vec) atan(_IN(vec) y, _IN(vec) x)       FOR_EACH(atan2(y[i],x[i]))
-_OUT(vec) pow(_IN(vec) y, _IN(vec) x)        FOR_EACH(pow(y[i],x[i]))
-_OUT(vec) pow(_IN(vec) y, SCALAR s)         FOR_EACH(pow(y[i],s))
-_OUT(vec) exp(_IN(vec) a)                   FOR_EACH(exp(a[i]))
-_OUT(vec) log(_IN(vec) a)                   FOR_EACH(log(a[i]))
-_OUT(vec) exp2(_IN(vec) a)                  FOR_EACH(exp2(a[i]))
-_OUT(vec) log2(_IN(vec) a)                  FOR_EACH(log2(a[i]))
-_OUT(vec) sqrt(_IN(vec) a)                  FOR_EACH(sqrt(a[i]))
-_OUT(vec) inversesqrt(_IN(vec) a)           FOR_EACH(inversesqrt(a[i]))
-_OUT(vec) abs(_IN(vec) a)                   FOR_EACH(abs(a[i]))
-_OUT(vec) sign(_IN(vec) a)                  FOR_EACH(sign(a[i]))
-_OUT(vec) floor(_IN(vec) a)                 FOR_EACH(floor(a[i]))
-_OUT(vec) ceil(_IN(vec) a)                  FOR_EACH(ceil(a[i]))
-_OUT(vec) fract(_IN(vec) a)                 FOR_EACH(fract(a[i]))
+out(vec) radians(in(vec) a)               foreach(radians(a[i]))
+out(vec) degrees(in(vec) a)               foreach(degrees(a[i]))
+out(vec) sin(in(vec) a)                   foreach(sin(a[i]))
+out(vec) cos(in(vec) a)                   foreach(cos(a[i]))
+out(vec) tan(in(vec) a)                   foreach(tan(a[i]))
+out(vec) asin(in(vec) a)                  foreach(asin(a[i]))
+out(vec) acos(in(vec) a)                  foreach(acos(a[i]))
+out(vec) atan(in(vec) a)                  foreach(atan(a[i]))
+out(vec) atan(in(vec) y, in(vec) x)       foreach(atan2(y[i],x[i]))
+out(vec) atan(in(vec) y, scalar s)        foreach(atan2(y[i],s))
+out(vec) pow(in(vec) y, in(vec) x)        foreach(pow(y[i],x[i]))
+out(vec) pow(in(vec) y, scalar s)         foreach(pow(y[i],s))
+out(vec) exp(in(vec) a)                   foreach(exp(a[i]))
+out(vec) log(in(vec) a)                   foreach(log(a[i]))
+out(vec) exp2(in(vec) a)                  foreach(exp2(a[i]))
+out(vec) log2(in(vec) a)                  foreach(log2(a[i]))
+out(vec) sqrt(in(vec) a)                  foreach(sqrt(a[i]))
+out(vec) inversesqrt(in(vec) a)           foreach(inversesqrt(a[i]))
+out(vec) abs(in(vec) a)                   foreach(abs(a[i]))
+out(vec) sign(in(vec) a)                  foreach(sign(a[i]))
+out(vec) floor(in(vec) a)                 foreach(floor(a[i]))
+out(vec) ceil(in(vec) a)                  foreach(ceil(a[i]))
+out(vec) fract(in(vec) a)                 foreach(fract(a[i]))
+out(vec) mod(in(vec) a, scalar b)         foreach(mod(a[i],b))
+out(vec) mod(scalar a, in(vec) b)         foreach(mod(a,b[i]))
+out(vec) mod(in(vec) a, in(vec) b)        foreach(mod(a[i],b[i]))
+out(vec) min(in(vec) a, scalar b)         foreach(min(a[i],b))
+out(vec) min(scalar a, in(vec) b)         foreach(min(a,b[i]))
+out(vec) min(in(vec) a, in(vec) b)        foreach(min(a[i],b[i]))
+out(vec) max(in(vec) a, scalar b)         foreach(max(a[i],b))
+out(vec) max(scalar a, in(vec) b)         foreach(max(a,b[i]))
+out(vec) max(in(vec) a, in(vec) b)        foreach(max(a[i],b[i]))
+out(vec) clamp(in(vec) a, scalar b, scalar c) foreach(clamp(a[i],b,c))
+out(vec) clamp(in(vec) a, in(vec) b, in(vec) c) foreach(clamp(a[i],b[i],c[i]))
+out(vec) mix(in(vec) a, in(vec) b, scalar c) foreach(mix(a[i],b[i],c))
+out(vec) mix(in(vec) a, in(vec) b, in(vec) c) foreach(mix(a[i],b[i],c[i]))
+out(vec) step(in(vec) a, in(vec) b)        foreach(step(a[i],b[i]))
+out(vec) smoothstep(in(vec) a, in(vec) b, in(vec) c) foreach(smoothstep(a[i],b[i],c[i]))
 
-_OUT(vec) mod(_IN(vec) a, SCALAR b)         FOR_EACH(mod(a[i],b))
-_OUT(vec) mod(SCALAR a, _IN(vec) b)         FOR_EACH(mod(a,b[i]))
-_OUT(vec) mod(_IN(vec) a, _IN(vec) b)         FOR_EACH(mod(a[i],b[i]))
-
-_OUT(vec) min(_IN(vec) a, SCALAR b)         FOR_EACH(min(a[i],b))
-_OUT(vec) min(SCALAR a, _IN(vec) b)         FOR_EACH(min(a,b[i]))
-_OUT(vec) min(_IN(vec) a, _IN(vec) b)         FOR_EACH(min(a[i],b[i]))
-
-_OUT(vec) max(_IN(vec) a, SCALAR b)         FOR_EACH(max(a[i],b))
-_OUT(vec) max(SCALAR a, _IN(vec) b)         FOR_EACH(max(a,b[i]))
-_OUT(vec) max(_IN(vec) a, _IN(vec) b)         FOR_EACH(max(a[i],b[i]))
-
-_OUT(vec) clamp(_IN(vec) a, SCALAR b, SCALAR c) FOR_EACH(clamp(a[i],b,c))
-_OUT(vec) clamp(_IN(vec) a, _IN(vec) b, _IN(vec) c) FOR_EACH(clamp(a[i],b[i],c[i]))
-
-_OUT(vec) mix(_IN(vec) a, _IN(vec) b, SCALAR c) FOR_EACH(mix(a[i],b[i],c))
-_OUT(vec) mix(_IN(vec) a, _IN(vec) b, _IN(vec) c) FOR_EACH(mix(a[i],b[i],c[i]))
-
-_OUT(vec) step(_IN(vec) a, _IN(vec) b)        FOR_EACH(step(a[i],b[i]))
-_OUT(vec) smoothstep(_IN(vec) a, _IN(vec) b, _IN(vec) c) FOR_EACH(smoothstep(a[i],b[i],c[i]))
-
-#define OUT_SCALAR_TN(type) template<class T, int N> inline type
-OUT_SCALAR_TN(T) dot(_IN(vec) a, _IN(vec) b)
+// Geometric functions
+template<class T, int N> T dot(in(vec) a, in(vec) b)
 {
 	T t = 0;
 	for( int i=0; i<N; i++ ) t += a[i]*b[i];
 	return t;
 }
-OUT_SCALAR_TN(T) length(_IN(vec) a)                 { return T(sqrt(dot(a,a))); }
-OUT_SCALAR_TN(T) distance(_IN(vec) a, _IN(vec) b)   { return length(a-b); }
+template<class T, int N> T length(in(vec) a)                { return T(sqrt(dot(a,a))); }
+template<class T, int N> T distance(in(vec) a, in(vec) b)   { return length(a-b); }
 
-_OUT(vec) normalize(_IN(vec) a)
+out(vec) normalize(in(vec) a)
 {
 	T len = length(a);
 	if (len  == 0) return a;
 	return a/len;
 }
-_OUT(vec) faceforward(_IN(vec) a, _IN(vec) b, _IN(vec) c) { return dot(c,b) < 0 ? a : -a; }
-_OUT(vec) reflect(_IN(vec) a, _IN(vec) b) { return a - 2*dot(b,a)*b; }
-_OUT(vec) refract(_IN(vec) a, _IN(vec) b, const float& c)
+out(vec) faceforward(in(vec) a, in(vec) b, in(vec) c) { return dot(c,b) < 0 ? a : -a; }
+out(vec) reflect(in(vec) a, in(vec) b) { return a - 2*dot(b,a)*b; }
+out(vec) refract(in(vec) a, in(vec) b, const float& c)
 {
 	T d = dot(b,a);
 	T k = 1.0f - c*c*( 1 - d*d );
 	return k<0.0f ? T(0.0f) : c*a - (c*d + sqrt(k))*b;
 }
+template<class T, int N> bool operator==(in(vec) a, in(vec) b) { return distance(a,b) < EPSILON; }
+template<class T, int N> bool operator!=(in(vec) a, in(vec) b) { return distance(a,b) > EPSILON; }
+template<class T, int N> bool equal(in(vec) a, in(vec) b, const T& epsilon = T(EPSILON)) { return distance(a,b) < epsilon; }
 
-OUT_SCALAR_TN(bool) operator==(_IN(vec) a, _IN(vec) b) { return distance(a,b) < EPSILON; }
-OUT_SCALAR_TN(bool) operator!=(_IN(vec) a, _IN(vec) b) { return distance(a,b) > EPSILON; }
-//OUT_SCALAR_TN(bool) equal(_IN(vec) a, _IN(vec) b, const T& epsilon = T(EPSILON)) { return distance(a,b) < epsilon; }
+// Partial specializations for T==bool
+template<class T, int N> inline vec<bool,N> lessThan( in(vec) a, in(vec) b )
+{
+	vec<bool,N> t;
+	for( int i=0; i<N; i++ ) t[i] = a[i] < b[i];
+	return t;
+}
+template<class T, int N> inline vec<bool,N> lessThanEqual( in(vec) a, in(vec) b )
+{
+	vec<bool,N> t;
+	for( int i=0; i<N; i++ ) t[i] = a[i] <= b[i];
+	return t;
+}
+template<class T, int N> inline vec<bool,N> greaterThan( in(vec) a, in(vec) b )
+{
+	vec<bool,N> t;
+	for( int i=0; i<N; i++ ) t[i] = a[i] > b[i];
+	return t;
+}
+template<class T, int N> inline vec<bool,N> greaterThanEqual( in(vec) a, in(vec) b )
+{
+	vec<bool,N> t;
+	for( int i=0; i<N; i++ ) t[i] = a[i] >= b[i];
+	return t;
+}
+template<class T, int N> inline vec<bool,N> equal( in(vec) a, in(vec) b )
+{
+	vec<bool,N> t;
+	for( int i=0; i<N; i++ ) t[i] = equal(a[i],b[i]);
+	return t;
+}
+template<class T, int N> inline vec<bool,N> notEqual( in(vec) a, in(vec) b )
+{
+	vec<bool,N> t;
+	for( int i=0; i<N; i++ ) t[i] = !equal(a[i],b[i]);
+	return t;
+}
+template<int N> inline bool any( const vec<bool,N>& v )
+{
+	for( int i=0; i<N; i++ ) if (v[i]) return true;
+	return false;
+}
+template<int N> inline bool all( const vec<bool,N>& v )
+{
+	for( int i=0; i<N; i++ ) if (!v[i]) return false;
+	return true;
+}
+#ifndef __GNUC__
+template<int N> inline vec<bool,N> not( const vec<bool,N>& v )
+{
+	vec<bool,N> t;
+	for( int i=0; i<N; i++ ) t[i] = !v[i];
+	return t;
+}
+#endif
+// this operator!() can be used instead of the above not()
+template<int N> inline vec<bool,N> operator!( const vec<bool,N>& v )
+{
+	vec<bool,N> t;
+	for( int i=0; i<N; i++ ) t[i] = !v[i];
+	return t;
+}
+
+out(vec) operator*( const mat<T,N>& m, in(vec) v )
+{
+	vec<T,N> t;
+	for(int j=0; j<N; j++)
+	{
+		t[j] = 0;
+		for(int i=0; i<N; i++)
+			t[j] += m[j+N*i] * v[i];
+	}
+	return t;
+}
+
+out(vec) operator*( in(vec) v, const mat<T,N>& m )
+{
+	vec<T,N> t;
+	for(int j=0; j<N; j++) 
+	{
+		t[j] = 0;
+		for(int i=0; i<N; i++)
+			t[j] += m[i+N*j] * v[i];
+	}
+	return t;
+}
+out(vec)& operator*=( vec<T,N>& a, const mat<T,N>& m )
+{
+	a = a * m;
+	return a;
+}
+
+
+
+
 
 
 // ======================================
@@ -287,7 +361,7 @@ template<class T, int N, int M> union mat
 
 	inline mat() {}
 	inline mat( const T& s )		{ diag( vec<T,N>(s) ); }
-	inline mat( _IN(vec) v ) { diag(v); }
+	inline mat( in(vec) v ) { diag(v); }
 
 	inline mat( const mat<T,N-1>& m ) 
 	{ 
@@ -300,31 +374,34 @@ template<class T, int N, int M> union mat
 	} 
 };
 
-#define _OUTM template<class T, int N, int M> inline mat<T,N,M>
-#define _INM const mat<T,N,M>&
-#define _INS const T&
-#define _FORM(f) {mat<T,N,M> t; for(int i=0; i<N*M; i++) (t)[i] = (f); return t;}
-_OUTM operator-(_INM a) _FORM(-a[i])
-_OUTM operator+(_INM a, _INM b) _FORM(a[i]+b[i])
-_OUTM operator-(_INM a, _INM b) _FORM(a[i]-b[i])
-_OUTM matrixCompMult(_INM a, _INM b) _FORM(a[i]*b[i])
-_OUTM operator/(_INM a, _INM b) _FORM(a[i]/b[i])
-_OUTM operator+(_INM a, _INS s) _FORM(a[i]+s)
-_OUTM operator-(_INM a, _INS s) _FORM(a[i]-s)
-_OUTM operator*(_INM a, _INS s) _FORM(a[i]*s)
-_OUTM operator/(_INM a, _INS s) _FORM(a[i]/s)
-_OUTM operator+(_INS s, _INM a) _FORM(s+a[i])
-_OUTM operator-(_INS s, _INM a) _FORM(s-a[i])
-_OUTM operator*(_INS s, _INM a) _FORM(s*a[i])
-_OUTM operator/(_INS s, _INM a) _FORM(s/a[i])
-_OUTM& operator+=(mat<T,N,M>& a, _INM b)   {a = a + b; return a;}
-_OUTM& operator-=(mat<T,N,M>& a, _INM b)   {a = a - b; return a;}
-_OUTM& operator*=(mat<T,N,M>& a, _INM b)   {a = a * b; return a;}
-_OUTM& operator/=(mat<T,N,M>& a, _INM b)   {a = a / b; return a;}
-_OUTM& operator+=(mat<T,N,M>& a, SCALAR s)   {a = a + s; return a;}
-_OUTM& operator-=(mat<T,N,M>& a, SCALAR s)   {a = a - s; return a;}
-_OUTM& operator*=(mat<T,N,M>& a, SCALAR s)   {a = a * s; return a;}
-_OUTM& operator/=(mat<T,N,M>& a, SCALAR s)   {a = a / s; return a;}
+#undef out
+#undef in
+#undef foreach
+#define out(mat) template<class T, int N, int M> inline mat<T,N,M>
+#define in(mat) const mat<T,N,M>&
+#define scalar const T&
+#define foreach(f) {mat<T,N,M> t; for(int i=0; i<N*M; i++) (t)[i] = (f); return t;}
+out(mat) operator-(in(mat) a) foreach(-a[i])
+out(mat) operator+(in(mat) a, in(mat) b) foreach(a[i]+b[i])
+out(mat) operator-(in(mat) a, in(mat) b) foreach(a[i]-b[i])
+out(mat) matrixCompMult(in(mat) a, in(mat) b) foreach(a[i]*b[i])
+out(mat) operator/(in(mat) a, in(mat) b) foreach(a[i]/b[i])
+out(mat) operator+(in(mat) a, scalar s) foreach(a[i]+s)
+out(mat) operator-(in(mat) a, scalar s) foreach(a[i]-s)
+out(mat) operator*(in(mat) a, scalar s) foreach(a[i]*s)
+out(mat) operator/(in(mat) a, scalar s) foreach(a[i]/s)
+out(mat) operator+(scalar s, in(mat) a) foreach(s+a[i])
+out(mat) operator-(scalar s, in(mat) a) foreach(s-a[i])
+out(mat) operator*(scalar s, in(mat) a) foreach(s*a[i])
+out(mat) operator/(scalar s, in(mat) a) foreach(s/a[i])
+out(mat)& operator+=(mat<T,N,M>& a, in(mat) b)   {a = a + b; return a;}
+out(mat)& operator-=(mat<T,N,M>& a, in(mat) b)   {a = a - b; return a;}
+out(mat)& operator*=(mat<T,N,M>& a, in(mat) b)   {a = a * b; return a;}
+out(mat)& operator/=(mat<T,N,M>& a, in(mat) b)   {a = a / b; return a;}
+out(mat)& operator+=(mat<T,N,M>& a, scalar s)   {a = a + s; return a;}
+out(mat)& operator-=(mat<T,N,M>& a, scalar s)   {a = a - s; return a;}
+out(mat)& operator*=(mat<T,N,M>& a, scalar s)   {a = a * s; return a;}
+out(mat)& operator/=(mat<T,N,M>& a, scalar s)   {a = a / s; return a;}
 
 // Geometric operations
 
@@ -350,34 +427,7 @@ template<class T, int N, int M> inline T distance2(const mat<T,N,M>& A, const ma
 }
 */
 
-_OUT(vec) operator*( const mat<T,N>& m, _IN(vec) v )
-{
-	vec<T,N> t;
-	for(int j=0; j<N; j++)
-	{
-		t[j] = 0;
-		for(int i=0; i<N; i++)
-			t[j] += m[j+N*i] * v[i];
-	}
-	return t;
-}
 
-_OUT(vec) operator*( _IN(vec) v, const mat<T,N>& m )
-{
-	vec<T,N> t;
-	for(int j=0; j<N; j++) 
-	{
-		t[j] = 0;
-		for(int i=0; i<N; i++)
-			t[j] += m[i+N*j] * v[i];
-	}
-	return t;
-}
-_OUT(vec)& operator*=( vec<T,N>& a, const mat<T,N>& m )
-{
-	a = a * m;
-	return a;
-}
 
 // Geometric matrix operations
 
@@ -405,7 +455,7 @@ template<class T, int N> inline mat<T,N>& operator*=( mat<T,N>& a, const mat<T,N
 
 
 
-template<class T, int N, int M> inline mat<T,M,N> outerProduct( const vec<T,M>& a, _IN(vec) b )
+template<class T, int N, int M> inline mat<T,M,N> outerProduct( const vec<T,M>& a, const vec<T,N>& b )
 {
 	mat<T,N,M> t;
 	for(int j=0; j<M; j++)
@@ -460,11 +510,8 @@ template<class T> union vec<T,2>
 {
     T array[2];
     struct { T x,y; };
-	struct { T u,v; };
+    struct { T r,g; };
     struct { T s,t; };
-	struct { T i,j; };
-    struct { T width, height; };
-	struct { T start, count; };
 
 	inline T& operator[](int i) { return array[i]; }
 	inline const T& operator[](int i) const { return array[i]; }
@@ -505,15 +552,11 @@ template<class T> union vec<T,3>
     struct { T r,g,b; };
     struct { T s,t,p; };
     struct { vec<T,2> xy; T z; };
-    struct { vec<T,2> st; T p; };
     struct { vec<T,2> rg; T b; };
+    struct { vec<T,2> st; T p; };
     struct { T x; vec<T,2> yz; };
     struct { T r; vec<T,2> gb; };
     struct { T s; vec<T,2> tp; };
-    struct { T pitch, yaw, roll; };
-    struct { T theta, phi, radius; };
-    struct { T width, height, depth; };
-	struct { T longitude, latitude, altitude; };
 
 	inline T& operator[](int i) { return array[i]; }
 	inline const T& operator[](int i) const { return array[i]; }
@@ -562,7 +605,6 @@ template<class T> union vec<T,4>
 	inline vec() {}
 	inline vec( const T& s1 ) { x = y = z = w = s1; }
 	inline vec( const T& s1, const T& s2, const T& s3=T(0), const T& s4=T(0) ) { x = s1; y = s2; z = s3; w = s4; }
-//	inline vec( const vec<T,5>& v ) { x = v[0]; y = v[1]; z = v[2]; w = v[3]; }
 	inline vec( const vec<T,3>& v, const T s1 ) { x = v[0]; y = v[1]; z = v[2]; w = s1; }
 	inline vec( const vec<T,2>& v, const T s1, const T s2 ) { x = v[0]; y = v[1]; z = s1; w = s2; }
 	inline vec( const T s, const vec<T,3>& v  ) { x = s; y = v[0]; z = v[1]; w = v[2]; }
@@ -662,70 +704,7 @@ template<class T> union mat<T,4>
 };
 
 
-//
-// Partial specializations for T==bool
-//
-template<class T, int N> inline vec<bool,N> lessThan( _IN(vec) a, _IN(vec) b )
-{
-	vec<bool,N> t;
-	for( int i=0; i<N; i++ ) t[i] = a[i] < b[i];
-	return t;
-}
-template<class T, int N> inline vec<bool,N> lessThanEqual( _IN(vec) a, _IN(vec) b )
-{
-	vec<bool,N> t;
-	for( int i=0; i<N; i++ ) t[i] = a[i] <= b[i];
-	return t;
-}
-template<class T, int N> inline vec<bool,N> greaterThan( _IN(vec) a, _IN(vec) b )
-{
-	vec<bool,N> t;
-	for( int i=0; i<N; i++ ) t[i] = a[i] > b[i];
-	return t;
-}
-template<class T, int N> inline vec<bool,N> greaterThanEqual( _IN(vec) a, _IN(vec) b )
-{
-	vec<bool,N> t;
-	for( int i=0; i<N; i++ ) t[i] = a[i] >= b[i];
-	return t;
-}
-template<class T, int N> inline vec<bool,N> equal( _IN(vec) a, _IN(vec) b )
-{
-	vec<bool,N> t;
-	for( int i=0; i<N; i++ ) t[i] = equal(a[i],b[i]); //a[i] == b[i];
-	return t;
-}
-template<class T, int N> inline vec<bool,N> notEqual( _IN(vec) a, _IN(vec) b )
-{
-	vec<bool,N> t;
-	for( int i=0; i<N; i++ ) t[i] = !equal(a[i],b[i]); //a[i] != b[i];
-	return t;
-}
-template<int N> inline bool any( const vec<bool,N>& v )
-{
-	for( int i=0; i<N; i++ ) if (v[i]) return true;
-	return false;
-}
-template<int N> inline bool all( const vec<bool,N>& v )
-{
-	for( int i=0; i<N; i++ ) if (!v[i]) return false;
-	return true;
-}
-#ifndef __GNUC__
-template<int N> inline vec<bool,N> not( const vec<bool,N>& v )
-{
-	vec<bool,N> t;
-	for( int i=0; i<N; i++ ) t[i] = !v[i];
-	return t;
-}
-#endif
-// this operator!() can be used instead of the above not()
-template<int N> inline vec<bool,N> operator!( const vec<bool,N>& v )
-{
-	vec<bool,N> t;
-	for( int i=0; i<N; i++ ) t[i] = !v[i];
-	return t;
-}
+
 
 
 
@@ -791,12 +770,13 @@ float distance(mat2 A, mat2 B)
 
 // TODO transformation factory: translation matrix, rotation matrix, scale matrix
 
-inline mat2 rotate( float angle )
+// TODO does it work with both mat2 and dmat2 ?
+template<class T> inline mat<T, 2> rotate(T angle)
 {
-	mat2 t;
+	mat<T, 2> t;
 
-	float A  = (float) cos( angle * PI / (-180.0) ); // meno !?
-	float B  = (float) sin( angle * PI / (-180.0) );
+	T A  = (T) cos( angle * PI / (-180.0) );
+	T B  = (T) sin( angle * PI / (-180.0) );
 
 	t[0] =  A;
 	t[1] = -B;
@@ -806,30 +786,14 @@ inline mat2 rotate( float angle )
 	return t;
 }
 
-inline dmat2 rotate( double angle )
-{
-	dmat2 t;
-
-	double A  = cos( angle * PI / (-180.0f) ); // meno !?
-	double B  = sin( angle * PI / (-180.0f) );
-
-	t[0] =  A;
-	t[1] = -B;
-	t[2] =  B;
-	t[3] =  A;
-
-	return t;
-}
-
-
-inline float determinant(const mat2& m)
+template<class T> inline T determinant(const mat<T, 2>& m)
 {
 	return m[0]*m[3] - m[1]*m[2];
 }
 
-inline mat2 inverse(const mat2& m)
+template<class T> inline mat<T, 2> inverse(const mat<T, 2>& m)
 {
-	mat2 t = mat2(m[3], -m[1], -m[2], m[0]);
+	mat<T, 2> t = mat<T, 2>(m[3], -m[1], -m[2], m[0]);
 	t /= determinant(m);
 	return t;
 }
@@ -875,18 +839,17 @@ inline vec3 normalize( const vec3& v )
 */
 
 
-
-inline mat3 rotate( float pitch, float yaw, float roll )
+template<class T> inline mat<T, 3> rotate( T pitch, T yaw, T roll )
 {
-	mat3 t;
-	float Cx, Sx, Cy, Sy, Cz, Sz, CxSy, SxSy;
+	mat<T, 3> t;
+	T Cx, Sx, Cy, Sy, Cz, Sz, CxSy, SxSy;
 
-	Cx  = (float) cos( pitch * PI / (-180.0) );
-	Sx  = (float) sin( pitch * PI / (-180.0) );
-	Cy  = (float) cos(   yaw * PI / (-180.0) );
-	Sy  = (float) sin(   yaw * PI / (-180.0) );
-	Cz  = (float) cos(  roll * PI / (-180.0) );
-	Sz  = (float) sin(  roll * PI / (-180.0) );
+	Cx  = (T) cos( pitch * PI / (-180.0) );
+	Sx  = (T) sin( pitch * PI / (-180.0) );
+	Cy  = (T) cos(   yaw * PI / (-180.0) );
+	Sy  = (T) sin(   yaw * PI / (-180.0) );
+	Cz  = (T) cos(  roll * PI / (-180.0) );
+	Sz  = (T) sin(  roll * PI / (-180.0) );
 	CxSy = Cx * Sy;
 	SxSy = Sx * Sy;
 
@@ -903,53 +866,14 @@ inline mat3 rotate( float pitch, float yaw, float roll )
 	return t;
 }
 
-inline mat3 rotate( const vec3& rotation )
+template<class T> inline mat<T, 3> rotate( const vec<T, 3>& rotation )
 {
-	return rotate( rotation.pitch, rotation.yaw, rotation.roll );
+	return rotate( rotation.x, rotation.y, rotation.z );
 }
 
-inline mat3 transform( float rotation, float scale, float translation )
+template<class T> inline mat<T, 3> transform( T rotation, T scale, T translation )
 {
-	return mat3( mat2(scale)*rotate(rotation), vec2(translation) );
-}
-
-
-// TODO templatize
-inline dmat3 rotate( double pitch, double yaw, double roll )
-{
-	dmat3 t;
-	double Cx, Sx, Cy, Sy, Cz, Sz, CxSy, SxSy;
-
-	Cx  = (double) cos( pitch * PI / (-180.0) );
-	Sx  = (double) sin( pitch * PI / (-180.0) );
-	Cy  = (double) cos(   yaw * PI / (-180.0) );
-	Sy  = (double) sin(   yaw * PI / (-180.0) );
-	Cz  = (double) cos(  roll * PI / (-180.0) );
-	Sz  = (double) sin(  roll * PI / (-180.0) );
-	CxSy = Cx * Sy;
-	SxSy = Sx * Sy;
-
-	t[0] =    Cy * Cz;
-	t[1] =  SxSy * Cz + Cx * Sz;
-	t[2] = -CxSy * Cz + Sx * Sz;
-	t[3] =   -Cy * Sz;
-	t[4] = -SxSy * Sz + Cx * Cz;
-	t[5] =  CxSy * Sz + Sx * Cz;
-	t[6] =    Sy;
-	t[7] =   -Sx * Cy;
-	t[8] =    Cx * Cy;
-
-	return t;
-}
-
-inline dmat3 rotate( const dvec3& rotation )
-{
-	return rotate( rotation.pitch, rotation.yaw, rotation.roll );
-}
-
-inline dmat3 transform( double rotation, double scale, double translation )
-{
-	return dmat3( dmat2(scale)*rotate(rotation), dvec2(translation) );
+	return mat<T, 3>( mat<T, 2>(scale)*rotate(rotation), vec2(translation) );
 }
 
 
@@ -1173,7 +1097,7 @@ inline mat4 transpose( const mat4& a )
 inline mat4 projection( vec2 viewport, double fov, double near_plane, double far_plane )
 {
 	double yf = 1 / tan( fov * PI/360 );
-    double xf = yf * viewport.width / viewport.height;
+    double xf = yf * viewport.x / viewport.y;
 	double f0 = (near_plane + far_plane) / (near_plane - far_plane);
 	double f1 = (2*near_plane*far_plane) / (near_plane - far_plane);
 
@@ -1267,12 +1191,12 @@ inline mat4 RotationMatrix( vec3 rotation )
 {
 	mat4 m;
 
-	float A  = cos( rotation.pitch * PI/180.0f );
-	float B  = sin( rotation.pitch * PI/180.0f );
-	float C  = cos( rotation.yaw * PI/180.0f );
-	float D  = sin( rotation.yaw * PI/180.0f );
-	float E  = cos( rotation.roll * PI/180.0f );
-	float F  = sin( rotation.roll * PI/180.0f );
+	float A  = cos( rotation.x * PI/180.0f );
+	float B  = sin( rotation.x * PI/180.0f );
+	float C  = cos( rotation.y * PI/180.0f );
+	float D  = sin( rotation.y * PI/180.0f );
+	float E  = cos( rotation.z * PI/180.0f );
+	float F  = sin( rotation.z * PI/180.0f );
 	float AD = A * D;
 	float BD = B * D;
 

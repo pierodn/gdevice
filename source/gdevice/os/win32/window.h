@@ -34,7 +34,7 @@ public:
 		static int previousMouseX = mouseX;
 		int delta = mouseX - previousMouseX;
 		previousMouseX = mouseX;
-		return float(delta)/size.width;
+		return float(delta)/size.x;
 	}
 
 	float mouseDeltaY()
@@ -42,7 +42,7 @@ public:
 		static int previousMouseY = mouseY;
 		int delta = mouseY - previousMouseY;
 		previousMouseY = mouseY;
-		return float(delta)/size.height;
+		return float(delta)/size.y;
 	}
 
 	int mouseDeltaWheel()
@@ -90,7 +90,7 @@ public:
 
         int	pixelFormat;
 		if( !(RegisterClass(&windowClass))
-         || !(hWnd = CreateWindow(name,0,0,0,0,windowedSize.width,windowedSize.height,0,0,0,0))
+         || !(hWnd = CreateWindow(name,0,0,0,0,windowedSize.x,windowedSize.y,0,0,0,0))
 		 || !(hDC = GetDC(hWnd))
 		 || !(pixelFormat = ChoosePixelFormat(hDC, &pfd))
 		 || !(SetPixelFormat(hDC, pixelFormat, &pfd))
@@ -151,7 +151,7 @@ public:
 
 		//SetWindowLongPtr( hWnd, GWL_EXSTYLE, WS_EX_APPWINDOW | WS_EX_TOPMOST );
 		SetWindowLongPtr( hWnd, GWL_STYLE, WS_POPUP | WS_VISIBLE );
-		SetWindowPos(     hWnd, HWND_TOPMOST, 0, 0, size.width, size.height, SWP_SHOWWINDOW );
+		SetWindowPos(     hWnd, HWND_TOPMOST, 0, 0, size.x, size.y, SWP_SHOWWINDOW );
 		//isChangeSuccessful = ChangeDisplaySettings(&fullscreenSettings, CDS_FULLSCREEN) == DISP_CHANGE_SUCCESSFUL;
 		//	ChangeDisplaySettings( &screen, CDS_FULLSCREEN );
 		ShowWindow( hWnd, SW_MAXIMIZE );
@@ -164,11 +164,11 @@ public:
 		SetWindowLongPtr( hWnd, GWL_STYLE, WS_OVERLAPPEDWINDOW | WS_VISIBLE );
 		//ChangeDisplaySettings( NULL, CDS_RESET );
 
-		RECT rc = { 0, 0, windowedSize.width, windowedSize.height };
+		RECT rc = { 0, 0, windowedSize.x, windowedSize.y };
 		AdjustWindowRect( &rc, WS_OVERLAPPEDWINDOW, FALSE );   
 		size = vec2( rc.right-rc.left, rc.bottom-rc.top );
 
-		SetWindowPos( hWnd, HWND_NOTOPMOST, 0, 0, size.width, size.height, SWP_SHOWWINDOW );
+		SetWindowPos( hWnd, HWND_NOTOPMOST, 0, 0, size.x, size.y, SWP_SHOWWINDOW );
 
 		ChangeDisplaySettings( NULL, 0 ); //
 		ShowWindow( hWnd, SW_RESTORE );
