@@ -2,14 +2,15 @@
 
 #define DEBUG_SHOW_GLSL_SOURCE	
 
-#include "type/glsl.h"
-#include "os/platform.h"
 
+#include "os/platform.h"
+#include "os/application.h"
+#include "os/keyboard.h"
+
+#include "type/glsl.h"
 #include "type/node.h"
 #include "type/terrain/heightmap.h" 
 
-#include "os/application.h"
-#include "os/keyboard.h"
 #include "application/assets/worlds/planet1/parameters.h"
 
 

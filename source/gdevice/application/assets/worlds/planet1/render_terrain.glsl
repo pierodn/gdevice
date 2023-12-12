@@ -799,7 +799,7 @@ if( bool(PBR) )
 	
     //light += 0.00 * zenithColor * matColor.rgb * (1.0 - occlusion); // Ambient ?
     light += 2.00 * Diffuse  * occlusion * daylight * lfShadow * sunColor * REFLECTANCE(L, E, N, diffuseColor, F0, roughness, metallic);
-    light += 0.20 * Indirect * occlusion * daylight * sunColor * REFLECTANCE(I, E, N, diffuseColor, F0, roughness, metallic);
+    light += 0.14 * Indirect * occlusion * daylight * sunColor * REFLECTANCE(I, E, N, diffuseColor, F0, roughness, metallic);
     light += 0.01 * Sky		 * occlusion *			  zenithColor * N.z; //REFLECTANCE(vec3(0,0,-1), E, N, diffuseColor, F0, roughness, metallic);
     light += 0.01 * Fresnel  * relief	 * (fresnelColor - light) * fresnel;
 } 
@@ -816,9 +816,9 @@ else
 	// TODO ambient = 0.04 * (1.0-occlusion) * sunColor; ?
 	light += 0.40 * Diffuse  * occlusion * daylight * lfShadow * sunColor * max(0.0, dot(N,L)) ;//* (1.0 - specular);
 	light += 0.06 * Specular * relief	 * daylight * mix(0.2, 1.0, lfShadow) * specularColor * specular;//* max(0.0, dot(N,L));
-	light += 0.02 * Indirect * occlusion * daylight * sunColor * max(0.0, dot(N,I)); 
+	light += 0.01 * Indirect * occlusion * daylight * sunColor * max(0.0, dot(N,I)); 
 	light += 0.02 * Sky      * occlusion *			  zenithColor * N.z;
-	light += 0.04 * Fresnel  * relief	 * (fresnelColor - light) * fresnel;
+	light += 0.02 * Fresnel  * relief	 * (fresnelColor - light) * fresnel;
 }
     
     // Tone mapping

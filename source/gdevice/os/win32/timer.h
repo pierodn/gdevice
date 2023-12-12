@@ -1,7 +1,7 @@
 #pragma once
 
 #include <windows.h>
-#include "type/glsl.h"
+#include "type/cpu.h"
 
 class Timer // : public Timer
 {
