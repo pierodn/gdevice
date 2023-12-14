@@ -196,16 +196,74 @@ out VertexData {
 ////////////////////////////////////////////////////////////
 // Common functions
 //
-vec3 getTriplanarWeightVector(vec3 N) {
+
+vec4 noise(vec2 point) 
+{		
+    vec2 i = floor(point);
+    vec2 f = fract(point);
+
+	vec2 u = f*f*(3.0-2.0*f);  //f*f*f*(f*(6.0*f-15.0)+10.0);
+	vec2 du = 6.0*f*(1.0-f);   //30.0*f*f*(f*(f-2.0)+1.0);
+	
+	const float WIDTH = 0.3137; // 13.0
+    vec4 L = vec4(0.0, 1.0, WIDTH, WIDTH + 1.0);	
+#if 0
+    L = fract(43758.5453123 * sin(L + dot(i, L.yz)));
+#else
+    L = fract((L + dot(i, L.yz))*0.1731);
+    L += L*(L + 1.0);
+    L = fract(7.7771*L*L) - 0.5;
+#endif
+	L = vec4(L.x, L.y-L.x, L.z-L.x, L.x-L.y-L.z+L.w);
+	return vec4(du*(L.yz + L.w*u.yx), L.x + L.y*u.x + L.z*u.y + L.w*u.x*u.y, 0.0 );
+}
+
+vec4 textureNoTileLod( sampler2D samp, in vec2 uv, float lodBias ) 
+{
+    float period = 16.0;
+    vec2 p = fract(uv/period)*period;
+    p = abs(p - vec2(period)/2.0);
+
+    float k = noise(p*1.0).z;
+    
+    //vec2 duvdx = dFdx( uv );
+    //vec2 duvdy = dFdy( uv );
+    
+    float l = k*3.17;
+    float f = fract(l);
+    
+    float ia = floor(l+0.5);
+    float ib = floor(l);
+    f = min(f, 1.0-f)*2.0;  
+    
+    vec2 offa = sin(vec2(3.0,7.0)*ia);
+    vec2 offb = cos(vec2(7.0,3.0)*ib);
+
+    float v = 0.5;
+    vec4 cola = textureLod( samp, uv + v*offa, lodBias); //duvdx, duvdy );
+    vec4 colb = textureLod( samp, uv + v*offb, lodBias); //duvdx, duvdy );
+    
+    return mix( cola, colb, smoothstep(0.2, 0.8, f-0.1*dot(cola-colb, vec4(1.0))) );
+}
+
+
+vec3 getTriplanarWeightVector(vec3 N) 
+{
     vec3 w = pow(abs(N), vec3(64.0));  
     return w / dot(w, vec3(1.0));
 }
 
 vec4 textureTriplanar(sampler2D detailsTU, in vec3 position, in vec3 weight, in float lodBias)
 {
+#if 1 
     return weight.x*textureLod(detailsTU, position.zy, lodBias) 
          + weight.y*textureLod(detailsTU, position.zx, lodBias) 
          + weight.z*textureLod(detailsTU, position.xy, lodBias);
+#else
+    return weight.x*textureNoTileLod(detailsTU, position.zy, lodBias) 
+         + weight.y*textureNoTileLod(detailsTU, position.zx, lodBias) 
+         + weight.z*textureNoTileLod(detailsTU, position.xy, lodBias);
+#endif
 }
 
 // https://www.shadertoy.com/view/Ms3yzS
@@ -265,13 +323,13 @@ void main()
 	    	//normal = normalize(vec3(gradient.xy/scale, 1));
             
             float blurLevel = 2;
-            vec3 w = getTriplanarWeightVector(/*normal*/normalize(vec3(gradient.xy/scale, 1)));
-            vec4 luma4 = textureTriplanar(detailsTU, position.xyz, w, LodBias + blurLevel);
+            vec3 weight = getTriplanarWeightVector(/*normal*/normalize(vec3(gradient.xy/scale, 1)));
+            vec4 luma4 = textureTriplanar(detailsTU, position.xyz, weight, LodBias + blurLevel);
             vec4 mixmap = blendMixmap(mixmap + luma4);
 
             //float luma = 0.2;
-            vec4 luma4Dx = textureTriplanar(detailsDxTU, position.xyz, w, LodBias + blurLevel);
-		    vec4 luma4Dy = textureTriplanar(detailsDyTU, position.xyz, w, LodBias + blurLevel);
+            vec4 luma4Dx = textureTriplanar(detailsDxTU, position.xyz, weight, LodBias + blurLevel);
+		    vec4 luma4Dy = textureTriplanar(detailsDyTU, position.xyz, weight, LodBias + blurLevel);
 
             displacement *= tessellationDisplacement;
             float H = displacement*dot(mixmap, luma4);
@@ -286,7 +344,7 @@ void main()
                 normal = normalize(vec3(gradient.xy, 1));
             displaceVertexAndRecomputeNormal(position, normal, H, dH);
 	    
-	        color += 0.00000000001*blendColor(color, mixmap, 0.3, 06);
+	        color += 0.00000000001*blendColor(color, mixmap, 0.30, 1.6);
 	    
 /*	        vec4 details = pow(texture(detailsTU, coords.xy, +4.5), vec4(1.0));
 		    
@@ -455,7 +513,58 @@ out vec4 fragColor;
 ////////////////////////////////////////////////////////////
 // Texture mapping
 //
-vec3 getTriplanarWeightVector(vec3 N) {
+
+vec4 noise(vec2 point) 
+{		
+    vec2 i = floor(point);
+    vec2 f = fract(point);
+
+	vec2 u = f*f*(3.0-2.0*f);  //f*f*f*(f*(6.0*f-15.0)+10.0);
+	vec2 du = 6.0*f*(1.0-f);   //30.0*f*f*(f*(f-2.0)+1.0);
+	
+	const float WIDTH = 0.3137; // 13.0
+    vec4 L = vec4(0.0, 1.0, WIDTH, WIDTH + 1.0);	
+#if 0
+    L = fract(43758.5453123 * sin(L + dot(i, L.yz)));
+#else
+    L = fract((L + dot(i, L.yz))*0.1731);
+    L += L*(L + 1.0);
+    L = fract(7.7771*L*L) - 0.5;
+#endif
+	L = vec4(L.x, L.y-L.x, L.z-L.x, L.x-L.y-L.z+L.w);
+	return vec4(du*(L.yz + L.w*u.yx), L.x + L.y*u.x + L.z*u.y + L.w*u.x*u.y, 0.0 );
+}
+
+vec4 textureNoTile( sampler2D samp, in vec2 uv, float lodBias ) // TODO remove lodBias
+{
+    float period = 16.0;
+    vec2 p = fract(uv/period)*period;
+    p = abs(p - vec2(period)/2.0);
+
+    float k = noise(p*1.0).z;
+    
+    vec2 duvdx = dFdx( uv );
+    vec2 duvdy = dFdy( uv );
+    
+    float l = k*3.17;
+    float f = fract(l);
+    
+    float ia = floor(l+0.5);
+    float ib = floor(l);
+    f = min(f, 1.0-f)*2.0;
+    
+    vec2 offa = sin(vec2(3.0,7.0)*ia);
+    vec2 offb = cos(vec2(7.0,3.0)*ib);
+
+    float v = 0.5;
+    vec4 cola = textureGrad( samp, uv + v*offa, duvdx, duvdy );
+    vec4 colb = textureGrad( samp, uv + v*offb, duvdx, duvdy );
+    
+    return mix( cola, colb, smoothstep(0.2, 0.8, f-0.1*dot(cola-colb, vec4(1.0))) );
+}
+
+vec3 getTriplanarWeightVector(vec3 N) 
+{
     vec3 w = pow(abs(N), vec3(64.0));  
     //w = max(w, 0.00001); // layering
     return w / dot(w, vec3(1.0));
@@ -463,9 +572,15 @@ vec3 getTriplanarWeightVector(vec3 N) {
 
 vec4 textureTriplanar(sampler2D detailsTU, vec3 position, vec3 weight, float lodBias)
 {
+#if 1
     return weight.x*texture(detailsTU, position.zy, lodBias) 
          + weight.y*texture(detailsTU, position.zx, lodBias) 
          + weight.z*texture(detailsTU, position.xy, lodBias);
+#else
+    return weight.x*textureNoTile(detailsTU, position.zy, lodBias) 
+         + weight.y*textureNoTile(detailsTU, position.zx, lodBias) 
+         + weight.z*textureNoTile(detailsTU, position.xy, lodBias);
+#endif
 }
 
 // https://www.shadertoy.com/view/Ms3yzS
@@ -589,7 +704,7 @@ vec3 tone(vec3 color, float t)
 float hash1(vec2 x) {
 	return fract(sin(dot(x, vec2(12.9898, 78.233)))*43758.5453);
 }
-
+/*
 // TEMP will be used for microbumps?
 vec4 noise(vec2 point) 
 {		
@@ -610,7 +725,7 @@ vec4 noise(vec2 point)
 	L = vec4(L.x, L.y-L.x, L.z-L.x, L.x-L.y-L.z+L.w);
 	return vec4(du*(L.yz + L.w*u.yx), L.x + L.y*u.x + L.z*u.y + L.w*u.x*u.y, 0.0 );
 }
-
+*/
 //here!!
 ////////////////
 ////////////////////////////////////////////////////////////
@@ -651,18 +766,18 @@ void main()
 	if( textureFadingFactor <= 1.0 )
 	{
         const float LodBias = -0.666; // 0.0 smooth, -0.5 sharper
-        vec3 w = getTriplanarWeightVector( normalize(vec3(gVertex.gradient.xy/scale, 1)) );
-        vec4 luma4 = textureTriplanar(detailsTU,  gVertex.position.xyz, w, LodBias); 
+        vec3 weight = getTriplanarWeightVector( normalize(vec3(gVertex.gradient.xy/scale, 1)) );
+        vec4 luma4 = textureTriplanar(detailsTU,  gVertex.position.xyz, weight, LodBias); 
 
         float a1 = 0.7, a2 = 1.2, // (1.0 - a1)*4,  // LOD0
               a3 = 0.2, a4 = 0.2, a5 = 0.2;         // LOD1
         float sand0 = 0.8, grit0 = 0.2;             // SAND and GRIT on LOD0
         vec4 l1,l2;
         if(Tessellator > 0.0) {
-            //luma4 = 0.666*luma4 + 0.333*textureTriplanar(detailsTU, gVertex.position.xyz*32.0, w, LodBias).rbaa;
-            //luma4 = (luma4 + 0.5*textureTriplanar(detailsTU, gVertex.position.xyz*32.0, w, LodBias).rbaa)/1.5;
+            //luma4 = 0.666*luma4 + 0.333*textureTriplanar(detailsTU, gVertex.position.xyz*32.0, weight, LodBias).rbaa;
+            //luma4 = (luma4 + 0.5*textureTriplanar(detailsTU, gVertex.position.xyz*32.0, weight, LodBias).rbaa)/1.5;
             l1 = luma4;
-            l2 = textureTriplanar(detailsTU, gVertex.position.xyz*32.0, w, LodBias);
+            l2 = textureTriplanar(detailsTU, gVertex.position.xyz*32.0, weight, LodBias);
 
             l1 = a1*l1 + a2*l1*l2.rbaa; /* l1*(0.2 + 2.7*l2);*/
             l1.a = mix(l1.a, l2.a, sand0); // sand
@@ -684,18 +799,18 @@ void main()
 
 		if( Bumps > 0.0 ) 
 	    {
-            vec4 luma4Dx =  textureTriplanar(detailsDxTU, gVertex.position.xyz, w, LodBias);
-            vec4 luma4Dy =  textureTriplanar(detailsDyTU, gVertex.position.xyz, w, LodBias);
+            vec4 luma4Dx =  textureTriplanar(detailsDxTU, gVertex.position.xyz, weight, LodBias);
+            vec4 luma4Dy =  textureTriplanar(detailsDyTU, gVertex.position.xyz, weight, LodBias);
 
             if(Tessellator > 0.0) {
-		    	//luma4Dx = 0.666*luma4Dx + 0.333*textureTriplanar(detailsDxTU, gVertex.position.xyz*32.0, w, LodBias + 0.0).rbaa;
-		        //luma4Dy = 0.666*luma4Dy + 0.333*textureTriplanar(detailsDyTU, gVertex.position.xyz*32.0, w, LodBias + 0.0).rbaa;
-                //luma4Dx = (luma4Dx + 0.5*textureTriplanar(detailsDxTU, gVertex.position.xyz*32.0, w, LodBias + 0.0).rbaa)/1.5;
-		        //luma4Dy = (luma4Dy + 0.5*textureTriplanar(detailsDyTU, gVertex.position.xyz*32.0, w, LodBias + 0.0).rbaa)/1.5;
+		    	//luma4Dx = 0.666*luma4Dx + 0.333*textureTriplanar(detailsDxTU, gVertex.position.xyz*32.0, weight, LodBias + 0.0).rbaa;
+		        //luma4Dy = 0.666*luma4Dy + 0.333*textureTriplanar(detailsDyTU, gVertex.position.xyz*32.0, weight, LodBias + 0.0).rbaa;
+                //luma4Dx = (luma4Dx + 0.5*textureTriplanar(detailsDxTU, gVertex.position.xyz*32.0, weight, LodBias + 0.0).rbaa)/1.5;
+		        //luma4Dy = (luma4Dy + 0.5*textureTriplanar(detailsDyTU, gVertex.position.xyz*32.0, weight, LodBias + 0.0).rbaa)/1.5;
                 vec4 l1Dx = luma4Dx;
                 vec4 l1Dy = luma4Dy;
-                vec4 l2Dx = textureTriplanar(detailsDxTU, gVertex.position.xyz*32.0, w, LodBias + 0.0);
-                vec4 l2Dy = textureTriplanar(detailsDyTU, gVertex.position.xyz*32.0, w, LodBias + 0.0);
+                vec4 l2Dx = textureTriplanar(detailsDxTU, gVertex.position.xyz*32.0, weight, LodBias + 0.0);
+                vec4 l2Dy = textureTriplanar(detailsDyTU, gVertex.position.xyz*32.0, weight, LodBias + 0.0);
 
                 l1Dx = a1*l1Dx + a2*l1Dx*l2.rbaa + a2*l1*l2Dx.rbaa; 
                 l1Dy = a1*l1Dy + a2*l1Dy*l2.rbaa + a2*l1*l2Dy.rbaa;
