@@ -1,6 +1,6 @@
 #pragma once
 
-#include "type/glsl.h"
+#include "type/gpu.h"
 
 inline float triangleArea( const vec3& v1, const vec3& v2, const vec3& v3 )
 {

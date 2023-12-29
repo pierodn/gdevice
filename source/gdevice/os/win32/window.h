@@ -4,7 +4,7 @@
 #include "os/keyboard.h"
 #include "os/listener.h"
 #include "os/win32/timer.h" // ??
-#include "type/glsl.h"
+#include "type/gpu.h"
 #include "gpu/renderer.h"
 
 //#include "os/log.h"
@@ -81,6 +81,8 @@ public:
 
 	bool create()
 	{
+        const bool resizeable = true;
+
 		PIXELFORMATDESCRIPTOR pfd = { sizeof(pfd), 1, 
 			PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER, PFD_TYPE_RGBA,
 			bits, 0,0,0,0,0,0,0,0, 0,0,0,0,0, 24, 8, 0, PFD_MAIN_PLANE, 0,0,0,0 };
@@ -88,9 +90,12 @@ public:
 		char* name = "gdevice";
 		WNDCLASS windowClass = { CS_HREDRAW | CS_VREDRAW | CS_OWNDC, StaticWindowProc, 0,0,0,0,0,0,0, name };
 
+        DWORD dwStyle = 0;
+        if(resizeable) dwStyle += WS_OVERLAPPEDWINDOW;
+
         int	pixelFormat;
 		if( !(RegisterClass(&windowClass))
-         || !(hWnd = CreateWindow(name,0,0,0,0,windowedSize.x,windowedSize.y,0,0,0,0))
+         || !(hWnd = CreateWindow(name,0,dwStyle,0,0,windowedSize.x,windowedSize.y,0,0,0,0))
 		 || !(hDC = GetDC(hWnd))
 		 || !(pixelFormat = ChoosePixelFormat(hDC, &pfd))
 		 || !(SetPixelFormat(hDC, pixelFormat, &pfd))
@@ -260,15 +265,14 @@ public:
 			                listener->onOpen(*this);
                         );
                         
-						size = vec2( LOWORD(lParam), HIWORD(lParam) );
-						listener->onSize( *this );
+						size = vec2(LOWORD(lParam), HIWORD(lParam));
+						listener->onSize(*this);
 					}
 					return 0;
 				}
 				break;
 
 			case WM_PAINT:
-                DEBUG_CHECKPOINT_ONCE(WM_PAINT);
                 DEBUG_ASSERT(listener);
 				{
                     static Timer timer;
@@ -278,19 +282,16 @@ public:
 				}
 				return 0;
 
-            case WM_ERASEBKGND:				// remove. useless since HBRUSH is null in WNDCLASS
-				return 1;					// Prevent flickering while resizing
-
 			case WM_DISPLAYCHANGE:
-				// TODO
+				DEBUG_CHECKPOINT_ONCE(WM_DISPLAYCHANGE);
 				break;
 
 		   case WM_DESTROY:
-				// TODO
+				DEBUG_CHECKPOINT_ONCE(WM_DESTROY);
 				break;
 
 			case WM_CLOSE:
-				//PostMessage( hWnd, WM_CLOSE, 0, 0 ); // ?
+				PostMessage(hWnd, WM_CLOSE, 0, 0);
 				return 0;
 
             //////////////////////////
@@ -340,11 +341,10 @@ public:
 				return 0;
 	
 			case WM_MOVE:
-				// TODO
+				DEBUG_CHECKPOINT_ONCE(WM_MOVE);
 				return 0;
 
 			case WM_SYSCOMMAND:
-                //DEBUG_CHECKPOINT(WM_SYSCOMMAND);
 				switch( wParam ) {
 					case SC_SCREENSAVE:     // Screensaver trying to start
 					case SC_MONITORPOWER:   // Monitor entering powersave

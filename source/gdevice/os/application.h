@@ -13,7 +13,8 @@ class Application : public Listener<ConcreteApplication>
 
     int run()
     {
-		while(window.isOpen() && !Key(ESCAPE).isPressed()) {
+        while(window.isOpen()) 
+        {
 			doUpdate();
 		}
 		return 0;

@@ -268,7 +268,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\type\glsl.h"
+				RelativePath=".\type\gpu.h"
 				>
 			</File>
 			<File
@@ -364,11 +364,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\os\win32\timer.h"
+				RelativePath=".\os\timer.h"
 				>
 			</File>
 			<File
-				RelativePath=".\os\timer.h"
+				RelativePath=".\os\win32\timer.h"
 				>
 			</File>
 			<File
@@ -377,6 +377,10 @@
 			</File>
 			<File
 				RelativePath=".\__temp\vertexbuffer.h"
+				>
+			</File>
+			<File
+				RelativePath=".\walker.cpp"
 				>
 			</File>
 			<File
@@ -401,14 +405,6 @@
 			>
 		</Filter>
 		<File
-			RelativePath=".\gdevice.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\gdevice.h"
-			>
-		</File>
-		<File
 			RelativePath=".\application\assets\generate_gradientmap.glsl"
 			>
 		</File>
@@ -417,7 +413,7 @@
 			>
 		</File>
 		<File
-			RelativePath=".\type\glsl_tests.h"
+			RelativePath=".\type\gpu_tests.h"
 			>
 		</File>
 		<File

@@ -3,31 +3,31 @@
 #define DEBUG_SHOW_GLSL_SOURCE	
 
 
-#include "os/platform.h"
+#include "os/platform.h" // TODO gs/os/platform
 #include "os/application.h"
 #include "os/keyboard.h"
 
-#include "type/glsl.h"
+#include "type/gpu.h"
 #include "type/node.h"
 #include "type/terrain/heightmap.h" 
 
 #include "application/assets/worlds/planet1/parameters.h"
 
-
-
-class GDevice : public Application<GDevice>
+class Walker : Application<Walker>
 {
-	float time; 
-	dmat3 camera;
-	Node scene;
-	Heightmap heightmap;
-	Light sun;
+	dmat3 camera;           
+	Node scene;          // gd::ecs::Node
+	Heightmap heightmap; //gd::Asset<Heightmap>
+    // TODO Set generator to heightmap asset
+
+    float time; 
+	Light sun;  // vec3 sun;
 
 	double wheelSpeed; // TODO: Get rid.
 	
 public:
 
-	void onOpen(Window<GDevice>& window)
+	void onOpen(Window<Walker>& window)
     {
         heightmap.setTileResolution(TILE_RESOLUTION);
 	    heightmap.setLODs(CLIPMAPS_COUNT);	
@@ -42,16 +42,18 @@ public:
     	
         time = TIME_START;
         sun.id = 0;
-	    sun.spot_direction = rotate((time-7)*360/24, 0.7f, 1.7f) * vec3(0.1,-0.8,0.1);   
+	    sun.spot_direction = rotate((time-7)*360/24, 0.7f, 1.7f) * vec3(0.1,-0.8,0.1); 
+
+        // TODO add InputControl
     }
 
-	void onSize(Window<GDevice>& window)
+	void onSize(Window<Walker>& window)
     {
 	    window.renderer->setViewport(window.size); 
 	    window.renderer->setProjection(FOV, NEAR_CLIP_PLANE, heightmap.visibility());
     }
 
-	void onDraw(Window<GDevice>& window, double elapsed)
+	void onDraw(Window<Walker>& window, double elapsed)
     {
         //DEBUG_PROFILE(0.020);
         Renderer& renderer = *window.renderer;
@@ -116,11 +118,11 @@ public:
 	    // 
 	    // Misc controls
 	    //
-	    wheelSpeed = clamp(wheelSpeed + window.mouseDeltaWheel()/200.0, 0.25, 31.6228);
+	    wheelSpeed = clamp(wheelSpeed + window.mouseDeltaWheel()/200.0, 0.05, 31.6228);
 
 	    if(Key('L').isJustPressed()) window.toogleFullscreen();
-	    if(Key('P').isJustPressed()) window.togglePointer();
-	    if(Key(ESCAPE).isPressed())  window.close();
+	    if(Key(ESCAPE).isPressed()) window.togglePointer();
+	    if(Key('X').isPressed()) window.close();
 
 	    char controls_string[255];
 	    renderer.controls.getString(controls_string);
@@ -158,3 +160,24 @@ public:
     }
 };
 
+
+
+#if 1                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+
+//#include "test.h"
+
+int main()
+{
+    return Walker().run();
+}
+
+#else
+
+#include "type/gpu_tests.h"
+
+int main()
+{
+    test_all();
+}
+
+#endif

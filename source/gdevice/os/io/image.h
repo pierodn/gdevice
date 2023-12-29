@@ -1,6 +1,6 @@
 #pragma once
 
-#include "type/glsl.h"
+#include "type/gpu.h"
 #include "__temp/texture.h"
 
 namespace IO
