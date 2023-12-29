@@ -3,22 +3,22 @@
 #define DEBUG_SHOW_GLSL_SOURCE	
 
 
-#include "os/platform.h" // TODO gs/os/platform
+#include "os/platform.h"
 #include "os/application.h"
 #include "os/keyboard.h"
 
 #include "type/gpu.h"
 #include "type/node.h"
-#include "type/terrain/heightmap.h" 
+#include "type/terrain/heightmap.h"
 
 #include "application/assets/worlds/planet1/parameters.h"
 
 class Walker : Application<Walker>
 {
 	dmat3 camera;           
-	Node scene;          // gd::ecs::Node
+	Node scene;
 	Heightmap heightmap; //gd::Asset<Heightmap>
-    // TODO Set generator to heightmap asset
+    // TODO Set update function
 
     float time; 
 	Light sun;  // vec3 sun;
@@ -55,7 +55,6 @@ public:
 
 	void onDraw(Window<Walker>& window, double elapsed)
     {
-        //DEBUG_PROFILE(0.020);
         Renderer& renderer = *window.renderer;
 	    
         //////////////////////////
@@ -82,11 +81,13 @@ public:
 	    float speed = (Key('E').isPressed() ? +1 : Key('R').isPressed() ? -1 : 0) * float(TIME_SPEED) * (wheelSpeed);
 	    time = fmod( time + speed*float(elapsed), 24.0f );
 	    sun.spot_direction = rotate((time-7)*360.0f/24.0f, 40.0f, 0.0f) * vec3(0.2, -0.8, 0.1);
-    	
+
 	    // TODO: Resolve this dependency.
 	    for(int i=0; i<Controls::CONTROLCOUNT; i++) {
 		    Key(Controls::Bindings[i]).isPressed();
 	    }
+
+
 
         ////////////////////////////
         // Update scene
@@ -119,11 +120,13 @@ public:
 	    // Misc controls
 	    //
 	    wheelSpeed = clamp(wheelSpeed + window.mouseDeltaWheel()/200.0, 0.05, 31.6228);
-
-	    if(Key('L').isJustPressed()) window.toogleFullscreen();
-	    if(Key(ESCAPE).isPressed()) window.togglePointer();
+	    if(Key(ESCAPE).isJustPressed()) window.togglePointer();
+        if(Key('L').isJustPressed()) window.toogleFullscreen();
 	    if(Key('X').isPressed()) window.close();
 
+        //
+        // Show rendering state
+        //
 	    char controls_string[255];
 	    renderer.controls.getString(controls_string);
 
@@ -162,22 +165,7 @@ public:
 
 
 
-#if 1                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
-
-//#include "test.h"
-
 int main()
 {
     return Walker().run();
 }
-
-#else
-
-#include "type/gpu_tests.h"
-
-int main()
-{
-    test_all();
-}
-
-#endif

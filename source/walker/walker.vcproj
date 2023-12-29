@@ -1,12 +1,11 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="gdevice"
-	ProjectGUID="{4C5E1C57-34D7-46A4-AD34-2D86D74176E9}"
-	RootNamespace="gdevice"
-	Keyword="Win32Proj"
-	TargetFrameworkVersion="0"
+	Name="walker"
+	ProjectGUID="{36B6109E-76A8-4081-A1F0-C1868B33CF5C}"
+	RootNamespace="walker"
+	TargetFrameworkVersion="196613"
 	>
 	<Platforms>
 		<Platform
@@ -14,9 +13,6 @@
 		/>
 	</Platforms>
 	<ToolFiles>
-		<ToolFile
-			RelativePath="..\bin2c\bin2c.rules"
-		/>
 	</ToolFiles>
 	<Configurations>
 		<Configuration
@@ -31,9 +27,6 @@
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="BIN2C"
 			/>
 			<Tool
 				Name="VCXMLDataGeneratorTool"
@@ -130,9 +123,6 @@
 				Name="VCCustomBuildTool"
 			/>
 			<Tool
-				Name="BIN2C"
-			/>
-			<Tool
 				Name="VCXMLDataGeneratorTool"
 			/>
 			<Tool
@@ -149,7 +139,7 @@
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
 				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories="..\..\dependencies\include"
+				AdditionalIncludeDirectories="D:\repositories\gdevice\source\gdevice;..\..\dependencies\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;"
 				MinimalRebuild="false"
 				ExceptionHandling="0"
@@ -218,206 +208,8 @@
 	<References>
 	</References>
 	<Files>
-		<Filter
-			Name="Header Files"
-			Filter="h;hpp;hxx;hm;inl;inc;xsd"
-			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
-			>
-			<File
-				RelativePath=".\type\__noise.h"
-				>
-			</File>
-			<File
-				RelativePath=".\os\application.h"
-				>
-			</File>
-			<File
-				RelativePath=".\type\array.h"
-				>
-			</File>
-			<File
-				RelativePath=".\gpu\cacheable.h"
-				>
-			</File>
-			<File
-				RelativePath=".\application\assets\ui\charset.h"
-				>
-			</File>
-			<File
-				RelativePath=".\type\terrain\clipmap.h"
-				>
-			</File>
-			<File
-				RelativePath=".\gpu\controls.h"
-				>
-			</File>
-			<File
-				RelativePath=".\type\cpu.h"
-				>
-			</File>
-			<File
-				RelativePath=".\type\functors.h"
-				>
-			</File>
-			<File
-				RelativePath=".\type\geometry.h"
-				>
-			</File>
-			<File
-				RelativePath=".\gpu\opengl\gl.h"
-				>
-			</File>
-			<File
-				RelativePath=".\type\gpu.h"
-				>
-			</File>
-			<File
-				RelativePath=".\scene\ground.h"
-				>
-			</File>
-			<File
-				RelativePath=".\type\terrain\heightmap.h"
-				>
-			</File>
-			<File
-				RelativePath=".\os\io\image.h"
-				>
-			</File>
-			<File
-				RelativePath=".\gpu\indexbuffer.h"
-				>
-			</File>
-			<File
-				RelativePath=".\platforms\inspector.h"
-				>
-			</File>
-			<File
-				RelativePath=".\type\interpolation.h"
-				>
-			</File>
-			<File
-				RelativePath=".\os\keyboard.h"
-				>
-			</File>
-			<File
-				RelativePath=".\os\win32\keyboard.h"
-				>
-			</File>
-			<File
-				RelativePath=".\__temp\light.h"
-				>
-			</File>
-			<File
-				RelativePath=".\os\listener.h"
-				>
-			</File>
-			<File
-				RelativePath=".\os\win32\mutex.h"
-				>
-			</File>
-			<File
-				RelativePath=".\os\mutex.h"
-				>
-			</File>
-			<File
-				RelativePath=".\type\node.h"
-				>
-			</File>
-			<File
-				RelativePath=".\application\assets\worlds\planet1\parameters.h"
-				>
-			</File>
-			<File
-				RelativePath=".\os\platform.h"
-				>
-			</File>
-			<File
-				RelativePath=".\os\profiler.h"
-				>
-			</File>
-			<File
-				RelativePath=".\gpu\program.h"
-				>
-			</File>
-			<File
-				RelativePath=".\gpu\renderer.h"
-				>
-			</File>
-			<File
-				RelativePath=".\gpu\opengl\renderer.h"
-				>
-			</File>
-			<File
-				RelativePath=".\__temp\texture.h"
-				>
-			</File>
-			<File
-				RelativePath=".\application\assets\worlds\planet1\textures.h"
-				>
-			</File>
-			<File
-				RelativePath=".\os\win32\thread.h"
-				>
-			</File>
-			<File
-				RelativePath=".\os\thread.h"
-				>
-			</File>
-			<File
-				RelativePath=".\os\timer.h"
-				>
-			</File>
-			<File
-				RelativePath=".\os\win32\timer.h"
-				>
-			</File>
-			<File
-				RelativePath=".\type\transformations.h"
-				>
-			</File>
-			<File
-				RelativePath=".\__temp\vertexbuffer.h"
-				>
-			</File>
-			<File
-				RelativePath=".\os\window.h"
-				>
-			</File>
-			<File
-				RelativePath=".\os\win32\window.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="platforms"
-			>
-		</Filter>
-		<Filter
-			Name="libraries"
-			>
-		</Filter>
-		<Filter
-			Name="engines"
-			>
-		</Filter>
 		<File
-			RelativePath=".\application\assets\generate_gradientmap.glsl"
-			>
-		</File>
-		<File
-			RelativePath=".\application\assets\worlds\planet1\generate_terrain.glsl"
-			>
-		</File>
-		<File
-			RelativePath=".\type\gpu_tests.h"
-			>
-		</File>
-		<File
-			RelativePath=".\application\assets\worlds\planet1\render_sky.glsl"
-			>
-		</File>
-		<File
-			RelativePath=".\application\assets\worlds\planet1\render_terrain.glsl"
+			RelativePath=".\walker.cpp"
 			>
 		</File>
 	</Files>
