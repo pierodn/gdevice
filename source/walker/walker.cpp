@@ -1,7 +1,8 @@
 #pragma once
 
-#define DEBUG_SHOW_GLSL_SOURCE	
+#include "gdevice.h" // the library
 
+#define DEBUG_SHOW_GLSL_SOURCE	
 
 #include "os/platform.h"
 #include "os/application.h"
@@ -167,5 +168,6 @@ public:
 
 int main()
 {
+    DEBUG_TRACE(summit(3,2));
     return Walker().run();
 }

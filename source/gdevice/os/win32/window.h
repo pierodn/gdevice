@@ -82,12 +82,12 @@ public:
 	bool create()
 	{
         const bool resizeable = true;
+        const char* name = "gdevice";
 
 		PIXELFORMATDESCRIPTOR pfd = { sizeof(pfd), 1, 
 			PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER, PFD_TYPE_RGBA,
 			bits, 0,0,0,0,0,0,0,0, 0,0,0,0,0, 24, 8, 0, PFD_MAIN_PLANE, 0,0,0,0 };
 
-		char* name = "gdevice";
 		WNDCLASS windowClass = { CS_HREDRAW | CS_VREDRAW | CS_OWNDC, StaticWindowProc, 0,0,0,0,0,0,0, name };
 
         DWORD dwStyle = 0;
@@ -121,13 +121,13 @@ public:
 
     int runPlainMessageLoop()
     {
-        if(create()) {
+        if(create()) 
+        {
             MSG msg;
-		    while(GetMessage(&msg, hWnd, 0, 0) > 0) {
-			    if(msg.message == WM_CLOSE) 
-                    return 0;
-
-                if(isActive) {
+		    while((GetMessage(&msg, hWnd, 0, 0) > 0) && (msg.message != WM_CLOSE)) 
+            {
+                if(isActive) 
+                {
                     TranslateMessage(&msg);   // Translates virtual key codes into WM_CHAR messages.
 			        DispatchMessage(&msg);    // Dispatch the message to the WindowProc thread.
                 }
