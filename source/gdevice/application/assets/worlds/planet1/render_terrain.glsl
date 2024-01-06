@@ -201,19 +201,14 @@ vec4 noise(vec2 point)
 {		
     vec2 i = floor(point);
     vec2 f = fract(point);
-
-	vec2 u = f*f*(3.0-2.0*f);  //f*f*f*(f*(6.0*f-15.0)+10.0);
-	vec2 du = 6.0*f*(1.0-f);   //30.0*f*f*(f*(f-2.0)+1.0);
+	vec2 u = f*f*(3.0-2.0*f);
+	vec2 du = 6.0*f*(1.0-f);
 	
-	const float WIDTH = 0.3137; // 13.0
+    float WIDTH = 0.3137;
     vec4 L = vec4(0.0, 1.0, WIDTH, WIDTH + 1.0);	
-#if 0
-    L = fract(43758.5453123 * sin(L + dot(i, L.yz)));
-#else
     L = fract((L + dot(i, L.yz))*0.1731);
     L += L*(L + 1.0);
     L = fract(7.7771*L*L) - 0.5;
-#endif
 	L = vec4(L.x, L.y-L.x, L.z-L.x, L.x-L.y-L.z+L.w);
 	return vec4(du*(L.yz + L.w*u.yx), L.x + L.y*u.x + L.z*u.y + L.w*u.x*u.y, 0.0 );
 }
@@ -224,11 +219,7 @@ vec4 textureNoTileLod( sampler2D samp, in vec2 uv, float lodBias )
     vec2 p = fract(uv/period)*period;
     p = abs(p - vec2(period)/2.0);
 
-    float k = noise(p*1.0).z;
-    
-    //vec2 duvdx = dFdx( uv );
-    //vec2 duvdy = dFdy( uv );
-    
+    float k = dot(fract(p*3.7), vec2(3.15, 2.77)); //noise(p*1.0).z;
     float l = k*3.17;
     float f = fract(l);
     
@@ -240,11 +231,15 @@ vec4 textureNoTileLod( sampler2D samp, in vec2 uv, float lodBias )
     vec2 offb = cos(vec2(7.0,3.0)*ib);
 
     float v = 0.5;
+    //vec2 duvdx = dFdx( uv );
+    //vec2 duvdy = dFdy( uv );
     vec4 cola = textureLod( samp, uv + v*offa, lodBias); //duvdx, duvdy );
     vec4 colb = textureLod( samp, uv + v*offb, lodBias); //duvdx, duvdy );
     
-    return mix( cola, colb, smoothstep(0.2, 0.8, f-0.1*dot(cola-colb, vec4(1.0))) );
+    return mix( cola, colb, smoothstep(0.2, 0.8, f - 0.1*dot(cola-colb, vec4(1.0))) );
 }
+
+
 
 
 vec3 getTriplanarWeightVector(vec3 N) 
@@ -534,7 +529,24 @@ vec4 noise(vec2 point)
 	L = vec4(L.x, L.y-L.x, L.z-L.x, L.x-L.y-L.z+L.w);
 	return vec4(du*(L.yz + L.w*u.yx), L.x + L.y*u.x + L.z*u.y + L.w*u.x*u.y, 0.0 );
 }
+/*
+vec3 GetTexturePoint(in vec3 point, float period = 16.0)
+{
+    vec2 p = fract(point/period)*period;
+    p = abs(p - vec2(period)/2.0);
 
+    float k = noise(p*1.0).z;
+    float l = k*3.17;
+    float f = fract(l);
+
+    float ia = floor(l+0.5);
+    float ib = floor(l);
+    f = min(f, 1.0-f)*2.0;
+    
+    vec2 offa = sin(vec2(3.0,7.0)*ia);
+    vec2 offb = cos(vec2(7.0,3.0)*ib);
+}
+*/
 vec4 textureNoTile( sampler2D samp, in vec2 uv, float lodBias ) // TODO remove lodBias
 {
     float period = 16.0;
@@ -542,10 +554,6 @@ vec4 textureNoTile( sampler2D samp, in vec2 uv, float lodBias ) // TODO remove l
     p = abs(p - vec2(period)/2.0);
 
     float k = noise(p*1.0).z;
-    
-    vec2 duvdx = dFdx( uv );
-    vec2 duvdy = dFdy( uv );
-    
     float l = k*3.17;
     float f = fract(l);
     
@@ -557,6 +565,8 @@ vec4 textureNoTile( sampler2D samp, in vec2 uv, float lodBias ) // TODO remove l
     vec2 offb = cos(vec2(7.0,3.0)*ib);
 
     float v = 0.5;
+    vec2 duvdx = dFdx( uv );
+    vec2 duvdy = dFdy( uv );
     vec4 cola = textureGrad( samp, uv + v*offa, duvdx, duvdy );
     vec4 colb = textureGrad( samp, uv + v*offb, duvdx, duvdy );
     

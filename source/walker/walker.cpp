@@ -54,6 +54,16 @@ public:
 	    window.renderer->setProjection(FOV, NEAR_CLIP_PLANE, heightmap.visibility());
     }
 
+    // TODO onInput(Input& input)
+    // {
+    //   gd::update(camera, cameraControls = StandardCameraControls)
+    // }
+
+    // TODO onUpdate(Window<Walker>& window, double elapsed)
+    // {
+    // scene.update(camera)
+    // }
+
 	void onDraw(Window<Walker>& window, double elapsed)
     {
         Renderer& renderer = *window.renderer;
@@ -145,11 +155,12 @@ public:
 		char camera_rotation[256];
 		STR(camera.rotation, camera_rotation);
 
-	    window.setTitle("FPS=%i%s Speed=%.2fkmh (x%i) Renderer=[%s] Time=%02i.%02i POS=(%s) DIR=(%s)", 
+        // TODO FPS=%i%s CPU=%i%s GPU=%i%s
+	    window.setTitle("FPS=%i%s Renderer=[%s] Speed=%.2fkmh (x%i) Time=%02i.%02i POS=(%s) DIR=(%s)", 
 		    fps, fps<100 ? "  " : "",
+            controls_string, 
 		    distance(camera.position, previous_pos) * METERS_PER_TILE/interval * 3600/1000,
 		    int(speedFactor),
-		    controls_string, 
 		    int(time), int(fract(time)*60),
 		    camera_position,
 			camera_rotation

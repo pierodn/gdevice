@@ -210,22 +210,12 @@ Substance getSubstance(vec4 t, vec3 scale)
     // ===================  Red   Green Blue  Spec  ===== Rock  Grit  Bran  Sand
 	Substance ROCK = { vec4(0.36, 0.28, 0.22, 0.00), vec4(1.00, 0.00, 0.00, 0.00) };
     Substance GRIT = { vec4(0.46, 0.38, 0.35, 0.00), vec4(0.00, 1.00, 0.00, 0.00) };
-    Substance BRAN = { vec4(0.34, 0.26, 0.22, 0.00), vec4(less, 1.00, more, 0.00) };
+    Substance BRAN = { vec4(0.34, 0.26, 0.22, 0.00), vec4(0.00, 0.00, 1.0 + 2.0*more, 0.00) };
     Substance SAND = { vec4(0.70, 0.54, 0.45, 0.00), vec4(0.00, 0.00, 0.00, 1.1 + 0.2*more) };
 
-    vec2 v = t.xy * 0.1;
-#if 0 // BinaryTreeSubDiv2
-    v *= exp2(ceil(-log2(v.y)));
-    v.x *= 0.5;
-    v = fract(v);
-#endif
-    float flow = atan(v.y/v.x);
-    //flow = abs(fract(flow*3) - 0.5)*2.0;
-    
-
-
-    Substance grit = GRIT; //sMix(GRIT, ROCK, less);
-    Substance sand = sMix(SAND, grit, /*more**/flow);
+    float flow = atan(0.2*t.y/t.x);
+    Substance grit = sMix(GRIT, BRAN, less);
+    Substance sand = sMix(SAND, grit, flow);
 
     Substance substance = 
         slope > 0.34 ? ROCK : 
