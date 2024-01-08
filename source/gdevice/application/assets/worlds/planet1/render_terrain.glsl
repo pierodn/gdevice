@@ -782,22 +782,22 @@ void main()
         float a1 = 0.7, a2 = 1.2, // (1.0 - a1)*4,  // LOD0
               a3 = 0.2, a4 = 0.2, a5 = 0.2;         // LOD1
         float sand0 = 0.8, grit0 = 0.2;             // SAND and GRIT on LOD0
-        vec4 l1,l2;
+        vec4 L1,L2;
         if(Tessellator > 0.0) {
             //luma4 = 0.666*luma4 + 0.333*textureTriplanar(detailsTU, gVertex.position.xyz*32.0, weight, LodBias).rbaa;
             //luma4 = (luma4 + 0.5*textureTriplanar(detailsTU, gVertex.position.xyz*32.0, weight, LodBias).rbaa)/1.5;
-            l1 = luma4;
-            l2 = textureTriplanar(detailsTU, gVertex.position.xyz*32.0, weight, LodBias);
+            L1 = luma4;
+            L2 = textureTriplanar(detailsTU, gVertex.position.xyz*32.0, weight, LodBias);
 
-            l1 = a1*l1 + a2*l1*l2.rbaa; /* l1*(0.2 + 2.7*l2);*/
-            l1.a = mix(l1.a, l2.a, sand0); // sand
-            //l1.g = mix(l1.g, l2.g, grit0); // grit
+            L1 = a1*L1 + a2*L1*L2.rbaa; /* L1*(0.2 + 2.7*L2);*/
+            L1.a = mix(L1.a, L2.a, sand0); // sand
+            //L1.g = mix(L1.g, L2.g, grit0); // grit
 
-            //luma4.rgba = max(l1.rgba, a3*l2.bgaa);
-            luma4.r = l1.r > a3*l2.b ? l1.r : a4*l2.b;
-            luma4.g = l1.g > a3*l2.g ? l1.g : a4*l2.g;
-            luma4.b = l1.b > a3*l2.a ? l1.b : a4*l2.a;
-            luma4.a = l1.a > a3*l2.a ? l1.a : a4*l2.a;
+            //luma4.rgba = max(L1.rgba, a3*L2.bgaa);
+            luma4.r = L1.r > a3*L2.b ? L1.r : a4*L2.b;
+            luma4.g = L1.g > a3*L2.g ? L1.g : a4*L2.g;
+            luma4.b = L1.b > a3*L2.a ? L1.b : a4*L2.a;
+            luma4.a = L1.a > a3*L2.a ? L1.a : a4*L2.a;
         }
             
         mixmap = blendMixmap(mixmap + luma4); // moveable to tessellator ?
@@ -817,29 +817,29 @@ void main()
 		        //luma4Dy = 0.666*luma4Dy + 0.333*textureTriplanar(detailsDyTU, gVertex.position.xyz*32.0, weight, LodBias + 0.0).rbaa;
                 //luma4Dx = (luma4Dx + 0.5*textureTriplanar(detailsDxTU, gVertex.position.xyz*32.0, weight, LodBias + 0.0).rbaa)/1.5;
 		        //luma4Dy = (luma4Dy + 0.5*textureTriplanar(detailsDyTU, gVertex.position.xyz*32.0, weight, LodBias + 0.0).rbaa)/1.5;
-                vec4 l1Dx = luma4Dx;
-                vec4 l1Dy = luma4Dy;
-                vec4 l2Dx = textureTriplanar(detailsDxTU, gVertex.position.xyz*32.0, weight, LodBias + 0.0);
-                vec4 l2Dy = textureTriplanar(detailsDyTU, gVertex.position.xyz*32.0, weight, LodBias + 0.0);
+                vec4 L1Dx = luma4Dx;
+                vec4 L1Dy = luma4Dy;
+                vec4 L2Dx = textureTriplanar(detailsDxTU, gVertex.position.xyz*32.0, weight, LodBias + 0.0);
+                vec4 L2Dy = textureTriplanar(detailsDyTU, gVertex.position.xyz*32.0, weight, LodBias + 0.0);
 
-                l1Dx = a1*l1Dx + a2*l1Dx*l2.rbaa + a2*l1*l2Dx.rbaa; 
-                l1Dy = a1*l1Dy + a2*l1Dy*l2.rbaa + a2*l1*l2Dy.rbaa;
-                l1Dx.a = mix(l1Dx.a, l2Dx.a, sand0); // sand
-                l1Dy.a = mix(l1Dy.a, l2Dy.a, sand0); // sand
-                //l1Dx.g = mix(l1Dx.g, l2Dx.g, grit0*2.0); // grit
-                //l1Dy.g = mix(l1Dy.g, l2Dy.g, grit0*2.0); // grit
+                L1Dx = a1*L1Dx + a2*L1Dx*L2.rbaa + a2*L1*L2Dx.rbaa; 
+                L1Dy = a1*L1Dy + a2*L1Dy*L2.rbaa + a2*L1*L2Dy.rbaa;
+                L1Dx.a = mix(L1Dx.a, L2Dx.a, sand0); // sand
+                L1Dy.a = mix(L1Dy.a, L2Dy.a, sand0); // sand
+                //L1Dx.g = mix(L1Dx.g, L2Dx.g, grit0*2.0); // grit
+                //L1Dy.g = mix(L1Dy.g, L2Dy.g, grit0*2.0); // grit
 
-                l1Dx.r = l1.r > a3*l2.b ? l1Dx.r : a5*l2Dx.b;
-                l1Dx.g = l1.g > a3*l2.g ? l1Dx.g : a5*l2Dx.g;
-                l1Dx.b = l1.b > a3*l2.a ? l1Dx.b : a5*l2Dx.a;
-                l1Dx.a = l1.a > a3*l2.a ? l1Dx.a : a5*l2Dx.a;
-                l1Dy.r = l1.r > a3*l2.b ? l1Dy.r : a5*l2Dy.b;
-                l1Dy.g = l1.g > a3*l2.g ? l1Dy.g : a5*l2Dy.g;
-                l1Dy.b = l1.b > a3*l2.a ? l1Dy.b : a5*l2Dy.a;
-                l1Dy.a = l1.a > a3*l2.a ? l1Dy.a : a5*l2Dy.a;
+                L1Dx.r = L1.r > a3*L2.b ? L1Dx.r : a5*L2Dx.b;
+                L1Dx.g = L1.g > a3*L2.g ? L1Dx.g : a5*L2Dx.g;
+                L1Dx.b = L1.b > a3*L2.a ? L1Dx.b : a5*L2Dx.a;
+                L1Dx.a = L1.a > a3*L2.a ? L1Dx.a : a5*L2Dx.a;
+                L1Dy.r = L1.r > a3*L2.b ? L1Dy.r : a5*L2Dy.b;
+                L1Dy.g = L1.g > a3*L2.g ? L1Dy.g : a5*L2Dy.g;
+                L1Dy.b = L1.b > a3*L2.a ? L1Dy.b : a5*L2Dy.a;
+                L1Dy.a = L1.a > a3*L2.a ? L1Dy.a : a5*L2Dy.a;
 
-                luma4Dx = l1Dx;
-                luma4Dy = l1Dy;
+                luma4Dx = L1Dx;
+                luma4Dy = L1Dy;
             }
 
             // Compute H and dH

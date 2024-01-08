@@ -1,10 +1,10 @@
 #pragma once 
 
 // Window
-#define WINDOW_WIDTH		(1280+16)	// 1280x720 =>	youtube HD
-#define WINDOW_HEIGHT		(720+34)
-#define FULLSCREEN_WIDTH	1280
-#define FULLSCREEN_HEIGHT	600
+#define WINDOW_WIDTH		(1280/2+16)	// 1280x720 =>	youtube HD
+#define WINDOW_HEIGHT		(720/2+34)
+//#define FULLSCREEN_WIDTH	(1280/16)
+//#define FULLSCREEN_HEIGHT	(600/16)
 #define	FOV					90
 
 // World scale

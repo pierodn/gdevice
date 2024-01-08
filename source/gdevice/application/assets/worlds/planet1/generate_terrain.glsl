@@ -195,17 +195,42 @@ Substance sMix(Substance s1, Substance s2, float a) {
     substance.mixmap = mix(s1.mixmap, s2.mixmap, a);
     return substance;
 }
+
+vec4 fbm(vec2 p, float scale = 1.0/256.0)
+{
+    const mat2 M2 = mat2(0.8,-0.6,0.6,0.8);
+
+    vec4 f = vec4(0.0);
+    f += 0.5000*noise(p*SCALE); p = M2*p*2.02;
+    f += 0.2500*noise(p*SCALE); p = M2*p*2.03;
+    f += 0.1250*noise(p*SCALE); p = M2*p*2.01;
+    f += 0.0625*noise(p*SCALE);
+
+    return f/0.9375;
+}
+
 	
 Substance getSubstance(vec4 t, vec3 scale)
 { 
-    float slope = 1.0 - normalize(vec3(t.xy, 1.0)).z;
+    vec3 N = normalize(vec3(t.xy, 1.0));
+    //float slope = 1.0 - N.z;
 	float height = t.z;
 	//float peak = t.w;
-
+    float flow = atan(0.2*t.y/t.x);
+        
     // FIX frequency
 	float s1 = 0.5 + noise(t.zz + t.yx, scale.x*123.4567).z;
 	float less = pow(s1, 4.0);
 	float more = pow(1.0 - less, 2.0);
+    float some = more - less;
+
+    // FIX Elevated's snow: https://www.shadertoy.com/view/MdX3Rr
+    float SC = 250.0;
+	float h = smoothstep(55.0, 80.0, t.z/SC + 25.0*fbm(0.01*t.xy/SC).z);
+    float e = smoothstep(1.0 - 0.5*h, 1.0 - 0.1*h, N.z);
+    float o = 0.3 + 0.7*smoothstep(0.0, 0.1, N.x + h*h);
+    float s = some*(1.0-flow); //h*e*o;
+    // col = mix( col, 0.29*vec3(0.62,0.65,0.7), smoothstep( 0.1, 0.9, s ) );
 
     // ===================  Red   Green Blue  Spec  ===== Rock  Grit  Bran  Sand
 	Substance ROCK = { vec4(0.36, 0.28, 0.22, 0.00), vec4(1.00, 0.00, 0.00, 0.00) };
@@ -213,15 +238,17 @@ Substance getSubstance(vec4 t, vec3 scale)
     Substance BRAN = { vec4(0.34, 0.26, 0.22, 0.00), vec4(0.00, 0.00, 1.0 + 2.0*more, 0.00) };
     Substance SAND = { vec4(0.70, 0.54, 0.45, 0.00), vec4(0.00, 0.00, 0.00, 1.1 + 0.2*more) };
 
-    float flow = atan(0.2*t.y/t.x);
     Substance grit = sMix(GRIT, BRAN, less);
     Substance sand = sMix(SAND, grit, flow);
+    //Substance bran = sMix(sand, BRAN, more*(1.0-flow));
+    Substance bran = sMix(sand, BRAN, smoothstep(0.1, 0.9, s));
 
     Substance substance = 
-        slope > 0.34 ? ROCK : 
-        slope > 0.30 ? grit : 
-        slope > 0.04 ? sand :
-                       SAND;
+            N.z < 0.76 ? ROCK : 
+            N.z < 0.70 ? grit : 
+            N.z < 0.88 ? bran :
+            N.z < 0.98 ? sand :
+                         SAND;
 
     //substance.color.r += pow(t.w, 0.25);
 
