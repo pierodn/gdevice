@@ -213,7 +213,6 @@ vec4 fbm(vec2 p, float scale = 1.0/256.0)
 Substance getSubstance(vec4 t, vec3 scale)
 { 
     vec3 N = normalize(vec3(t.xy, 1.0));
-    //float slope = 1.0 - N.z;
 	float height = t.z;
 	//float peak = t.w;
     float flow = atan(0.2*t.y/t.x);
@@ -225,11 +224,12 @@ Substance getSubstance(vec4 t, vec3 scale)
     float some = more - less;
 
     // FIX Elevated's snow: https://www.shadertoy.com/view/MdX3Rr
-    float SC = 250.0;
-	float h = smoothstep(55.0, 80.0, t.z/SC + 25.0*fbm(0.01*t.xy/SC).z);
+    float SC = 1.0;
+	float h = smoothstep(0.0, 80.0, t.z/SC + 25.0*fbm(10.01*t.xy/SC).z);
     float e = smoothstep(1.0 - 0.5*h, 1.0 - 0.1*h, N.z);
     float o = 0.3 + 0.7*smoothstep(0.0, 0.1, N.x + h*h);
-    float s = some*(1.0-flow); //h*e*o;
+    float s = //some*(1.0-flow); //
+        h*e*o;
     // col = mix( col, 0.29*vec3(0.62,0.65,0.7), smoothstep( 0.1, 0.9, s ) );
 
     // ===================  Red   Green Blue  Spec  ===== Rock  Grit  Bran  Sand
