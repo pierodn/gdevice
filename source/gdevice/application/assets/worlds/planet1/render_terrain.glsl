@@ -458,6 +458,7 @@ uniform int Fresnel		= 1;
 uniform int Shadows		= 1;
 uniform int PBR			= 1;
 uniform int Scattering	= 1;
+uniform int Heatmap 	= 1;
 uniform int Gamma		= 1;
 uniform int Contrast	= 1;
 uniform int Unsaturate	= 1;
@@ -945,6 +946,13 @@ else
 	light += 0.02 * Sky      * occlusion *			  zenithColor * N.z;
 	light += 0.02 * Fresnel  * relief	 * (fresnelColor - light) * fresnel;
 }
+
+    if(Heatmap > 0)
+    {
+        float diffuse = Diffuse  * occlusion * daylight * lfShadow * max(0.0, dot(N,L));
+        matColor.rgb = mix(matColor.rgb, vec3(dot(matColor.rgb, vec3(0.299, 0.587, 0.114))), diffuse);
+        matColor.rgb = mix(matColor.rgb, sunColor, pow(diffuse,0.25));
+    }
     
     // Tone mapping
     vec3 color = tone(1.00*light*matColor.rgb, 0.1); 
@@ -978,7 +986,7 @@ else
 	color *= mix(1.0, pow(2.0*(ndcoords.x*ndcoords.x-1.0)*(ndcoords.y*ndcoords.y-1), 0.20), 0.5 * Vignetting);
 
     // TEMP
-	color += 0.00000000001 * Wireframe * Fresnel * Scattering * PBR * Sky * Gamma * Contrast * Unsaturate * Tint * Vignetting * NormalMatrix[0].x ;
+	color += 0.00000000001 * Wireframe * Fresnel * Scattering * PBR * Sky * Heatmap * Gamma * Contrast * Unsaturate * Tint * Vignetting * NormalMatrix[0].x ;
 	
 	// Debug controls
    	if( DebugMode == ColorView ) {

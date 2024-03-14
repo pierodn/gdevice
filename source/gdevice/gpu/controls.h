@@ -21,7 +21,8 @@ static const unsigned char BINDINGS[] =
 	F1, F2, F3, F4,
 	F5, F6, F7, F8, 
 	F9, F10, F11, F12, 
-	'G', 'C', 'U', 'T', 'V' 
+	'H', 
+    'G', 'C', 'U', 'T', 'V' 
 };
     
 //
@@ -37,6 +38,7 @@ struct Controls
 	enum constants {	WIREFRAME, DEBUGMODE, DIFFUSE, SPECULAR,
 						INDIRECT, SKY, FRESNEL, SCATTERING, 
                         TESSELLATOR, BUMPS, SHADOWS, PBR, 
+                        HEATMAP,
 						GAMMA, CONTRAST, UNSATURATE, TINT, VIGNETTING, 
 						CONTROLCOUNT };
 
@@ -62,6 +64,8 @@ struct Controls
 		literals[SHADOWS]		.push("Shadows");		// Low-Frequency lambertian filter
         literals[PBR]			.push("PBR");
 
+        literals[HEATMAP]		.push("Heatmap");
+
 		literals[GAMMA]			.push("Gamma");
 		literals[CONTRAST]		.push("Contrast");
 		literals[UNSATURATE]	.push("Unsaturate");
@@ -85,6 +89,8 @@ struct Controls
 		values[Bindings[BUMPS]]         = 1;
 		values[Bindings[SHADOWS]]		= 1;
 		values[Bindings[PBR]]			= 0;
+
+        values[Bindings[HEATMAP]]		= 1;
 		
 		values[Bindings[GAMMA]]			= 1;
 		values[Bindings[CONTRAST]]		= 0;
