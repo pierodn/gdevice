@@ -949,9 +949,11 @@ else
 
     if(Heatmap > 0)
     {
-        float diffuse = Diffuse  * occlusion * daylight * lfShadow * max(0.0, dot(N,L));
-        matColor.rgb = mix(matColor.rgb, vec3(dot(matColor.rgb, vec3(0.299, 0.587, 0.114))), diffuse);
-        matColor.rgb = mix(matColor.rgb, sunColor, pow(diffuse,0.25));
+        float diffuse  = Diffuse  * occlusion * daylight * lfShadow                * max(0.0, dot(N,L));
+        float specular = Specular * relief	  * daylight * mix(0.2, 1.0, lfShadow) * specular;
+        float matLuma  = dot(matColor.rgb, vec3(0.299, 0.587, 0.114));
+        matColor.rgb = mix(matColor.rgb, vec3(matLuma), 1.0*occlusion*pow(mix(diffuse, specular, 0.1),        occlusion*2.00));
+        matColor.rgb = mix(matColor.rgb, sunColor,      0.8*occlusion*pow(mix(diffuse, specular, 1.0-relief), occlusion*0.25));
     }
     
     // Tone mapping
@@ -969,10 +971,12 @@ else
 	if( Scattering > 0 ) {
 		//dist = length(EE); //?
 	    float EdotL = max(0.0, dot(E,L));
-	    float scattering = smoothstep(+0.05, 0.5, L.z) * (1.0 - exp(-0.0200*dist)) * pow(EdotL, 8.0);
+	    float scattering = smoothstep(+0.05, 0.5, L.z) * (1.0 - exp(-0.02*dist)) * pow(EdotL, 8.0);
 	    scattering = min(4.0*scattering, 0.1); // lens effect
-		color += mix(lfShadow, 1.0, 0.7) * scattering * sunColor;
-		color = mix(color, groundColor, vec3(0.98,1.00,1.09) * smoothstep(0.0, visibileDistance, dist /*+ 0.0*volumetric*/));
+		color += mix(lfShadow, 1.0, 0.7) * scattering * sunColor; // extra volume in shadowed areas 
+
+        float fogAmount = smoothstep(0.0, visibileDistance, dist /*+ 0.0*volumetric*/);
+		color = mix(color, groundColor, fogAmount);
 	}
 
 

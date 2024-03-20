@@ -38,7 +38,7 @@ public:
 	    scene.children.push(&heightmap);
 
         wheelSpeed = 40;
-	    camera.position = 100.0 * dvec3(0,0,1);
+	    camera.position = dvec3(0,0,10.0);
 	    camera.rotation = dvec3(0,0,0);
     	
         time = TIME_START;
@@ -179,6 +179,5 @@ public:
 
 int main()
 {
-    DEBUG_TRACE(summit(3,2));
     return Walker().run();
 }
