@@ -15,3 +15,7 @@
 *.ncb
 asset/textures/terrain/output.bmp
 *.glsl.h
+source/*/bin
+source/*/obj
+source/*/Debug
+source/Debug
