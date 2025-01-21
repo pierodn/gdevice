@@ -1,6 +1,6 @@
 #pragma once
 
-#include "type/gpu.h"
+#include "type/glsl.h"
 
 #define QUINTIC_INTERPOLATION
 

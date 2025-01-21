@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#include "type/gpu.h"
+#include "type/glsl.h"
 
 #if defined(_MSC_VER) 
 	#pragma warning(disable: 4172) // Returning local variable address

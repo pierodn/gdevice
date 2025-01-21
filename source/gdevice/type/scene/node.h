@@ -1,7 +1,7 @@
 #pragma once
 
 
-#include "type/gpu.h"
+#include "type/glsl.h"
 #include "type/array.h"
 
 #include "__temp/texture.h"

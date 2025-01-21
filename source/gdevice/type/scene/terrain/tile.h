@@ -1,6 +1,6 @@
 #pragma once
 
-#include "type/node.h"
+#include "type/scene/node.h"
 
 
 struct Tile : public Node, Transform, Child, Geometry, Updatable, Renderable

@@ -1,40 +1,22 @@
 #pragma once
 
-//#include "gdevice.h" // the library ?
-
 #define DEBUG_SHOW_GLSL_SOURCE	
 
 #include "os/platform.h"
 #include "os/application.h"
 #include "os/keyboard.h"
 
-#include "type/gpu.h"
-#include "type/node.h"
-#include "type/terrain/heightmap.h"
+#include "type/glsl.h"
+#include "type/scene/scene.h"
+#include "type/scene/terrain/heightmap.h"
 
 #include "application/assets/worlds/planet1/parameters.h"
 
-#include "type/entity.h"
-
-///////////////////////////////////////////////7
-
-
-
-
-struct Scene : Node, Transform, Parent
-{
-
-};
 
 
 
 class Walker : gd::Application<Walker>
 {
-/*
-    Entity scene2;
-    typedef dmat3 Transform;
-    //Transform& camera2;
-*/
 
     dmat3 camera; 
     double speedFactor;
@@ -43,6 +25,8 @@ class Walker : gd::Application<Walker>
     Heightmap heightmap;
     float time; 
     Light sun;  // TODO vec3 sun;
+
+    // TODO Texture renderTarget(DC);
 
 	
 public:
@@ -60,7 +44,6 @@ public:
 	    camera.rotation = dvec3(0,0,0);
     	
         time = TIME_START;
-        sun.id = 0;
 	    sun.spot_direction = rotate((time-7)*360/24, 0.7f, 1.7f) * vec3(0.1,-0.8,0.1); 
 
         // TODO add InputControl
@@ -68,7 +51,10 @@ public:
 
 	void onSize(Window<Walker>& window)
     {
-	    window.renderer->setViewport(window.size); 
+        // TODO renderTarget.SetSize(window.size)
+	    window.renderer->setViewport(window.size);
+
+        // TODO scene.setProjection( Mat4.Projection(FOV, NEAR_CLIP_PLANE, heightmap.visibility()) );
 	    window.renderer->setProjection(FOV, NEAR_CLIP_PLANE, heightmap.visibility());
     }
 
@@ -80,7 +66,7 @@ public:
         // Update scene by user input.
         //
 
-        // TODO
+        // TODO 
         // camera = transform(camera, window, ROTATION_SPEED);
 
 	        // Camera rotation
@@ -107,8 +93,6 @@ public:
 
         // TODO
         // time = 
-
-	    // Time
 	    float timeSpeed = (Key('E').isPressed() ? +1 : Key('R').isPressed() ? -1 : 0) * float(TIME_SPEED) * (speedFactor);
 	    time = fmod( time + timeSpeed*float(elapsed), 24.0f );
 	    sun.spot_direction = rotate((time-7)*360.0f/24.0f, 40.0f, 0.0f) * vec3(0.2, -0.8, 0.1);
@@ -140,7 +124,9 @@ public:
 	    // Rendering
 	    //
         // TODO: renderer.barrier 
-	    renderer.clear();
+        // TODO renderTarget.clear();
+	    renderer.clearBuffer();
+        renderer.setModelViewMatrix(mat4(1));
 	    renderer.inverseRotationMatrix = transpose(RotationMatrix(scene.transform.rotation) * RotationMatrix(heightmap.transform.rotation));
         renderer.setLight(sun);
         // TODO: renderer.setTarget<rgba>( NULL );
@@ -151,7 +137,10 @@ public:
         // This is workaround to avoid waiting for glDispatchCompute() to finish (syncronization GPU/CPU).
         static bool skipRenderingOnce = false;
 
-	    renderer.traverse( scene, skipRenderingOnce );
+        
+        // TODO scene.traverse( skipRenderingOnce, {update, drawing} )
+	    int vertexCount = renderer.traverse( scene, skipRenderingOnce );
+        // TODO use vertexCount
 	    renderer.drawSky();
 
         skipRenderingOnce = true;
@@ -197,7 +186,7 @@ public:
 	    );
 	    previous_pos = camera.position;
 
-        DEBUG_TRACE_ONCE(renderer.vertices);
+        DEBUG_TRACE_ONCE(renderer.verticesCount);
     }
 
     int run() {

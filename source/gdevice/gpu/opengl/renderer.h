@@ -1,8 +1,8 @@
 #pragma once
 
-#include "type/gpu.h"
+#include "type/glsl.h"
 #include "type/array.h"
-#include "type/node.h"
+#include "type/scene/node.h"
 
 #include "os/profiler.h"
 #include "os/timer.h"
@@ -17,7 +17,6 @@
 #include "application/assets/worlds/planet1/generate_terrain.glsl.h"
 #include "application/assets/worlds/planet1/render_terrain.glsl.h"
 #include "application/assets/worlds/planet1/render_sky.glsl.h"
-//#include <stdio.h>
 
 
 #define MAX_LIGHTS 4 // 32
@@ -35,20 +34,12 @@ public:
 	mat4 inverseRotationMatrix;
 	Array<mat4> ModelViewMatrixStack;
 
-	//Material* material;
-	Light* lights[MAX_LIGHTS];
+	Light light;
 
     Program programGenerateTerrain;
     Program programGenerateGradientMap;
 	Program programRenderTerrain;
 	Program programRenderSky;
-
-
-	int maxVertexAttributes;
-	int maxPatchVertices;
-	int maxTextureUnits;
-	int maxTextureImageUnits;
-
 
 	Renderer()
 	{
@@ -76,27 +67,35 @@ public:
 	    GL::GLSL::computeAvailable();
 	    GL::MRT::available(); 
 
-		if(true) {
+		if(true) 
+        {
+            int maxTextureUnits;
 			glGetIntegerv(GL_MAX_TEXTURE_UNITS, &maxTextureUnits);
 			//DEBUG_PRINT( TAB32 ": %i\n", "Max texture units", maxTextureUnits );
 		}
 
-		if( GL::GLSL::available() ) {
+		if( GL::GLSL::available() ) 
+        {
+            int maxTextureImageUnits;
 			glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextureImageUnits);
 			//DEBUG_PRINT( TAB32 ": %i\n", "Max texture image units", maxTextureImageUnits );
 		}
 /*
-		if(glEnableVertexAttribArray) {
+		if(glEnableVertexAttribArray) 
+        {
 			glGetIntegerv( GL_MAX_VERTEX_ATTRIBS, &maxVertexAttributes );
 			DEBUG_PRINT( TAB32 ": %i\n", "Max vertex attributes", maxVertexAttributes );
 		}
 */
-	    if( GL::GLSL::tessellatorAvailable() ) {
+	    if( GL::GLSL::tessellatorAvailable() ) 
+        {
+            int maxPatchVertices;
 		    glGetIntegerv(GL_MAX_PATCH_VERTICES, &maxPatchVertices);
 		    //DEBUG_PRINT( TAB32 ": %i\n", "Max patch vertices", maxPatchVertices );
 	    }
 
-		if(true) {
+		if(true)
+        {
 			int maxDrawBuffers;
 			glGetIntegerv(GL_MAX_DRAW_BUFFERS, &maxDrawBuffers);
 			//DEBUG_PRINT( TAB32 ": %i\n", "Max draw buffers", maxDrawBuffers );
@@ -114,14 +113,15 @@ public:
 		
 		glShadeModel( GL_SMOOTH );	
 		glHint( GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST );
-		glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+        glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+
 		glDrawBuffer( GL_BACK );
 
 		glEnable(GL_COLOR_MATERIAL);
 		glColorMaterial( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE );
 
-		// BACKFACES ?
-		(false ? glDisable : glEnable)( GL_CULL_FACE );
+		bool drawBackfaces = false;
+		(drawBackfaces ? glDisable : glEnable)( GL_CULL_FACE );
 
 		GL::Texturing::unbind();
 
@@ -168,11 +168,6 @@ public:
 		controls.initialize();	// TEMP	
 		controls.showLegenda();
 	}
-	
-
-	// 
-	// Hardware capabilities
-	//
 
 	bool isNonPowerOfTwoTexturesAvailable()
 	{
@@ -180,9 +175,7 @@ public:
 	}
 
 
-	//
-	// Internal state
-	//
+
 	void setViewport( vec2& viewport )
 	{
 		glViewport( 0, 0, viewport.x, viewport.y );
@@ -198,39 +191,43 @@ public:
 	void setProjection( double fov, double near_plane, double far_plane )
 	{
 		ProjectionMatrix = projection(getViewport(), fov, near_plane, far_plane);
-		glMatrixMode( GL_PROJECTION );
-		glLoadMatrixf( ProjectionMatrix.array );
-		// TODO frustum culling
 	}
 
-	void clear( vec4& color = vec4(0) )
+    void setModelViewMatrix( mat4& mat)
+    {
+        ModelViewMatrix = mat4(1);
+    }
+
+    // buffer logic
+	void clearBuffer( vec4& color = vec4(0) )
 	{
-		// TEMP 
-		// glPolygonMode( GL_FRONT_AND_BACK, _getFlag(WIREFRAME) ? GL_LINE : GL_FILL );
-		glPolygonMode( GL_FRONT_AND_BACK, false ? GL_LINE : GL_FILL );
-
-		glClearColor( color.r, color.g, color.b , color.a );	//
+		glClearColor( color.r, color.g, color.b , color.a );
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-
-		for( int i=0; i<MAX_LIGHTS; i++ ) {
-			lights[i] = NULL;
-		}
-
-		ModelViewMatrix = mat4(1);
 	}
 
+    // uniform logic
     void setLight(Light& light)
     {
-        lights[ light.id ] = &light;
+        this->light = light;
     }
 
 
 
 
-int vertices;
+int verticesCount;
+
+int traverse( Node& node, bool skipRendering = false )
+{
+    verticesCount = 0;
+    
+
+    traverse( node, verticesCount, skipRendering );
+
+    return verticesCount;
+}
 
 // traverse(node, Transform::Update, Imposter::Update, Geometry::Update, Drawable::Draw ... )
-void traverse( Node& node, bool skipRendering = false )
+void traverse( Node& node, int& verticesCount, bool skipRendering = false )
 {
     Transform* pTransform = dynamic_cast<Transform*>(&node);
     if (pTransform) 
@@ -338,7 +335,7 @@ void RenderTerrainTile( VertexBuffer& vbo, IndexBuffer& ibo, vec2 tileOffset, fl
     GL::GLSL::set( programRenderTerrain, "tessellationDisplacement", 0.012f );
 
 	// lighting
-	GL::GLSL::set( programRenderTerrain, "Light0_position",				lights[0]->position );
+	GL::GLSL::set( programRenderTerrain, "Light0_position",				light.position );
 
 	// light scattering 
 	GL::GLSL::set( programRenderTerrain, "viewport", getViewport() );
@@ -382,7 +379,7 @@ void RenderTerrainTile( VertexBuffer& vbo, IndexBuffer& ibo, vec2 tileOffset, fl
 	GL::VBO::unbind( GL_ARRAY_BUFFER );
 	GL::VBO::unbind( GL_ELEMENT_ARRAY_BUFFER );
 
-	vertices += ibo.lods[lod].count;
+	verticesCount += ibo.lods[lod].count;
 }
  
 
@@ -417,7 +414,7 @@ void drawSky()
 	}
 	GL::GLSL::set( programRenderSky, "viewport",	                getViewport() );
 	GL::GLSL::set( programRenderSky, "InverseRotationProjection",   inverseRotationMatrix * inverseProjection(ProjectionMatrix) );
-	GL::GLSL::set( programRenderSky, "Light0_position",		        lights[0]->position );
+	GL::GLSL::set( programRenderSky, "Light0_position",		        light.position );
 	GL::GLSL::set( programRenderSky, "AbsoluteTime",	            float(Timer::absoluteTime()) );
 	glDrawArrays(GL_POINTS, 0, 1);
 }

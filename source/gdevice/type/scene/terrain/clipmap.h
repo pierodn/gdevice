@@ -1,9 +1,9 @@
 #pragma once
 
 #include "application/assets/worlds/planet1/parameters.h"
-#include "type/node.h"
+#include "type/scene/node.h"
 
-#include "type/terrain/tile.h"
+#include "type/scene/terrain/tile.h"
 
 
 struct Clipmap : public Node, Transform, Parent, Child

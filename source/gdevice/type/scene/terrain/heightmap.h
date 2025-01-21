@@ -2,7 +2,7 @@
 
 #include "os/thread.h"
 #include "os/mutex.h"
-#include "type/terrain/clipmap.h"
+#include "type/scene/terrain/clipmap.h"
 #include "gpu/renderer.h"
 
 

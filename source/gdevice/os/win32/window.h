@@ -4,7 +4,7 @@
 #include "os/keyboard.h"
 #include "os/listener.h"
 #include "os/win32/timer.h" // ??
-#include "type/gpu.h"
+#include "type/glsl.h"
 #include "gpu/renderer.h"
 
 //#include "os/log.h"
