@@ -395,6 +395,7 @@ void GenerateTerrainTile(const vec4& tileID, VertexBuffer& vbo)
     GL::Texturing::bind( 1, vbo.gradients );
     GL::Texturing::bind( 2, vbo.colors ); 
     GL::Texturing::bind( 3, vbo.mixmaps ); 
+
     glBindImageTexture(0, vbo.quartets.id,	0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);  
     glBindImageTexture(1, vbo.gradients.id,	0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
     glBindImageTexture(2, vbo.colors.id,	0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
