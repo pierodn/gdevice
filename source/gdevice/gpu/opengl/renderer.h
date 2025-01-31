@@ -27,11 +27,12 @@ class Renderer
 public:
 	Controls controls;
 
+    vec2 viewport;
 	mat4 ProjectionMatrix;
+
+    mat4 inverseRotationMatrix;
+
 	mat4 ModelViewMatrix;
-	mat3 NormalMatrix;
-	mat4 ModelViewProjectionMatrix;
-	mat4 inverseRotationMatrix;
 	Array<mat4> ModelViewMatrixStack;
 
 	Light light;
@@ -169,38 +170,12 @@ public:
 		controls.showLegenda();
 	}
 
-	bool isNonPowerOfTwoTexturesAvailable()
+    // TODO buffer logic
+	void PrepareTargetForRendering( vec2 viewport /*Window& window*/, vec4 color = vec4(0) )
 	{
-		return GL::Texturing::textureNonPowerOfTwoAvailable();
-	}
+        this->viewport = viewport;
+        glViewport( 0, 0, viewport.x, viewport.y );
 
-
-
-	void setViewport( vec2& viewport )
-	{
-		glViewport( 0, 0, viewport.x, viewport.y );
-	}
-
-	vec2 getViewport()
-	{
-		GLint temp[4];
-		glGetIntegerv( GL_VIEWPORT, temp );
-		return vec2(temp[2]-temp[0], temp[3]-temp[1]);
-	}
-
-	void setProjection( double fov, double near_plane, double far_plane )
-	{
-		ProjectionMatrix = projection(getViewport(), fov, near_plane, far_plane);
-	}
-
-    void setModelViewMatrix( mat4& mat)
-    {
-        ModelViewMatrix = mat4(1);
-    }
-
-    // buffer logic
-	void clearBuffer( vec4& color = vec4(0) )
-	{
 		glClearColor( color.r, color.g, color.b , color.a );
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 	}
@@ -214,34 +189,27 @@ public:
 
 
 
-int verticesCount;
-
 int traverse( Node& node, bool skipRendering = false )
 {
-    verticesCount = 0;
+    int verticesCount = 0;
+
+    //glViewport( 0, 0, viewport.x, viewport.y );
     
-
-    traverse( node, verticesCount, skipRendering );
-
-    return verticesCount;
+    return traverse( node, verticesCount, skipRendering );
 }
 
 // traverse(node, Transform::Update, Imposter::Update, Geometry::Update, Drawable::Draw ... )
-void traverse( Node& node, int& verticesCount, bool skipRendering = false )
+int traverse( Node& node, int& verticesCount, bool skipRendering )
 {
     Transform* pTransform = dynamic_cast<Transform*>(&node);
     if (pTransform) 
     {
 	    ModelViewMatrixStack.push( ModelViewMatrix );
 	    ModelViewMatrix *= TransformationMatrix( pTransform->transform );
-	    ModelViewProjectionMatrix = ProjectionMatrix * ModelViewMatrix;
-	    NormalMatrix = inverseTranspose( mat3(ModelViewMatrix) );
     }
 
     Impostor* pImpostor = dynamic_cast<Impostor*>(&node);
     Geometry* pGeometry = dynamic_cast<Geometry*>(&node);
-    
-
     if( pImpostor && !pImpostor->impostorTexture.empty() )
 	{
         // TODO AND is the impostor still valid?
@@ -283,7 +251,7 @@ void traverse( Node& node, int& verticesCount, bool skipRendering = false )
             Node* childAsNode = dynamic_cast<Node*>(pParent->children[i]);
             if(childAsNode) 
             {
-		        traverse( *childAsNode );
+		        traverse( *childAsNode, verticesCount );
             }
 	    }
     }
@@ -292,6 +260,8 @@ void traverse( Node& node, int& verticesCount, bool skipRendering = false )
     {
 	    ModelViewMatrix = ModelViewMatrixStack.pop();
     }
+
+    return verticesCount;
 }
 
 
@@ -325,6 +295,8 @@ void RenderTerrainTile( VertexBuffer& vbo, IndexBuffer& ibo, vec2 tileOffset, fl
 	GL::GLSL::set( programRenderTerrain, "scale", vbo.mixmaps.scale.s );
 
 	// transformation
+    mat4 ModelViewProjectionMatrix = ProjectionMatrix * ModelViewMatrix;
+    mat3 NormalMatrix = inverseTranspose( mat3(ModelViewMatrix) );
 	GL::GLSL::set( programRenderTerrain, "ModelViewProjectionMatrix",	ModelViewProjectionMatrix );
 	GL::GLSL::set( programRenderTerrain, "ModelViewMatrix",				ModelViewMatrix );
 	GL::GLSL::set( programRenderTerrain, "NormalMatrix",				NormalMatrix );
@@ -338,7 +310,7 @@ void RenderTerrainTile( VertexBuffer& vbo, IndexBuffer& ibo, vec2 tileOffset, fl
 	GL::GLSL::set( programRenderTerrain, "Light0_position",				light.position );
 
 	// light scattering 
-	GL::GLSL::set( programRenderTerrain, "viewport", getViewport() );
+	GL::GLSL::set( programRenderTerrain, "viewport", viewport  );
 	GL::GLSL::set( programRenderTerrain, "InverseRotationProjection", inverseRotationMatrix * inverseProjection(ProjectionMatrix) );
     
     GL::GLSL::set( programRenderTerrain, "visibileDistance", visibileDistance );
@@ -379,7 +351,7 @@ void RenderTerrainTile( VertexBuffer& vbo, IndexBuffer& ibo, vec2 tileOffset, fl
 	GL::VBO::unbind( GL_ARRAY_BUFFER );
 	GL::VBO::unbind( GL_ELEMENT_ARRAY_BUFFER );
 
-	verticesCount += ibo.lods[lod].count;
+	// TODO verticesCount += ibo.lods[lod].count;
 }
  
 
@@ -413,7 +385,7 @@ void drawSky()
 		int size = controls.literals[i].size() <= 1 ? 2 : controls.literals[i].size();
 		GL::GLSL::set( programRenderSky, controls.literals[i][0], controls.values[Controls::Bindings[i]] % size ); 
 	}
-	GL::GLSL::set( programRenderSky, "viewport",	                getViewport() );
+	GL::GLSL::set( programRenderSky, "viewport",	                viewport  );
 	GL::GLSL::set( programRenderSky, "InverseRotationProjection",   inverseRotationMatrix * inverseProjection(ProjectionMatrix) );
 	GL::GLSL::set( programRenderSky, "Light0_position",		        light.position );
 	GL::GLSL::set( programRenderSky, "AbsoluteTime",	            float(Timer::absoluteTime()) );

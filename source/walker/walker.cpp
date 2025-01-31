@@ -47,15 +47,22 @@ public:
 	    sun.spot_direction = rotate((time-7)*360/24, 0.7f, 1.7f) * vec3(0.1,-0.8,0.1); 
 
         // TODO add InputControl
+
+
+        scene.Initialize(window.renderer);
     }
 
 	void onSize(Window<Walker>& window)
     {
         // TODO renderTarget.SetSize(window.size)
-	    window.renderer->setViewport(window.size);
+	    //window.renderer->setViewport(window.size);
+        //window.renderer->viewport = window.size;
 
         // TODO scene.setProjection( Mat4.Projection(FOV, NEAR_CLIP_PLANE, heightmap.visibility()) );
-	    window.renderer->setProjection(FOV, NEAR_CLIP_PLANE, heightmap.visibility());
+	    //window.renderer->setProjection(FOV, NEAR_CLIP_PLANE, heightmap.visibility());
+
+        window.renderer->viewport = window.size;
+        window.renderer->ProjectionMatrix = projection( window.size, FOV, NEAR_CLIP_PLANE, heightmap.visibility() );
     }
 
 	void onDraw(Window<Walker>& window, double elapsed)
@@ -125,11 +132,15 @@ public:
 	    //
         // TODO: renderer.barrier 
         // TODO renderTarget.clear();
-	    renderer.clearBuffer();
-        renderer.setModelViewMatrix(mat4(1));
+	    renderer.PrepareTargetForRendering(window.size);
+        renderer.ModelViewMatrix = mat4(1);
 	    renderer.inverseRotationMatrix = transpose(RotationMatrix(scene.transform.rotation) * RotationMatrix(heightmap.transform.rotation));
         renderer.setLight(sun);
         // TODO: renderer.setTarget<rgba>( NULL );
+/*            scene.ProjectionMatrix = renderer.ProjectionMatrix;
+            scene.ModelViewMatrix = mat4(1);
+            scene.inverseRotationMatrix = transpose(RotationMatrix(scene.transform.rotation) * RotationMatrix(heightmap.transform.rotation));
+            */
 
         // ****  NOTE  **** ////////////
         // Do not send in pipeline a node the very first time is generated as it might not be updated (and valid) yet.
@@ -140,6 +151,9 @@ public:
         
         // TODO scene.traverse( skipRenderingOnce, {update, drawing} )
 	    int vertexCount = renderer.traverse( scene, skipRenderingOnce );
+        //scene.renderer = &renderer;
+        //int vertexCount = scene.Traverse( skipRenderingOnce );
+
         // TODO use vertexCount
 	    renderer.drawSky();
 
@@ -186,7 +200,7 @@ public:
 	    );
 	    previous_pos = camera.position;
 
-        DEBUG_TRACE_ONCE(renderer.verticesCount);
+        // TODO DEBUG_TRACE_ONCE(renderer.verticesCount);
     }
 
     int run() {

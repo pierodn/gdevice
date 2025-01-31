@@ -9,7 +9,7 @@ struct Tile : public Node, Transform, Child, Geometry, Updatable, Renderable
 
     void Render(Renderer& renderer, RenderTarget& target)
     {
-        // Ensure it's overriding 
+        // Ensure it's overriding the virtual function of the base class.
         static_cast<void(Renderable::*)(Renderer& renderer, RenderTarget& target)>(&Tile::Render);
 
         DEBUG_ASSERT( vbo );

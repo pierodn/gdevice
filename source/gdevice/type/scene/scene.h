@@ -6,38 +6,57 @@
 struct Scene : Node, Transform, Parent
 {
 /*
+    Controls controls;
+
+    vec2 viewport;
 	mat4 ProjectionMatrix;
+
+    mat4 inverseRotationMatrix;
+
 	mat4 ModelViewMatrix;
-	mat3 NormalMatrix;s
-	mat4 ModelViewProjectionMatrix;
-	mat4 inverseRotationMatrix;
-	Array<mat4> ModelViewMatrixStack;    
+	Array<mat4> ModelViewMatrixStack;   
+
+    Light light;
+
+    Program programGenerateTerrain;
+    Program programGenerateGradientMap;
+	Program programRenderTerrain;
+	Program programRenderSky;
+*/
+    Renderer* renderer;
 
     Scene()
 	{
-		ModelViewMatrixStack.allocate(2000,100);
+		//ModelViewMatrixStack.allocate(2000,100);
 	}
-*/
-    
-/*
-    // TODO int traverse(node, Transform::Update, Imposter::Update, Geometry::Update, Drawable::Draw ... )
-    int vertices;
 
-    void traverse( Node& node, bool skipRendering = false )
+    void Initialize(Renderer* renderer)
+    {
+        this->renderer = renderer;
+        renderer->initialize();
+    }
+
+    
+
+
+    int Traverse( bool skipRendering = false )
+    {
+        int vertexCount = 0;
+
+        return Traverse( *this, vertexCount, skipRendering );
+    }
+
+    int Traverse( Node& node, int& vertexCount, bool skipRendering )
     {
         Transform* pTransform = dynamic_cast<Transform*>(&node);
         if (pTransform) 
         {
-	        ModelViewMatrixStack.push( ModelViewMatrix );
-	        ModelViewMatrix *= TransformationMatrix( pTransform->transform );
-	        ModelViewProjectionMatrix = ProjectionMatrix * ModelViewMatrix;
-	        NormalMatrix = inverseTranspose( mat3(ModelViewMatrix) );
+	        renderer->ModelViewMatrixStack.push( renderer->ModelViewMatrix );
+	        renderer->ModelViewMatrix *= TransformationMatrix( pTransform->transform );
         }
 
         Impostor* pImpostor = dynamic_cast<Impostor*>(&node);
         Geometry* pGeometry = dynamic_cast<Geometry*>(&node);
-        
-
         if( pImpostor && !pImpostor->impostorTexture.empty() )
 	    {
             // TODO AND is the impostor still valid?
@@ -48,7 +67,7 @@ struct Scene : Node, Transform, Parent
             Updatable* pUpdatable = dynamic_cast<Updatable*>(&node);
             if( pUpdatable && pUpdatable->videomem_invalidated )
 		    {
-                pUpdatable->Update(*this);
+                pUpdatable->Update(*renderer);
 			    //Update( &node );
 
 			    pUpdatable->videomem_invalidated = false;
@@ -66,7 +85,7 @@ struct Scene : Node, Transform, Parent
                 if(pRenderable) 
                 {
                     RenderTarget target;
-                    pRenderable->Render(*this, target);
+                    pRenderable->Render(*renderer, target);
                 }
             }
 	    }
@@ -79,15 +98,18 @@ struct Scene : Node, Transform, Parent
                 Node* childAsNode = dynamic_cast<Node*>(pParent->children[i]);
                 if(childAsNode) 
                 {
-		            traverse( *childAsNode );
+		            Traverse( *childAsNode, vertexCount, skipRendering );
                 }
 	        }
         }
 
         if (pTransform) 
         {
-	        ModelViewMatrix = ModelViewMatrixStack.pop();
+	        renderer->ModelViewMatrix = renderer->ModelViewMatrixStack.pop();
         }
+
+        return vertexCount;
     }
-*/
+
+
 };
