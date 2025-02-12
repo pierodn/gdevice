@@ -17,8 +17,7 @@
 
 class Walker : gd::Application<Walker>
 {
-
-    dmat3 camera; 
+    dmat3 camera;
     double speedFactor;
 
     Scene scene;
@@ -34,10 +33,12 @@ public:
 	void onOpen(Window<Walker>& window)
     {
         heightmap.setTileResolution(TILE_RESOLUTION);
-	    heightmap.setLODs(CLIPMAPS_COUNT);	
+	    heightmap.setLODs(CLIPMAPS_COUNT);
+        heightmap.Initialize();
 
+        scene.children.push(&heightmap);
         scene.transform.rotation = vec3(-90, 0, 0);
-	    scene.children.push(&heightmap);
+        scene.Initialize(window.renderer);
 
         speedFactor = 40;
 	    camera.position = dvec3(0,0,10.0);
@@ -47,22 +48,11 @@ public:
 	    sun.spot_direction = rotate((time-7)*360/24, 0.7f, 1.7f) * vec3(0.1,-0.8,0.1); 
 
         // TODO add InputControl
-
-
-        scene.Initialize(window.renderer);
     }
 
 	void onSize(Window<Walker>& window)
     {
-        // TODO renderTarget.SetSize(window.size)
-	    //window.renderer->setViewport(window.size);
-        //window.renderer->viewport = window.size;
-
-        // TODO scene.setProjection( Mat4.Projection(FOV, NEAR_CLIP_PLANE, heightmap.visibility()) );
-	    //window.renderer->setProjection(FOV, NEAR_CLIP_PLANE, heightmap.visibility());
-
-        window.renderer->viewport = window.size;
-        window.renderer->ProjectionMatrix = projection( window.size, FOV, NEAR_CLIP_PLANE, heightmap.visibility() );
+        window.renderer->ProjectionMatrix = projection( window.size, FOV, NEAR_CLIP_PLANE, heightmap.GetVisibilityDistance() );
     }
 
 	void onDraw(Window<Walker>& window, double elapsed)
@@ -130,9 +120,10 @@ public:
 	    ////////////////////////////
 	    // Rendering
 	    //
-        // TODO: renderer.barrier 
-        // TODO renderTarget.clear();
-	    renderer.PrepareTargetForRendering(window.size);
+        // TODO Barrier 
+        // TODO SetTarget(window)
+        // TODO CleanTarget()
+	    renderer.PrepareTarget(window.size); // TODO GL::SetTarget(window)kk
         renderer.ModelViewMatrix = mat4(1);
 	    renderer.inverseRotationMatrix = transpose(RotationMatrix(scene.transform.rotation) * RotationMatrix(heightmap.transform.rotation));
         renderer.setLight(sun);
@@ -146,18 +137,19 @@ public:
         // Do not send in pipeline a node the very first time is generated as it might not be updated (and valid) yet.
         // From 2nd generation on, the node might be updated or not, yet valid. In case it is not updated, it will be the previous version.
         // This is workaround to avoid waiting for glDispatchCompute() to finish (syncronization GPU/CPU).
-        static bool skipRenderingOnce = false;
+        static bool skipRenderingOnce = true;
 
         
-        // TODO scene.traverse( skipRenderingOnce, {update, drawing} )
-	    int vertexCount = renderer.traverse( scene, skipRenderingOnce );
+        // TODO 
+        int vertexCount = scene.Traverse( skipRenderingOnce );
+	    //int vertexCount = renderer.Traverse( scene, skipRenderingOnce );
         //scene.renderer = &renderer;
         //int vertexCount = scene.Traverse( skipRenderingOnce );
 
         // TODO use vertexCount
 	    renderer.drawSky();
 
-        skipRenderingOnce = true;
+        skipRenderingOnce = false;
 
 
 	    // 

@@ -7,6 +7,9 @@ struct Tile : public Node, Transform, Child, Geometry, Updatable, Renderable
 {
     vec4 tileID;
 
+    // TODO move programs, Render and Update to Heightmap
+
+    // should call a Heightmap render method
     void Render(Renderer& renderer, RenderTarget& target)
     {
         // Ensure it's overriding the virtual function of the base class.
@@ -34,9 +37,17 @@ struct Tile : public Node, Transform, Child, Geometry, Updatable, Renderable
         renderer.RenderTerrainTile(*vbo, *ibo, tileOffset, visibileDistance);
     }
 
+
+    // TODO removed parameter Renderer, use grandparent Heightmap
     void Update(Renderer& renderer) 
     {
         DEBUG_ASSERT(vbo);
+
+        // TODO parent->Update(tileId, *vbo) 
         renderer.GenerateTerrainTile(tileID, *vbo);
     }
+
+
+
 };
+

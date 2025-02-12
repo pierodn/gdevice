@@ -48,12 +48,10 @@ struct Clipmap : public Node, Transform, Parent, Child
 
 			tile.vbo = new VertexBuffer();
 			VertexBuffer& vbo = *tile.vbo;
-
 			vbo.init( tileRes );
 			vbo.mixmaps.scale.st = tileSize;
 
 			tile.ibo = ibo;
-
 			tile.parent = this;
 		}
 	}
@@ -83,8 +81,9 @@ struct Clipmap : public Node, Transform, Parent, Child
 		int dj = -(tileValue(location.y, 2*tileSize) - tileValue(previousLocation.y, 2*tileSize))*2;
 
 		bool invalidation = di!=0 || dj!=0;
-		
-		if( invalidation ) {
+
+		if( invalidation )
+        {
 			scrollTiles( di, dj, location );
 		}
 

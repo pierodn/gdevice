@@ -5,23 +5,19 @@
 
 struct Scene : Node, Transform, Parent
 {
+
+    
+
 /*
-    Controls controls;
+    //Controls controls; // TODO Singleton
 
-    vec2 viewport;
 	mat4 ProjectionMatrix;
-
-    mat4 inverseRotationMatrix;
-
+    mat4 inverseRotationMatrix; // TODO inverseCameraRotationMatrix;
 	mat4 ModelViewMatrix;
 	Array<mat4> ModelViewMatrixStack;   
 
     Light light;
 
-    Program programGenerateTerrain;
-    Program programGenerateGradientMap;
-	Program programRenderTerrain;
-	Program programRenderSky;
 */
     Renderer* renderer;
 
@@ -42,7 +38,6 @@ struct Scene : Node, Transform, Parent
     int Traverse( bool skipRendering = false )
     {
         int vertexCount = 0;
-
         return Traverse( *this, vertexCount, skipRendering );
     }
 

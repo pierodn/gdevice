@@ -27,11 +27,11 @@ class Renderer
 public:
 	Controls controls;
 
+    // TODO Buffer target; 
     vec2 viewport;
+
 	mat4 ProjectionMatrix;
-
     mat4 inverseRotationMatrix;
-
 	mat4 ModelViewMatrix;
 	Array<mat4> ModelViewMatrixStack;
 
@@ -44,7 +44,7 @@ public:
 
 	Renderer()
 	{
-		ModelViewMatrixStack.allocate(2000,100);
+		//ModelViewMatrixStack.allocate(2000,100);
 	}
 
 	void initialize()
@@ -67,7 +67,7 @@ public:
 	    GL::GLSL::tessellatorAvailable();
 	    GL::GLSL::computeAvailable();
 	    GL::MRT::available(); 
-
+/*
 		if(true) 
         {
             int maxTextureUnits;
@@ -81,13 +81,13 @@ public:
 			glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextureImageUnits);
 			//DEBUG_PRINT( TAB32 ": %i\n", "Max texture image units", maxTextureImageUnits );
 		}
-/*
+
 		if(glEnableVertexAttribArray) 
         {
 			glGetIntegerv( GL_MAX_VERTEX_ATTRIBS, &maxVertexAttributes );
 			DEBUG_PRINT( TAB32 ": %i\n", "Max vertex attributes", maxVertexAttributes );
 		}
-*/
+
 	    if( GL::GLSL::tessellatorAvailable() ) 
         {
             int maxPatchVertices;
@@ -101,7 +101,7 @@ public:
 			glGetIntegerv(GL_MAX_DRAW_BUFFERS, &maxDrawBuffers);
 			//DEBUG_PRINT( TAB32 ": %i\n", "Max draw buffers", maxDrawBuffers );
 		}
-
+*/
 		//
 		// Initialize GL state 
 		//
@@ -143,7 +143,8 @@ public:
 		glDisableClientState(GL_EDGE_FLAG_ARRAY);
 
 		// Reset VBO state
-        if( GL::VBO::available() ) {
+        if( GL::VBO::available() ) 
+        {
 			GL::VBO::unbind(GL_ARRAY_BUFFER);
 			GL::VBO::unbind(GL_ELEMENT_ARRAY_BUFFER);
 		}
@@ -170,12 +171,15 @@ public:
 		controls.showLegenda();
 	}
 
-    // TODO buffer logic
-	void PrepareTargetForRendering( vec2 viewport /*Window& window*/, vec4 color = vec4(0) )
+
+    
+	void PrepareTarget( vec2 viewport, vec4 color = vec4(0) )
 	{
-        this->viewport = viewport;
+        // TODO SetTarget( window )
+        this->viewport = viewport; 
         glViewport( 0, 0, viewport.x, viewport.y );
 
+        // TODO ClearTarget( color ) 
 		glClearColor( color.r, color.g, color.b , color.a );
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 	}
@@ -189,83 +193,28 @@ public:
 
 
 
-int traverse( Node& node, bool skipRendering = false )
+void GenerateTerrainTile(const vec4& tileID, VertexBuffer& vbo)
 {
-    int verticesCount = 0;
+    GL::GLSL::bind( programGenerateTerrain );
 
-    //glViewport( 0, 0, viewport.x, viewport.y );
-    
-    return traverse( node, verticesCount, skipRendering );
-}
+    GL::GLSL::set( programGenerateTerrain, "offset",	tileID.xy );
+    GL::GLSL::set( programGenerateTerrain, "size",		tileID.z );
 
-// traverse(node, Transform::Update, Imposter::Update, Geometry::Update, Drawable::Draw ... )
-int traverse( Node& node, int& verticesCount, bool skipRendering )
-{
-    Transform* pTransform = dynamic_cast<Transform*>(&node);
-    if (pTransform) 
-    {
-	    ModelViewMatrixStack.push( ModelViewMatrix );
-	    ModelViewMatrix *= TransformationMatrix( pTransform->transform );
-    }
+    GL::Texturing::bind( 0, vbo.quartets );
+    GL::Texturing::bind( 1, vbo.gradients );
+    GL::Texturing::bind( 2, vbo.colors ); 
+    GL::Texturing::bind( 3, vbo.mixmaps ); 
 
-    Impostor* pImpostor = dynamic_cast<Impostor*>(&node);
-    Geometry* pGeometry = dynamic_cast<Geometry*>(&node);
-    if( pImpostor && !pImpostor->impostorTexture.empty() )
-	{
-        // TODO AND is the impostor still valid?
-		// TODO draw impostor quad: pImpostor->Render();
-	}  
-    else if(pGeometry && pGeometry->ibo)
-    {
-        Updatable* pUpdatable = dynamic_cast<Updatable*>(&node);
-        if( pUpdatable && pUpdatable->videomem_invalidated )
-		{
-            pUpdatable->Update(*this);
-			//Update( &node );
+    glBindImageTexture(0, vbo.quartets.id,	0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);  
+    glBindImageTexture(1, vbo.gradients.id,	0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+    glBindImageTexture(2, vbo.colors.id,	0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+    glBindImageTexture(3, vbo.mixmaps.id,	0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
 
-			pUpdatable->videomem_invalidated = false;
-			pUpdatable->hostmem_invalidated = true;
-
-            if( pImpostor && !pImpostor->impostorTexture.empty() )
-            {
-                // TODO pImpostor->Update()
-            }
-		}
-
-        if( !skipRendering)
-        {
-            Renderable* pRenderable = dynamic_cast<Renderable*>(&node);
-            if(pRenderable) 
-            {
-                RenderTarget target;
-                pRenderable->Render(*this, target);
-            }
-        }
-	}
-
-    Parent* pParent = dynamic_cast<Parent*>(&node);
-    if( pParent )
-    {
-	    for( int i=0; i<pParent->children.size(); i++ )
-	    {
-            Node* childAsNode = dynamic_cast<Node*>(pParent->children[i]);
-            if(childAsNode) 
-            {
-		        traverse( *childAsNode, verticesCount );
-            }
-	    }
-    }
-
-    if (pTransform) 
-    {
-	    ModelViewMatrix = ModelViewMatrixStack.pop();
-    }
-
-    return verticesCount;
+    glDispatchCompute( vbo.quartets.size.x/2+1, vbo.quartets.size.y/2+1, 1 );
 }
 
 
-// TODO 
+// TODO move to Tile
 void RenderTerrainTile( VertexBuffer& vbo, IndexBuffer& ibo, vec2 tileOffset, float visibileDistance  )
 {		
     GL::GLSL::bind(programRenderTerrain);
@@ -356,25 +305,7 @@ void RenderTerrainTile( VertexBuffer& vbo, IndexBuffer& ibo, vec2 tileOffset, fl
  
 
 
-void GenerateTerrainTile(const vec4& tileID, VertexBuffer& vbo)
-{
-    GL::GLSL::bind( programGenerateTerrain );
 
-    GL::GLSL::set( programGenerateTerrain, "offset",	tileID.xy );
-    GL::GLSL::set( programGenerateTerrain, "size",		tileID.z );
-
-    GL::Texturing::bind( 0, vbo.quartets );
-    GL::Texturing::bind( 1, vbo.gradients );
-    GL::Texturing::bind( 2, vbo.colors ); 
-    GL::Texturing::bind( 3, vbo.mixmaps ); 
-
-    glBindImageTexture(0, vbo.quartets.id,	0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);  
-    glBindImageTexture(1, vbo.gradients.id,	0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
-    glBindImageTexture(2, vbo.colors.id,	0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
-    glBindImageTexture(3, vbo.mixmaps.id,	0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
-
-    glDispatchCompute( vbo.quartets.size.x/2+1, vbo.quartets.size.y/2+1, 1 );
-}
 
 void drawSky()
 {
@@ -385,11 +316,13 @@ void drawSky()
 		int size = controls.literals[i].size() <= 1 ? 2 : controls.literals[i].size();
 		GL::GLSL::set( programRenderSky, controls.literals[i][0], controls.values[Controls::Bindings[i]] % size ); 
 	}
+
 	GL::GLSL::set( programRenderSky, "viewport",	                viewport  );
 	GL::GLSL::set( programRenderSky, "InverseRotationProjection",   inverseRotationMatrix * inverseProjection(ProjectionMatrix) );
 	GL::GLSL::set( programRenderSky, "Light0_position",		        light.position );
 	GL::GLSL::set( programRenderSky, "AbsoluteTime",	            float(Timer::absoluteTime()) );
-	glDrawArrays(GL_POINTS, 0, 1);
+	
+    glDrawArrays(GL_POINTS, 0, 1);
 }
 
 /*
