@@ -52,7 +52,7 @@ public:
 
 	void onSize(Window<Walker>& window)
     {
-        window.renderer->ProjectionMatrix = projection( window.size, FOV, NEAR_CLIP_PLANE, heightmap.GetVisibilityDistance() );
+        scene.nodeTransform.ProjectionMatrix = projection( window.size, FOV, NEAR_CLIP_PLANE, heightmap.GetVisibilityDistance() );
     }
 
 	void onDraw(Window<Walker>& window, double elapsed)
@@ -105,49 +105,27 @@ public:
         ////////////////////////////
         // Update scene
         //
-        double level = heightmap.moveAt(camera); // moves and rotates the world (not the camera)
-        // TEMP heightmap.generateInvalidatedTiles(renderer);
+        double level = heightmap.moveAt(camera); // moves the world around the camera
 
-        // TODO: Sleep while compute shader is working.
-/*      double amountSleep = 1.0/TARGET_FPS - elapsed;
-        DEBUG_TRACE(amountSleep);
-        if( amountSleep>0 ) {
-            Sleep( amountSleep ); 
-        }*/
-
-        
 
 	    ////////////////////////////
 	    // Rendering
 	    //
-        // TODO Barrier 
-        // TODO SetTarget(window)
-        // TODO CleanTarget()
-	    renderer.PrepareTarget(window.size); // TODO GL::SetTarget(window)kk
-        renderer.ModelViewMatrix = mat4(1);
-	    renderer.inverseRotationMatrix = transpose(RotationMatrix(scene.transform.rotation) * RotationMatrix(heightmap.transform.rotation));
-        renderer.setLight(sun);
-        // TODO: renderer.setTarget<rgba>( NULL );
-/*            scene.ProjectionMatrix = renderer.ProjectionMatrix;
-            scene.ModelViewMatrix = mat4(1);
-            scene.inverseRotationMatrix = transpose(RotationMatrix(scene.transform.rotation) * RotationMatrix(heightmap.transform.rotation));
-            */
+	    renderer.SetTarget(window.size); // TODO GL::SetTarget<rgba>(window)
+
+        scene.nodeTransform.ModelViewMatrix = mat4(1);
+	    scene.nodeTransform.inverseRotationMatrix = transpose(RotationMatrix(scene.transform.rotation) * RotationMatrix(heightmap.transform.rotation));
+        scene.state.light = sun;
 
         // ****  NOTE  **** ////////////
         // Do not send in pipeline a node the very first time is generated as it might not be updated (and valid) yet.
         // From 2nd generation on, the node might be updated or not, yet valid. In case it is not updated, it will be the previous version.
         // This is workaround to avoid waiting for glDispatchCompute() to finish (syncronization GPU/CPU).
         static bool skipRenderingOnce = true;
-
-        
-        // TODO 
         int vertexCount = scene.Traverse( skipRenderingOnce );
-	    //int vertexCount = renderer.Traverse( scene, skipRenderingOnce );
-        //scene.renderer = &renderer;
-        //int vertexCount = scene.Traverse( skipRenderingOnce );
 
-        // TODO use vertexCount
-	    renderer.drawSky();
+        // TODO scene.drawG
+        scene.drawSky();
 
         skipRenderingOnce = false;
 

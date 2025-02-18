@@ -3,33 +3,44 @@
 #include "type/scene/node.h"
 #include "gpu/opengl/renderer.h"
 
-struct Scene : Node, Transform, Parent
+struct NodeTransform
 {
-
-    
-
-/*
-    //Controls controls; // TODO Singleton
-
 	mat4 ProjectionMatrix;
     mat4 inverseRotationMatrix; // TODO inverseCameraRotationMatrix;
 	mat4 ModelViewMatrix;
 	Array<mat4> ModelViewMatrixStack;   
 
-    Light light;
+    NodeTransform()
+    {
+		ModelViewMatrixStack.allocate(2000,100);
+    }
+};
 
-*/
-    Renderer* renderer;
+struct SceneState
+{
+    Light light;
+};
+
+struct Scene : Node, Transform, Parent
+{
+    //Controls controls; // TODO Singleton
+    NodeTransform nodeTransform;    
+    SceneState state;
+
+    Program programRenderSky;
+
+    Renderer* renderer; // TODO remove
 
     Scene()
 	{
-		//ModelViewMatrixStack.allocate(2000,100);
 	}
 
     void Initialize(Renderer* renderer)
     {
         this->renderer = renderer;
         renderer->initialize();
+
+        GL::GLSL::build( programRenderSky, render_sky_glsl );
     }
 
     
@@ -46,8 +57,13 @@ struct Scene : Node, Transform, Parent
         Transform* pTransform = dynamic_cast<Transform*>(&node);
         if (pTransform) 
         {
-	        renderer->ModelViewMatrixStack.push( renderer->ModelViewMatrix );
-	        renderer->ModelViewMatrix *= TransformationMatrix( pTransform->transform );
+            // TEMP
+	        //renderer->ModelViewMatrixStack.push( renderer->ModelViewMatrix );
+	        //renderer->ModelViewMatrix *= TransformationMatrix( pTransform->transform );
+
+            // TODO
+            nodeTransform.ModelViewMatrixStack.push( nodeTransform.ModelViewMatrix );
+	        nodeTransform.ModelViewMatrix *= TransformationMatrix( pTransform->transform );
         }
 
         Impostor* pImpostor = dynamic_cast<Impostor*>(&node);
@@ -62,9 +78,7 @@ struct Scene : Node, Transform, Parent
             Updatable* pUpdatable = dynamic_cast<Updatable*>(&node);
             if( pUpdatable && pUpdatable->videomem_invalidated )
 		    {
-                pUpdatable->Update(*renderer);
-			    //Update( &node );
-
+                pUpdatable->Update();
 			    pUpdatable->videomem_invalidated = false;
 			    pUpdatable->hostmem_invalidated = true;
 
@@ -79,8 +93,8 @@ struct Scene : Node, Transform, Parent
                 Renderable* pRenderable = dynamic_cast<Renderable*>(&node);
                 if(pRenderable) 
                 {
-                    RenderTarget target;
-                    pRenderable->Render(*renderer, target);
+                    // TODO remove the renderer
+                    pRenderable->Render(*renderer, nodeTransform, state);
                 }
             }
 	    }
@@ -100,10 +114,36 @@ struct Scene : Node, Transform, Parent
 
         if (pTransform) 
         {
-	        renderer->ModelViewMatrix = renderer->ModelViewMatrixStack.pop();
+            // TEMP
+	        //renderer->ModelViewMatrix = renderer->ModelViewMatrixStack.pop();
+
+            // TODO
+            nodeTransform.ModelViewMatrix = nodeTransform.ModelViewMatrixStack.pop();
         }
 
         return vertexCount;
+    }
+
+
+
+    // TODO rename as drawGI
+    void drawSky()
+    {
+	    GL::GLSL::bind( programRenderSky );
+
+        for(int i = Controls::GAMMA; i <= Controls::VIGNETTING; i++)
+        {
+		    int size = renderer->controls.literals[i].size() <= 1 ? 2 : renderer->controls.literals[i].size();
+		    GL::GLSL::set( programRenderSky, renderer->controls.literals[i][0], renderer->controls.values[Controls::Bindings[i]] % size ); 
+	    }
+
+        vec2 viewport = renderer->GetViewport();
+	    GL::GLSL::set( programRenderSky, "viewport",	                viewport  );
+	    GL::GLSL::set( programRenderSky, "InverseRotationProjection",   nodeTransform.inverseRotationMatrix * inverseProjection(nodeTransform.ProjectionMatrix) );
+	    GL::GLSL::set( programRenderSky, "Light0_position",		        state.light.position );
+	    GL::GLSL::set( programRenderSky, "AbsoluteTime",	            float(Timer::absoluteTime()) );
+    	
+        glDrawArrays(GL_POINTS, 0, 1);
     }
 
 

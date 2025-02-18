@@ -24,7 +24,7 @@ struct Clipmap : public Node, Transform, Parent, Child
 		return tiles[i+j*CLIPMAP_SIZE];
 	}
 
-	Clipmap( Parent* parent, int lod, int tileRes, IndexBuffer* ibo )
+	Clipmap( Parent* parent, int lod, int tileRes, IndexBuffer* ibo, Program* generator, Program* renderer )
 	{
 		this->parent = parent;
 		this->lod = lod;
@@ -46,6 +46,8 @@ struct Clipmap : public Node, Transform, Parent, Child
 			tile.videomem_invalidated = true;
 			//tile.hostmem_invalidated = true; //
 
+            tile.generator = generator;
+            tile.renderer = renderer;
 			tile.vbo = new VertexBuffer();
 			VertexBuffer& vbo = *tile.vbo;
 			vbo.init( tileRes );
@@ -140,11 +142,6 @@ struct Clipmap : public Node, Transform, Parent, Child
 			getTile(i,j).tileID = vec4( point, tileSize, 0.0 );
 		}
 	}
-
-    void render(RenderTarget target)
-    {
-        // TODO
-    }
 
 	void updateChildren( bool bx, bool by )
 	{

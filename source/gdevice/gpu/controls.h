@@ -25,12 +25,7 @@ static const unsigned char BINDINGS[] =
     'G', 'C', 'U', 'T', 'V' 
 };
     
-//
-//   _____         _           _     
-//  |     |___ ___| |_ ___ ___| |___ 
-//  |   --| . |   |  _|  _| . | |_ -|
-//  |_____|___|_|_|_| |_| |___|_|___|
-//                                   
+// TODO make a Parameters singleton                    
 struct Controls 
 {
 	static const unsigned char* Bindings; 

@@ -60,12 +60,14 @@ struct Geometry
     };
 };
 
-typedef int RenderTarget;
+// TODO typedef int RenderTarget;
 class Renderer;
+struct NodeTransform;
+struct SceneState;
 struct Renderable
 {
     vec4 AABB;
-    virtual void Render(Renderer& renderer, RenderTarget& target) = 0;
+    virtual void Render(Renderer& renderer, NodeTransform& nodeTransform, SceneState& sceneState ) = 0;
     virtual ~Renderable() {};
 };
 
@@ -80,7 +82,7 @@ struct Impostor
 class Renderer;
 struct Updatable : Cacheable
 {
-    virtual void Update(Renderer& renderer) = 0;
+    virtual void Update() = 0;
     virtual ~Updatable() {};
 };
 
