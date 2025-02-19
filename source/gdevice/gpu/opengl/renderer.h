@@ -21,12 +21,6 @@
 class Renderer
 {
 public:
-	Controls controls;
-
-	Renderer()
-	{
-	}
-
 	void initialize()
 	{
 		//
@@ -144,8 +138,7 @@ public:
 		//
 		// Flags
 		// 
-		controls.initialize();	// TEMP	
-		controls.showLegenda();
+		Controls::GetInstance().ShowLegenda();
 	}
 
     vec2 GetViewport()

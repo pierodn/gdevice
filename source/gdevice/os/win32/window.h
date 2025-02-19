@@ -65,7 +65,6 @@ public:
         DEBUG_ASSERT(!listener); // TODO Windows without listener
 		this->listener = listener;
 		renderer = new Renderer();
-        renderer->controls.values = Key::getCounters(); // TEMP?
         isActive = false;
 		fullscreen = false;
 		isPointerVisible = false;

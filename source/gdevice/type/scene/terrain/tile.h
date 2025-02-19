@@ -49,8 +49,8 @@ nodeTransform.ModelViewMatrix;
 
 	for( int i=0; i<Controls::CONTROLCOUNT; i++ ) 
 	{
-		int size = renderer.controls.literals[i].size() <=1 ? 2 : renderer.controls.literals[i].size();
-		GL::GLSL::set( programRenderTerrain, renderer.controls.literals[i][0], renderer.controls.values[Controls::Bindings[i]] % size ); 
+		int size = Controls::GetInstance().literals[i].size() <=1 ? 2 : Controls::GetInstance().literals[i].size();
+		GL::GLSL::set( programRenderTerrain, Controls::GetInstance().literals[i][0], Controls::GetInstance().values[Controls::Bindings[i]] % size ); 
 	}
 	
 	GL::GLSL::set( programRenderTerrain, "quartetsTU",  0); GL::Texturing::bind( 0, vbo.quartets );
@@ -95,7 +95,7 @@ nodeTransform.ModelViewMatrix;
 	GL::GLSL::set( programRenderTerrain, "AbsoluteTime",	float(Timer::absoluteTime()) );
 
     const int HeightBlendView = 2;
-    if( renderer.controls.values[Controls::Bindings[Controls::DEBUGMODE]] == HeightBlendView )
+    if( Controls::GetInstance().values[Controls::Bindings[Controls::DEBUGMODE]] == HeightBlendView )
     {
         GL::GLSL::set(programRenderTerrain, "defaultColorR", vec4(1.0, 0.0, 0.0, 0.0));
         GL::GLSL::set(programRenderTerrain, "defaultColorG", vec4(0.0, 1.0, 0.0, 0.0));

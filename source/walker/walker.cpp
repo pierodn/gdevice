@@ -124,7 +124,7 @@ public:
         static bool skipRenderingOnce = true;
         int vertexCount = scene.Traverse( skipRenderingOnce );
 
-        // TODO scene.drawG
+        // TODO scene.renderDomeGI
         scene.drawSky();
 
         skipRenderingOnce = false;
@@ -141,8 +141,8 @@ public:
         //
         // Show rendering state
         //
-	    char controls_string[255];
-	    renderer.controls.getString(controls_string);
+	    char controls[255];
+	    Controls::GetInstance().GetStatusString(controls);
 
 	    static Timer fpsTimer;
 	    static dvec3 previous_pos; 
@@ -161,7 +161,7 @@ public:
         // TODO FPS=%i%s CPU=%i%s GPU=%i%s
 	    window.setTitle("FPS=%i%s Debug=[%s] Speed=%.2fkmh (x%i) Time=%02i.%02i Location=(%s) Direction=(%s)", 
 		    fps, fps<100 ? "  " : "",
-            controls_string, 
+            controls, 
 		    distance(camera.position, previous_pos) * METERS_PER_TILE*100/interval * 3600/1000,
 		    int(speedFactor),
 		    int(time), int(fract(time)*60),

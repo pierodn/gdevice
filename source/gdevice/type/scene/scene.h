@@ -23,7 +23,6 @@ struct SceneState
 
 struct Scene : Node, Transform, Parent
 {
-    //Controls controls; // TODO Singleton
     NodeTransform nodeTransform;    
     SceneState state;
 
@@ -57,11 +56,6 @@ struct Scene : Node, Transform, Parent
         Transform* pTransform = dynamic_cast<Transform*>(&node);
         if (pTransform) 
         {
-            // TEMP
-	        //renderer->ModelViewMatrixStack.push( renderer->ModelViewMatrix );
-	        //renderer->ModelViewMatrix *= TransformationMatrix( pTransform->transform );
-
-            // TODO
             nodeTransform.ModelViewMatrixStack.push( nodeTransform.ModelViewMatrix );
 	        nodeTransform.ModelViewMatrix *= TransformationMatrix( pTransform->transform );
         }
@@ -93,7 +87,6 @@ struct Scene : Node, Transform, Parent
                 Renderable* pRenderable = dynamic_cast<Renderable*>(&node);
                 if(pRenderable) 
                 {
-                    // TODO remove the renderer
                     pRenderable->Render(*renderer, nodeTransform, state);
                 }
             }
@@ -114,10 +107,6 @@ struct Scene : Node, Transform, Parent
 
         if (pTransform) 
         {
-            // TEMP
-	        //renderer->ModelViewMatrix = renderer->ModelViewMatrixStack.pop();
-
-            // TODO
             nodeTransform.ModelViewMatrix = nodeTransform.ModelViewMatrixStack.pop();
         }
 
@@ -133,8 +122,8 @@ struct Scene : Node, Transform, Parent
 
         for(int i = Controls::GAMMA; i <= Controls::VIGNETTING; i++)
         {
-		    int size = renderer->controls.literals[i].size() <= 1 ? 2 : renderer->controls.literals[i].size();
-		    GL::GLSL::set( programRenderSky, renderer->controls.literals[i][0], renderer->controls.values[Controls::Bindings[i]] % size ); 
+		    int size = Controls::GetInstance().literals[i].size() <= 1 ? 2 : Controls::GetInstance().literals[i].size();
+		    GL::GLSL::set( programRenderSky, Controls::GetInstance().literals[i][0], Controls::GetInstance().values[Controls::Bindings[i]] % size ); 
 	    }
 
         vec2 viewport = renderer->GetViewport();
