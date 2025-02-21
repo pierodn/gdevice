@@ -1,6 +1,5 @@
 #pragma once
 
-#include "application/assets/worlds/planet1/parameters.h"
 #include "type/scene/node.h"
 
 #include "type/scene/terrain/tile.h"

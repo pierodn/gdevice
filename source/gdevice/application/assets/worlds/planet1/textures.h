@@ -1,11 +1,5 @@
 #pragma once
 
-#include "os/io/image.h"
-//#include "type/interpolation.h"
-
-#define TEXTURE_PATH "../../asset/textures/"
-#define MAX_MIPMAPS 10
-
 /////////////////////////////////////////////////////////
 // HOW TO MAKE TEXTURE HEIGHTMAPS OUT OF NORMAL TEXTURES
 //
@@ -19,11 +13,17 @@
 // 7. Save as BMP (CTRL+S)
 /////////////////////////////////////////////////////////
 
+#include "os/io/image.h"
+//#include "type/interpolation.h"
+
+#define TEXTURE_PATH "../../asset/textures/"
+#define MAX_MIPMAPS 10
+
 Texture<vec4> details;
 Texture<vec4> detailsDx[MAX_MIPMAPS]; 
 Texture<vec4> detailsDy[MAX_MIPMAPS];
 
-void initializeTerrainDetails()
+void InitializeTerrainDetails()
 {
     Texture<byte> rock = Texture<byte>(TEXTURE_PATH "terrain/rock16b.bmp"); // rock1b
     Texture<byte> grit = Texture<byte>(TEXTURE_PATH "terrain/asphalt.bmp"); // cobs1b soil01b cobs12b

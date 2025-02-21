@@ -740,6 +740,27 @@ namespace GL
     }
 }
 
+// TEMP
+namespace GL 
+{
+    vec2 GetViewport()
+    {
+        GLint viewport[4];
+        glGetIntegerv(GL_VIEWPORT, viewport);
+
+        return vec2(viewport[2], viewport[3]);
+    }
+
+    void SetViewport(vec2& viewport)
+    {
+        glViewport( 0, 0, viewport.x, viewport.y );
+    }
+
+    void ClearBuffer() // TODO buffer param
+	{
+        glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+    }
+}
 /// ============================================ 
 //  Vertex Buffer Objects
 /// ============================================
@@ -1371,3 +1392,108 @@ namespace GL
     }
 }
 
+namespace GPU
+{
+    void CheckCapabilities(int minimumVersion = 4.3)
+	{
+        DEBUG_TRACE(GL::renderer());
+        DEBUG_TRACE(GL::version());
+        DEBUG_ASSERT( GL::version() >= minimumVersion );
+
+	    GL::Texturing::available();
+	    GL::Texturing::textureNonPowerOfTwoAvailable();
+	    GL::secondaryColorAvailable();
+	    GL::swapControlAvailable();
+	    GL::VBO::available();
+	    GL::GLSL::available();
+	    GL::GLSL::tessellatorAvailable();
+	    GL::GLSL::computeAvailable();
+	    GL::MRT::available();
+
+        if( GL::swapControlAvailable() )
+        {
+            GL::swapControl(0); // TODO check
+        }
+
+		if(true) 
+        {
+            int maxTextureUnits;
+			glGetIntegerv(GL_MAX_TEXTURE_UNITS, &maxTextureUnits);
+            DEBUG_TRACE(maxTextureUnits);
+		}
+
+		if( GL::GLSL::available() ) 
+        {
+            int maxTextureImageUnits;
+			glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextureImageUnits);
+            DEBUG_TRACE(maxTextureImageUnits);
+		}
+
+		if(glEnableVertexAttribArray) 
+        {
+            int maxVertexAttributes;
+			glGetIntegerv( GL_MAX_VERTEX_ATTRIBS, &maxVertexAttributes );
+            DEBUG_TRACE(maxVertexAttributes);
+		}
+
+	    if( GL::GLSL::tessellatorAvailable() ) 
+        {
+            int maxPatchVertices;
+		    glGetIntegerv(GL_MAX_PATCH_VERTICES, &maxPatchVertices);
+            DEBUG_TRACE(maxPatchVertices);
+	    }
+
+		if(true)
+        {
+			int maxDrawBuffers;
+			glGetIntegerv(GL_MAX_DRAW_BUFFERS, &maxDrawBuffers);
+            DEBUG_TRACE(maxDrawBuffers);
+		}
+    }
+
+    void Initialize(int minimumVersion = 4.3)
+    {
+        CheckCapabilities(minimumVersion);
+
+		glEnable(GL_TEXTURE_2D);
+		glEnable(GL_LIGHTING);
+		
+		glEnable(GL_DEPTH_TEST);
+		glClearDepth(1.0f); 
+		glDepthFunc(GL_LEQUAL);
+		
+		glShadeModel( GL_SMOOTH );	
+		glHint( GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST );
+        glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+
+		glDrawBuffer( GL_BACK );
+
+		glEnable(GL_COLOR_MATERIAL);
+		glColorMaterial( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE );
+
+		bool drawBackfaces = false;
+		(drawBackfaces ? glDisable : glEnable)( GL_CULL_FACE );
+
+		GL::Texturing::unbind();
+
+		glMatrixMode(GL_TEXTURE);
+		glLoadIdentity();
+		
+		// Reset VA state
+		glDisableClientState(GL_VERTEX_ARRAY);
+		glDisableClientState(GL_NORMAL_ARRAY);
+		glDisableClientState(GL_COLOR_ARRAY);
+		glDisableClientState(GL_SECONDARY_COLOR_ARRAY);
+		glDisableClientState(GL_INDEX_ARRAY);
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		glDisableClientState(GL_EDGE_FLAG_ARRAY);
+
+		// Reset VBO state
+        if( GL::VBO::available() ) 
+        {
+			GL::VBO::unbind(GL_ARRAY_BUFFER);
+			GL::VBO::unbind(GL_ELEMENT_ARRAY_BUFFER);
+		}
+        GL::GLSL::unbind();
+	}
+}

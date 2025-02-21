@@ -6,12 +6,8 @@
 #include "gpu/renderer.h"
 #include "gpu/program.h"
 
-/*
-    #include "application/assets/worlds/planet1/generate_terrain.glsl.h"
-    #include "application/assets/worlds/planet1/render_terrain.glsl.h"
-    #include "application/assets/worlds/planet1/render_sky.glsl.h"
-*/
-
+#include "application/assets/worlds/planet1/generate_terrain.glsl.h"
+#include "application/assets/worlds/planet1/render_terrain.glsl.h"
 
 
 struct Heightmap : public Node, Parent, Child, Transform 
@@ -22,13 +18,9 @@ private:
     
     IndexBuffer ibo;
 
-    // TODO
     Program generator;
     Program generateGradientMapProgram; // TODO
 	Program renderer;
-	//Program renderSkyProgram;
-
-
 
 public:
 
@@ -47,10 +39,13 @@ public:
 
     bool Initialize()
     {
+		InitializeTerrainDetails();
+
         GL::GLSL::build( generator, generate_terrain_glsl);
         // TODO GL::GLSL::build( generateGradientMapProgram, generate_grandienmap_glsl );
         GL::GLSL::build( renderer, render_terrain_glsl );
 		//GL::GLSL::build( renderSkyProgram, render_sky_glsl );
+
         return true;
     }
 

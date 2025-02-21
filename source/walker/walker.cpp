@@ -2,6 +2,9 @@
 
 #define DEBUG_SHOW_GLSL_SOURCE	
 
+#include "application/assets/worlds/planet1/parameters.h" // CLIPMAP_WINDOW, TEXTURE_RANGE
+
+
 #include "os/platform.h"
 #include "os/application.h"
 #include "os/keyboard.h"
@@ -10,7 +13,7 @@
 #include "type/scene/scene.h"
 #include "type/scene/terrain/heightmap.h"
 
-#include "application/assets/worlds/planet1/parameters.h"
+
 
 
 
@@ -25,9 +28,6 @@ class Walker : gd::Application<Walker>
     float time; 
     Light sun;  // TODO vec3 sun;
 
-    // TODO Texture renderTarget(DC);
-
-	
 public:
 
 	void onOpen(Window<Walker>& window)
@@ -38,7 +38,7 @@ public:
 
         scene.children.push(&heightmap);
         scene.transform.rotation = vec3(-90, 0, 0);
-        scene.Initialize(window.renderer);
+        scene.Initialize();
 
         speedFactor = 40;
 	    camera.position = dvec3(0,0,10.0);
@@ -48,6 +48,9 @@ public:
 	    sun.spot_direction = rotate((time-7)*360/24, 0.7f, 1.7f) * vec3(0.1,-0.8,0.1); 
 
         // TODO add InputControl
+
+        DEBUG_PRINT("\n");
+		Controls::GetInstance().ShowLegenda();
     }
 
 	void onSize(Window<Walker>& window)
@@ -57,8 +60,6 @@ public:
 
 	void onDraw(Window<Walker>& window, double elapsed)
     {
-        Renderer& renderer = *window.renderer;
-	    
         ///////////////////////////////
         // Update scene by user input.
         //
@@ -111,7 +112,8 @@ public:
 	    ////////////////////////////
 	    // Rendering
 	    //
-	    renderer.SetTarget(window.size); // TODO GL::SetTarget<rgba>(window)
+        GL::SetViewport(window.size); // TODO GL::SetTarget<rgba>(window)
+        GL::ClearBuffer();
 
         scene.nodeTransform.ModelViewMatrix = mat4(1);
 	    scene.nodeTransform.inverseRotationMatrix = transpose(RotationMatrix(scene.transform.rotation) * RotationMatrix(heightmap.transform.rotation));

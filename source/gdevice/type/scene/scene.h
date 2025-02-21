@@ -1,7 +1,14 @@
 #pragma once
 
+#include "gpu/controls.h"
+
 #include "type/scene/node.h"
-#include "gpu/opengl/renderer.h"
+
+//#include "gpu/opengl/renderer.h"
+#include "gpu/opengl/gl.h"
+#include "__temp/light.h"
+
+#include "application/assets/worlds/planet1/render_sky.glsl.h"
 
 struct NodeTransform
 {
@@ -34,11 +41,8 @@ struct Scene : Node, Transform, Parent
 	{
 	}
 
-    void Initialize(Renderer* renderer)
+    void Initialize()
     {
-        this->renderer = renderer;
-        renderer->initialize();
-
         GL::GLSL::build( programRenderSky, render_sky_glsl );
     }
 
@@ -126,7 +130,7 @@ struct Scene : Node, Transform, Parent
 		    GL::GLSL::set( programRenderSky, Controls::GetInstance().literals[i][0], Controls::GetInstance().values[Controls::Bindings[i]] % size ); 
 	    }
 
-        vec2 viewport = renderer->GetViewport();
+        vec2 viewport = GL::GetViewport();
 	    GL::GLSL::set( programRenderSky, "viewport",	                viewport  );
 	    GL::GLSL::set( programRenderSky, "InverseRotationProjection",   nodeTransform.inverseRotationMatrix * inverseProjection(nodeTransform.ProjectionMatrix) );
 	    GL::GLSL::set( programRenderSky, "Light0_position",		        state.light.position );

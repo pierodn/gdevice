@@ -16,6 +16,9 @@
 #define F12			VK_F12
 ///////////////////////////////////////////
 
+#include "type/array.h"
+
+
 static const unsigned char BINDINGS[] = 
 { 
 	F1, F2, F3, F4,

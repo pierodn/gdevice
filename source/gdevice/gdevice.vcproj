@@ -348,14 +348,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\gpu\renderer.h"
-				>
-			</File>
-			<File
-				RelativePath=".\gpu\opengl\renderer.h"
-				>
-			</File>
-			<File
 				RelativePath=".\type\scene\scene.h"
 				>
 			</File>

@@ -2,6 +2,8 @@
 
 #include "type/scene/node.h"
 
+#include "application/assets/worlds/planet1/textures.h"
+
 struct NodeTransform;
 
 struct Tile : public Node, Transform, Child, Geometry, Updatable, Renderable
@@ -87,7 +89,7 @@ nodeTransform.ModelViewMatrix;
 	GL::GLSL::set( programRenderTerrain, "Light0_position",	sceneState.light.position );
 
 	// light scattering 
-    vec2 viewport = renderer.GetViewport();
+    vec2 viewport = GL::GetViewport();
 	GL::GLSL::set( programRenderTerrain, "viewport", viewport  );
 	GL::GLSL::set( programRenderTerrain, "InverseRotationProjection", nodeTransform.inverseRotationMatrix * inverseProjection(nodeTransform.ProjectionMatrix) );
     

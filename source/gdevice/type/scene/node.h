@@ -9,7 +9,6 @@
 #include "__temp/vertexbuffer.h"
 #include "gpu/indexbuffer.h"
 
-#include "gpu/renderer.h"
 
 struct Node
 {
