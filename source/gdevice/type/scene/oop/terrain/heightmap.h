@@ -2,8 +2,7 @@
 
 #include "os/thread.h"
 #include "os/mutex.h"
-#include "type/scene/terrain/clipmap.h"
-#include "gpu/renderer.h"
+#include "type/scene/oop/terrain/clipmap.h"
 #include "gpu/program.h"
 
 #include "application/assets/worlds/planet1/generate_terrain.glsl.h"

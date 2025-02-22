@@ -10,8 +10,8 @@
 #include "os/keyboard.h"
 
 #include "type/glsl.h"
-#include "type/scene/scene.h"
-#include "type/scene/terrain/heightmap.h"
+#include "type/scene/oop/scene.h"
+#include "type/scene/oop/terrain/heightmap.h"
 
 
 

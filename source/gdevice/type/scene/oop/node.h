@@ -60,13 +60,12 @@ struct Geometry
 };
 
 // TODO typedef int RenderTarget;
-class Renderer;
 struct NodeTransform;
 struct SceneState;
 struct Renderable
 {
     vec4 AABB;
-    virtual void Render(Renderer& renderer, NodeTransform& nodeTransform, SceneState& sceneState ) = 0;
+    virtual void Render(NodeTransform& nodeTransform, SceneState& sceneState ) = 0;
     virtual ~Renderable() {};
 };
 

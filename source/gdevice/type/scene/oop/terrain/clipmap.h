@@ -1,8 +1,7 @@
 #pragma once
 
-#include "type/scene/node.h"
-
-#include "type/scene/terrain/tile.h"
+#include "type/scene/oop/node.h"
+#include "type/scene/oop/terrain/tile.h"
 
 
 struct Clipmap : public Node, Transform, Parent, Child

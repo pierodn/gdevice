@@ -2,9 +2,7 @@
 
 #include "gpu/controls.h"
 
-#include "type/scene/node.h"
-
-//#include "gpu/opengl/renderer.h"
+#include "type/scene/oop/node.h"
 #include "gpu/opengl/gl.h"
 #include "__temp/light.h"
 
@@ -34,8 +32,6 @@ struct Scene : Node, Transform, Parent
     SceneState state;
 
     Program programRenderSky;
-
-    Renderer* renderer; // TODO remove
 
     Scene()
 	{
@@ -91,7 +87,7 @@ struct Scene : Node, Transform, Parent
                 Renderable* pRenderable = dynamic_cast<Renderable*>(&node);
                 if(pRenderable) 
                 {
-                    pRenderable->Render(*renderer, nodeTransform, state);
+                    pRenderable->Render(nodeTransform, state);
                 }
             }
 	    }

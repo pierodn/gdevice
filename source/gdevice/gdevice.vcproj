@@ -244,7 +244,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\type\scene\terrain\clipmap.h"
+				RelativePath=".\type\scene\oop\terrain\clipmap.h"
 				>
 			</File>
 			<File
@@ -284,7 +284,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\type\scene\terrain\heightmap.h"
+				RelativePath=".\type\scene\oop\terrain\heightmap.h"
 				>
 			</File>
 			<File
@@ -304,11 +304,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\os\keyboard.h"
+				RelativePath=".\os\win32\keyboard.h"
 				>
 			</File>
 			<File
-				RelativePath=".\os\win32\keyboard.h"
+				RelativePath=".\os\keyboard.h"
 				>
 			</File>
 			<File
@@ -332,6 +332,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\type\scene\oop\node.h"
+				>
+			</File>
+			<File
 				RelativePath=".\application\assets\worlds\planet1\parameters.h"
 				>
 			</File>
@@ -348,7 +352,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\type\scene\scene.h"
+				RelativePath=".\type\scene\oop\scene.h"
 				>
 			</File>
 			<File
@@ -360,15 +364,15 @@
 				>
 			</File>
 			<File
-				RelativePath=".\os\thread.h"
-				>
-			</File>
-			<File
 				RelativePath=".\os\win32\thread.h"
 				>
 			</File>
 			<File
-				RelativePath=".\type\scene\terrain\tile.h"
+				RelativePath=".\os\thread.h"
+				>
+			</File>
+			<File
+				RelativePath=".\type\scene\oop\terrain\tile.h"
 				>
 			</File>
 			<File
