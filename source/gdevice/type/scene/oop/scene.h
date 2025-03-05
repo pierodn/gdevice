@@ -4,7 +4,6 @@
 
 #include "type/scene/oop/node.h"
 #include "gpu/opengl/gl.h"
-#include "__temp/light.h"
 
 #include "application/assets/worlds/planet1/render_sky.glsl.h"
 
@@ -23,7 +22,7 @@ struct NodeTransform
 
 struct SceneState
 {
-    Light light;
+    vec3 sun;
 };
 
 struct Scene : Node, Transform, Parent
@@ -129,7 +128,7 @@ struct Scene : Node, Transform, Parent
         vec2 viewport = GL::GetViewport();
 	    GL::GLSL::set( programRenderSky, "viewport",	                viewport  );
 	    GL::GLSL::set( programRenderSky, "InverseRotationProjection",   nodeTransform.inverseRotationMatrix * inverseProjection(nodeTransform.ProjectionMatrix) );
-	    GL::GLSL::set( programRenderSky, "Light0_position",		        state.light.position );
+	    GL::GLSL::set( programRenderSky, "Light0_position",		        vec4(state.sun, 0.0) );
 	    GL::GLSL::set( programRenderSky, "AbsoluteTime",	            float(Timer::absoluteTime()) );
     	
         glDrawArrays(GL_POINTS, 0, 1);

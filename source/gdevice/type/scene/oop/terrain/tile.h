@@ -80,7 +80,7 @@ struct Tile : public Node, Transform, Child, Geometry, Updatable, Renderable
         GL::GLSL::set( programRenderTerrain, "tessellationDisplacement", 0.012f );
 
 	    // lighting
-	    GL::GLSL::set( programRenderTerrain, "Light0_position",	sceneState.light.position );
+	    GL::GLSL::set( programRenderTerrain, "Light0_position",	vec4(sceneState.sun, 0.0) );
 
 	    // light scattering 
         vec2 viewport = GL::GetViewport();

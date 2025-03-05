@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="gdevice"
 	ProjectGUID="{4C5E1C57-34D7-46A4-AD34-2D86D74176E9}"
 	RootNamespace="gdevice"
@@ -304,15 +304,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\os\win32\keyboard.h"
-				>
-			</File>
-			<File
 				RelativePath=".\os\keyboard.h"
 				>
 			</File>
 			<File
-				RelativePath=".\__temp\light.h"
+				RelativePath=".\os\win32\keyboard.h"
 				>
 			</File>
 			<File
@@ -320,11 +316,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\os\mutex.h"
+				RelativePath=".\os\win32\mutex.h"
 				>
 			</File>
 			<File
-				RelativePath=".\os\win32\mutex.h"
+				RelativePath=".\os\mutex.h"
 				>
 			</File>
 			<File
@@ -333,6 +329,10 @@
 			</File>
 			<File
 				RelativePath=".\type\scene\oop\node.h"
+				>
+			</File>
+			<File
+				RelativePath=".\type\scene\ecs\node.h"
 				>
 			</File>
 			<File
@@ -392,11 +392,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\os\window.h"
+				RelativePath=".\os\win32\window.h"
 				>
 			</File>
 			<File
-				RelativePath=".\os\win32\window.h"
+				RelativePath=".\os\window.h"
 				>
 			</File>
 		</Filter>

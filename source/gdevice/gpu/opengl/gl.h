@@ -8,8 +8,6 @@
 	#include <OpenGL/glext.h>
 #endif
 
-//#include "engines/graphic/material.h"
-#include "__temp/Light.h"
 #include "__temp/Texture.h"
 #include "gpu/Program.h"
 #include "__temp/VertexBuffer.h"
@@ -112,56 +110,6 @@ namespace GL
             error == GL_INVALID_FRAMEBUFFER_OPERATION   ? "Invalid framebuffer operation" :
                                                           "Unknown error";
 	}
-
-    /// ============================
-    //  Materials
-    /// ============================
-/*
-	namespace Materials
-	{
-		void bind( Material& material )
-		{
-			glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT,   material.ambient.array );
-			glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE,   material.diffuse.array );
-			glMaterialfv( GL_FRONT_AND_BACK, GL_EMISSION,  material.emission.array );
-			glMaterialfv( GL_FRONT_AND_BACK, GL_SPECULAR,  material.specular.array );
-			glMaterialf(  GL_FRONT_AND_BACK, GL_SHININESS, material.shininess );
-		}
-	};*/
-
-    /// ============================
-    //  Lighting
-    /// ============================
-
-	namespace Lighting
-	{
-		void bind( Light& light )
-		{
-			int id = GL_LIGHT0 + light.id;
-
-			glEnable( id );
-		
-			if( light.positional )
-			{
-				glLightfv( id, GL_SPOT_DIRECTION, light.spot_direction.array );
-				glLighti(  id, GL_SPOT_EXPONENT,  light.spot_exponent );
-				glLighti(  id, GL_SPOT_CUTOFF,    light.spot_cutoff );
-				glLightf(  id, GL_CONSTANT_ATTENUATION,  light.constant_attenuation );
-				glLightf(  id, GL_LINEAR_ATTENUATION,    light.linear_attenuation );
-				glLightf(  id, GL_QUADRATIC_ATTENUATION, light.quadratic_attenuation );
-			}
-
-			glLightfv( id, GL_POSITION, light.position.array );
-			glLightfv( id, GL_AMBIENT,  light.ambient.array  );
-			glLightfv( id, GL_DIFFUSE,  light.diffuse.array  );
-			glLightfv( id, GL_SPECULAR, light.specular.array );
-		}
-
-		void unbind( Light& light )
-		{
-			glDisable( GL_LIGHT0 + light.id );
-		}
-	};
 
     /// ============================
     //  Texturing

@@ -26,7 +26,7 @@ class Walker : gd::Application<Walker>
     Scene scene;
     Heightmap heightmap;
     float time; 
-    Light sun;  // TODO vec3 sun;
+    vec3 sun;  // TODO vec3 sun;
 
 public:
 
@@ -45,7 +45,7 @@ public:
 	    camera.rotation = dvec3(0,0,0);
     	
         time = TIME_START;
-	    sun.spot_direction = rotate((time-7)*360/24, 0.7f, 1.7f) * vec3(0.1,-0.8,0.1); 
+	    sun = rotate((time-7)*360/24, 0.7f, 1.7f) * vec3(0.1,-0.8,0.1); 
 
         // TODO add InputControl
 
@@ -93,7 +93,7 @@ public:
         // time = 
 	    float timeSpeed = (Key('E').isPressed() ? +1 : Key('R').isPressed() ? -1 : 0) * float(TIME_SPEED) * (speedFactor);
 	    time = fmod( time + timeSpeed*float(elapsed), 24.0f );
-	    sun.spot_direction = rotate((time-7)*360.0f/24.0f, 40.0f, 0.0f) * vec3(0.2, -0.8, 0.1);
+	    sun = rotate((time-7)*360.0f/24.0f, 40.0f, 0.0f) * vec3(0.2, -0.8, 0.1);
 
 	    // TODO: Resolve this dependency.
 	    for(int i=0; i<Controls::CONTROLCOUNT; i++)
@@ -117,7 +117,7 @@ public:
 
         scene.nodeTransform.ModelViewMatrix = mat4(1);
 	    scene.nodeTransform.inverseRotationMatrix = transpose(RotationMatrix(scene.transform.rotation) * RotationMatrix(heightmap.transform.rotation));
-        scene.state.light = sun;
+        scene.state.sun = sun;
 
         // ****  NOTE  **** ////////////
         // Do not send in pipeline a node the very first time is generated as it might not be updated (and valid) yet.
