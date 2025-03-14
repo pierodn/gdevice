@@ -13,10 +13,10 @@ struct Tile : public Node, Transform, Child, Geometry, Updatable, Renderable
     Program* generator;
     Program* renderer;
 
-    void Render(NodeTransform& nodeTransform, SceneState& sceneState)
+    void Render(NodeState& nodeState, SceneState& sceneState)
     {
         // Ensure it's overriding the virtual function of the base class.
-        static_cast<void(Renderable::*)(NodeTransform&, SceneState&)>(&Tile::Render);
+        static_cast<void(Renderable::*)(NodeState&, SceneState&)>(&Tile::Render);
 
         DEBUG_ASSERT( vbo );
         DEBUG_ASSERT( ibo );
@@ -68,10 +68,10 @@ struct Tile : public Node, Transform, Child, Geometry, Updatable, Renderable
 	    GL::GLSL::set( programRenderTerrain, "scale", vbo.mixmaps.scale.s );
 
 	    // transformation
-        mat4 ModelViewProjectionMatrix = nodeTransform.ProjectionMatrix * nodeTransform.ModelViewMatrix;
-        mat3 NormalMatrix = inverseTranspose( mat3(nodeTransform.ModelViewMatrix) );
+        mat4 ModelViewProjectionMatrix = nodeState.ProjectionMatrix * nodeState.ModelViewMatrix;
+        mat3 NormalMatrix = inverseTranspose( mat3(nodeState.ModelViewMatrix) );
 	    GL::GLSL::set( programRenderTerrain, "ModelViewProjectionMatrix",	ModelViewProjectionMatrix );
-	    GL::GLSL::set( programRenderTerrain, "ModelViewMatrix",				nodeTransform.ModelViewMatrix );
+	    GL::GLSL::set( programRenderTerrain, "ModelViewMatrix",				nodeState.ModelViewMatrix );
 	    GL::GLSL::set( programRenderTerrain, "NormalMatrix",				NormalMatrix );
 
         // tessellation
@@ -85,7 +85,7 @@ struct Tile : public Node, Transform, Child, Geometry, Updatable, Renderable
 	    // light scattering 
         vec2 viewport = GL::GetViewport();
 	    GL::GLSL::set( programRenderTerrain, "viewport", viewport  );
-	    GL::GLSL::set( programRenderTerrain, "InverseRotationProjection", nodeTransform.inverseRotationMatrix * inverseProjection(nodeTransform.ProjectionMatrix) );
+	    GL::GLSL::set( programRenderTerrain, "InverseRotationProjection", nodeState.inverseRotationMatrix * inverseProjection(nodeState.ProjectionMatrix) );
         
         GL::GLSL::set( programRenderTerrain, "visibileDistance", visibileDistance );
 	    GL::GLSL::set( programRenderTerrain, "AbsoluteTime",	float(Timer::absoluteTime()) );

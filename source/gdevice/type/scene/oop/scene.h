@@ -1,20 +1,19 @@
 #pragma once
 
 #include "gpu/controls.h"
-
-#include "type/scene/oop/node.h"
 #include "gpu/opengl/gl.h"
+#include "type/scene/oop/node.h"
 
 #include "application/assets/worlds/planet1/render_sky.glsl.h"
 
-struct NodeTransform
+struct NodeState
 {
 	mat4 ProjectionMatrix;
     mat4 inverseRotationMatrix; // TODO inverseCameraRotationMatrix;
 	mat4 ModelViewMatrix;
 	Array<mat4> ModelViewMatrixStack;   
 
-    NodeTransform()
+    NodeState()
     {
 		ModelViewMatrixStack.allocate(2000,100);
     }
@@ -27,8 +26,8 @@ struct SceneState
 
 struct Scene : Node, Transform, Parent
 {
-    NodeTransform nodeTransform;    
-    SceneState state;
+    NodeState nodeState;    
+    SceneState sceneState;
 
     Program programRenderSky;
 
@@ -41,9 +40,6 @@ struct Scene : Node, Transform, Parent
         GL::GLSL::build( programRenderSky, render_sky_glsl );
     }
 
-    
-
-
     int Traverse( bool skipRendering = false )
     {
         int vertexCount = 0;
@@ -55,8 +51,8 @@ struct Scene : Node, Transform, Parent
         Transform* pTransform = dynamic_cast<Transform*>(&node);
         if (pTransform) 
         {
-            nodeTransform.ModelViewMatrixStack.push( nodeTransform.ModelViewMatrix );
-	        nodeTransform.ModelViewMatrix *= TransformationMatrix( pTransform->transform );
+            nodeState.ModelViewMatrixStack.push( nodeState.ModelViewMatrix );
+	        nodeState.ModelViewMatrix *= TransformationMatrix( pTransform->transform );
         }
 
         Impostor* pImpostor = dynamic_cast<Impostor*>(&node);
@@ -86,7 +82,7 @@ struct Scene : Node, Transform, Parent
                 Renderable* pRenderable = dynamic_cast<Renderable*>(&node);
                 if(pRenderable) 
                 {
-                    pRenderable->Render(nodeTransform, state);
+                    pRenderable->Render(nodeState, sceneState);
                 }
             }
 	    }
@@ -106,7 +102,7 @@ struct Scene : Node, Transform, Parent
 
         if (pTransform) 
         {
-            nodeTransform.ModelViewMatrix = nodeTransform.ModelViewMatrixStack.pop();
+            nodeState.ModelViewMatrix = nodeState.ModelViewMatrixStack.pop();
         }
 
         return vertexCount;
@@ -127,8 +123,8 @@ struct Scene : Node, Transform, Parent
 
         vec2 viewport = GL::GetViewport();
 	    GL::GLSL::set( programRenderSky, "viewport",	                viewport  );
-	    GL::GLSL::set( programRenderSky, "InverseRotationProjection",   nodeTransform.inverseRotationMatrix * inverseProjection(nodeTransform.ProjectionMatrix) );
-	    GL::GLSL::set( programRenderSky, "Light0_position",		        vec4(state.sun, 0.0) );
+	    GL::GLSL::set( programRenderSky, "InverseRotationProjection",   nodeState.inverseRotationMatrix * inverseProjection(nodeState.ProjectionMatrix) );
+	    GL::GLSL::set( programRenderSky, "Light0_position",		        vec4(sceneState.sun, 0.0) );
 	    GL::GLSL::set( programRenderSky, "AbsoluteTime",	            float(Timer::absoluteTime()) );
     	
         glDrawArrays(GL_POINTS, 0, 1);

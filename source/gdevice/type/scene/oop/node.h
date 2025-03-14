@@ -19,7 +19,7 @@ struct Node
 struct Child;
 struct Parent 
 {
-	Array<Child*> children; // TODO use Child* instead of Node*
+	Array<Child*> children;
     virtual ~Parent() {};
 };
 
@@ -60,12 +60,12 @@ struct Geometry
 };
 
 // TODO typedef int RenderTarget;
-struct NodeTransform;
+struct NodeState;
 struct SceneState;
 struct Renderable
 {
     vec4 AABB;
-    virtual void Render(NodeTransform& nodeTransform, SceneState& sceneState ) = 0;
+    virtual void Render(NodeState& nodeState, SceneState& sceneState ) = 0;
     virtual ~Renderable() {};
 };
 

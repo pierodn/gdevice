@@ -935,7 +935,7 @@ void main()
 	float daylight		= smoothstep(0.0, 0.1, L.z);
 	float sunHaloWidth  = mix(2, 30, smoothstep(0.0, 0.4, L.z));
 	vec3 sunColor		= mix(vec3(0.80, 0.40, 0.20), vec3(1.00, 0.90, 0.75), smoothstep( 0.0, 0.3, L.z));
-	vec3 zenithColor	= mix(vec3(0.01, 0.02, 0.04), vec3(0.35, 0.48, 0.60), smoothstep(-0.8, 0.0, L.z));
+	vec3 zenithColor	= mix(vec3(0.01, 0.02, 0.04), vec3(0.22, 0.35, 0.60), smoothstep(-0.8, 0.0, L.z));
 	vec3 horizonColor	= mix(vec3(0.02, 0.03, 0.04), sunColor,               smoothstep(-0.4, 0.5, L.z));
 	vec3 groundColor	= vec3( dot( mix(0.03*zenithColor, 1.4*zenithColor,   smoothstep( 0.0, 0.4, L.z)), vec3(0.22,0.33,0.45)) );
 	vec3 specularColor	= sampleAmbient(reflect(L,N), L, sunColor, zenithColor, horizonColor, groundColor, lfShadow, sunHaloWidth);
@@ -981,10 +981,10 @@ else
 
 
 	light += 0.40 * Diffuse  * occlusion * daylight * lfShadow * sunColor * pow(lambertian, 0.8) ;//* (1.0 - specular);
-	light += 0.06 * Specular * relief	 * daylight * mix(0.2, 1.0, lfShadow) * specularColor * specular;//* max(0.0, dot(N,L));
-	light += 0.01 * Indirect * occlusion * daylight * sunColor * max(0.0, dot(N,I));
-	light += 0.02 * Sky      * occlusion *			  zenithColor * N.z;
-	light += 0.02 * Fresnel  * relief	 * (fresnelColor - light) * fresnel;
+	light += 0.10 * Specular * relief	 * daylight * mix(0.2, 1.0, lfShadow) * specularColor * specular;//* max(0.0, dot(N,L));
+	light += 0.02 * Indirect * occlusion * daylight * sunColor * max(0.0, dot(N,I));
+	light += 0.03 * Sky      * occlusion *			  zenithColor * N.z;
+	light += 0.03 * Fresnel  * relief	 * (fresnelColor - light) * fresnel;
 }
 
     if(Heatmap > 0)

@@ -1,21 +1,12 @@
 #pragma once
 
-//#define _DEBUG
-//#define TSL_NO_EXCEPTIONS
-#define _HAS_EXCEPTIONS 0
-//#define _DEFINE_DEPRECATED_HASH_CLASSES 0
-//#include <tr1/unordered_map>
-//#include <hash_map>
 #include <map>
 #include <vector>
 #include <assert.h>
 
-// TODO Apply logic to components of a node (update function).
-
-
-//namespace gd
-//{
-    typedef unsigned long Entity;
+namespace gd
+{
+    typedef unsigned long long Entity;
 
     Entity CreateEntity()
     {
@@ -23,8 +14,10 @@
         return nextID++;
     }
 
-    // TODO DestroyEntity()
-    // ??
+    void DestroyEntity(Entity entity)
+    {
+        // TODO Remove components
+    }
 
     template <typename T>
     std::map<Entity, std::vector<T>>& GetComponentsMap()
@@ -49,8 +42,9 @@
         components.push_back(component);
         return components.back();
     }
-
-
+/*
+    // TODO Parent
+    // TODO Children
     struct _Hierarchy
     {
 	    Entity parent;
@@ -72,31 +66,34 @@
     }
 
     // TODO GetChildren();
+*/
 
-//};
-
-
-
-
-typedef float _vec3[3];
-
-struct _Transform
-{
-    _vec3 position;
-    _vec3 rotation;
-    _vec3 scale;
 };
 
 
-struct SomeDataPart
-{
-    int count;
-    char* base;
-    long count2;
-};
 
+
+/*
 void main_ECS()
 {
+    typedef float _vec3[3];
+
+    struct _Transform
+    {
+        _vec3 position;
+        _vec3 rotation;
+        _vec3 scale;
+    };
+
+
+    struct SomeDataPart
+    {
+        int count;
+        char* base;
+        long count2;
+    };
+
+
     Entity node = CreateEntity();
 
     //
@@ -141,3 +138,4 @@ void main_ECS()
     assert(heightmapHierarchyPool.size() == 1);
     assert(heightmapHierarchyPool[0].parent = scene);
 }
+*/

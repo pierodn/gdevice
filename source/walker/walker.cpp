@@ -26,7 +26,7 @@ class Walker : gd::Application<Walker>
     Scene scene;
     Heightmap heightmap;
     float time; 
-    vec3 sun;  // TODO vec3 sun;
+    vec3 sun;
 
 public:
 
@@ -55,7 +55,7 @@ public:
 
 	void onSize(Window<Walker>& window)
     {
-        scene.nodeTransform.ProjectionMatrix = projection( window.size, FOV, NEAR_CLIP_PLANE, heightmap.GetVisibilityDistance() );
+        scene.nodeState.ProjectionMatrix = projection( window.size, FOV, NEAR_CLIP_PLANE, heightmap.GetVisibilityDistance() );
     }
 
 	void onDraw(Window<Walker>& window, double elapsed)
@@ -64,9 +64,7 @@ public:
         // Update scene by user input.
         //
 
-        // TODO 
-        // camera = transform(camera, window, ROTATION_SPEED);
-
+        // TODO camera = transform(camera, window, ROTATION_SPEED);
 	        // Camera rotation
 	        dvec3 mouse_rotation     = dvec3(window.mouseDeltaY(), 0, window.mouseDeltaX());
             dvec3 cursors_rotation   = dvec3(Key::cursorDeltaY(), 0, Key::cursorDeltaX()); // TODO window.HasFocus()
@@ -115,9 +113,9 @@ public:
         GL::SetViewport(window.size); // TODO GL::SetTarget<rgba>(window)
         GL::ClearBuffer();
 
-        scene.nodeTransform.ModelViewMatrix = mat4(1);
-	    scene.nodeTransform.inverseRotationMatrix = transpose(RotationMatrix(scene.transform.rotation) * RotationMatrix(heightmap.transform.rotation));
-        scene.state.sun = sun;
+        scene.nodeState.ModelViewMatrix = mat4(1);
+	    scene.nodeState.inverseRotationMatrix = transpose(RotationMatrix(scene.transform.rotation) * RotationMatrix(heightmap.transform.rotation));
+        scene.sceneState.sun = sun;
 
         // ****  NOTE  **** ////////////
         // Do not send in pipeline a node the very first time is generated as it might not be updated (and valid) yet.

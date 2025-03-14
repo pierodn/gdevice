@@ -304,11 +304,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\os\keyboard.h"
+				RelativePath=".\os\win32\keyboard.h"
 				>
 			</File>
 			<File
-				RelativePath=".\os\win32\keyboard.h"
+				RelativePath=".\os\keyboard.h"
 				>
 			</File>
 			<File
@@ -316,11 +316,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\os\mutex.h"
+				>
+			</File>
+			<File
 				RelativePath=".\os\win32\mutex.h"
 				>
 			</File>
 			<File
-				RelativePath=".\os\mutex.h"
+				RelativePath=".\type\scene\ecs\node.h"
 				>
 			</File>
 			<File
@@ -332,7 +336,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\type\scene\ecs\node.h"
+				RelativePath=".\type\parameter.h"
 				>
 			</File>
 			<File
@@ -376,11 +380,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\os\timer.h"
+				RelativePath=".\os\win32\timer.h"
 				>
 			</File>
 			<File
-				RelativePath=".\os\win32\timer.h"
+				RelativePath=".\os\timer.h"
 				>
 			</File>
 			<File
