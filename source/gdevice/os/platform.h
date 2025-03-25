@@ -107,7 +107,7 @@ inline char* _REMOVE_PATH(char* filename) {
 
 inline void _PRINT_PATH(char* function, char* filename, int line) {
     color(CMD_GREEN,0); printf("%X ", GetCurrentThreadId()); 
-    color(CMD_LIGHTGRAY,0); printf("%s:%d ", _REMOVE_PATH(filename), line);
+    color(CMD_DARKGRAY,0); printf("%s:%d ", _REMOVE_PATH(filename), line);
     color(CMD_CYAN,0); printf("%s() ", function); 
     color(15,0);
 }
@@ -132,7 +132,7 @@ inline void printf(void* x)			{ printf("%08X", x); };
     #define DEBUG_CHECKPOINT_AUTO       _PRINT_PATH(__FUNCTION__, __FILE__, __LINE__); color(CMD_WHITE,CMD_CYAN); printf(__COUNTER__); color(15,0);
     #define DEBUG_CHECKPOINT(tag)       _PRINT_PATH(__FUNCTION__, __FILE__, __LINE__); color(CMD_WHITE,CMD_CYAN); printf("%s\n", #tag); color(15,0);
     #define DEBUG_PATH                  _PRINT_PATH(__FUNCTION__, __FILE__, __LINE__);
-	#define DEBUG_TRACE(variable)       _PRINT_PATH(__FUNCTION__, __FILE__, __LINE__); color(CMD_LIGHTGRAY,0); printf("%s ", #variable); color(CMD_DARKGRAY,0); printf("= "); color(CMD_YELLOW,0); printf(variable); printf("\n");
+	#define DEBUG_TRACE(variable)       _PRINT_PATH(__FUNCTION__, __FILE__, __LINE__); color(CMD_LIGHTGRAY,0); printf("%s ", #variable); color(CMD_DARKGRAY,0); printf("= "); color(CMD_BROWN,0); printf(variable); printf("\n");
     #define DEBUG_WARNING(message)      _WARNING((message), __FUNCTION__, __FILE__, __LINE__)
     #define DEBUG_CRITICAL(message)     _CRITICAL((message), __FUNCTION__, __FILE__, __LINE__)
     #define DEBUG_PROFILE(expected)     Profiler __profiler(expected, __FUNCTION__, __FILE__, __LINE__)

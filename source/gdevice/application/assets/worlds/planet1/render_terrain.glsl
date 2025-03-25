@@ -58,46 +58,39 @@ uniform float tessellationFactor;
 uniform float tessellationRange;
 uniform mat4  ModelViewProjectionMatrix;
 uniform float scale;
-uniform float lod_factor = 100.0;   // TEMP
-uniform vec2  viewport;             // TEMP
+uniform float povZ; // TEMP
 
 in vec3 position[];
 
 out vec3 tPosition[];
 layout(vertices = 4) out;
 
-vec4 projectToNDS(vec3 position) {
+vec4 projectToNDS(vec3 position)
+{
+   // TODO ModelViewProjectionMatrix can be applied at VS already (?) 
    vec4 result = ModelViewProjectionMatrix * vec4(position, 1.0);
    result /= result.w; // Scale to [-1,+1]
    return result;
 }
 
-bool isOffScreen(vec4 ndsPosition) {
-    //return (ndsPosition.z < -0.5) || any(lessThan(ndsPosition.xy, vec2(-1.0)) || greaterThan(ndsPosition.xy, vec2(1.0)));
-    //return (ndsPosition.z < -1.0) || any(lessThan(ndsPosition.xy, vec2(-2.0)) || greaterThan(ndsPosition.xy, vec2(2.0)));
-    //return (ndsPosition.z << -2.0) || any(lessThan(ndsPosition.xy, vec2(-4.0)) || greaterThan(ndsPosition.xy, vec2(4.0)));
-	return ndsPosition.z < -2.0
+bool isOffScreen(vec4 ndsPosition)
+{
+    return ndsPosition.z < -2.0
 		|| ndsPosition.x < -4.0 || ndsPosition.x > +4.0  
 		|| ndsPosition.y < -4.0 || ndsPosition.y > +4.0;
-}
-    
-vec2 projectToScreen(vec4 ndsPosition) {
-	return (clamp(ndsPosition.xy, -1.3, 1.3) + 1.0) * (viewport.xy*0.5);
-}
-
-float computeTessellationLevel(vec2 ss0, vec2 ss1) {
-	return clamp(distance(ss0, ss1)/lod_factor, 0, 1);
 }
 
 void main()
 {
-	if( gl_InvocationID == 0 ) {
+	if( gl_InvocationID == 0 )
+	{
 		vec4 p0 = projectToNDS(position[0]);
 		vec4 p1 = projectToNDS(position[1]);
 		vec4 p2 = projectToNDS(position[2]);
 		vec4 p3 = projectToNDS(position[3]);
 	
-        if(all(bvec4(isOffScreen(p0), isOffScreen(p1), isOffScreen(p2), isOffScreen(p3)))) {
+        if( all(bvec4(isOffScreen(p0), isOffScreen(p1), isOffScreen(p2), isOffScreen(p3))) )
+        {
             // Discard patch (late frustum culling).
             gl_TessLevelOuter[0] = 0;
             gl_TessLevelOuter[1] = 0;
@@ -105,33 +98,42 @@ void main()
             gl_TessLevelOuter[3] = 0;
             gl_TessLevelInner[0] = 0;
             gl_TessLevelInner[1] = 0;
-        } else {
-            // TODO: Fetch (and lod blend) gradient, submap, mixmap
-            // TODO: Tessellation control for plane change, tessellation of edges and big patch (also vertical).
-            
-        //// TEMP
-			vec2 ss0 = projectToScreen(p0);
-			vec2 ss1 = projectToScreen(p1);
-			vec2 ss2 = projectToScreen(p2);
-			vec2 ss3 = projectToScreen(p3);
-
-			float e0 = computeTessellationLevel(ss1, ss2);
-			float e1 = computeTessellationLevel(ss0, ss1);
-			float e2 = computeTessellationLevel(ss3, ss0);
-			float e3 = computeTessellationLevel(ss2, ss3);
-        ////
-			vec4 ox = tileOffset.x + vec4( position[0].x, position[1].x, position[2].x, position[3].x );
-			vec4 oy = tileOffset.y + vec4( position[0].y, position[1].y, position[2].y, position[3].y );
-			vec4 d = sqrt( ox*ox + oy*oy ); 				
-			d = 1.0 - smoothstep(0.0, tessellationFactor*(kernelSize-1), d);
-			vec4 t = 1.0 + Tessellator * 63.0 * tessellationFactor * float(scale == 1.0) * d ;//* (e0+e1+e2+e3)/4; // TEMP
-			t = mix(t.yxwz, t.zyxw, 0.5); 
+        } 
+        else
+        {
+        	vec4 t = vec4(1.0);
+			if(scale <= 1.0) 
+			{
+#if 1
+				// Tessellate by XY distance
+				vec4 ox = tileOffset.x + vec4( position[0].x, position[1].x, position[2].x, position[3].x );
+				vec4 oy = tileOffset.y + vec4( position[0].y, position[1].y, position[2].y, position[3].y );
+				// TODO Z distance should matter too
+				vec4 oz = vec4(povZ*0.0000000000000000000000000000001); 
+					      //- vec4(povZ*1.00000000000000000001) ;//+ vec4( position[0].z, position[1].z, position[2].z, position[3].z );
+				vec4 d = sqrt( ox*ox + oy*oy + oz*oz ); 				
+				d = 1.0 - smoothstep(0.0, tessellationFactor*(kernelSize-1), d);
+				t = 1.0 + 63.0 * Tessellator * tessellationFactor * pow(d, vec4(1.0));
+				t = mix(t.yxwz, t.zyxw, 0.5);
+#else			
+				// Tessellate by screen space projection
+				// [WIP]
+				float d01 = distance(p0, p1);
+				float d12 = distance(p1, p2);
+				float d23 = distance(p2, p3);
+				float d30 = distance(p3, p0);	
+				t = vec4(d01, d12, d23, d30);
+				t = 1.0 + 63.0 * Tessellator * tessellationFactor * 0.5 * t;
+				t += 0.000000000000000001 * tessellationFactor;
+#endif
+			}
+			
             gl_TessLevelOuter[0] = t.x;
             gl_TessLevelOuter[1] = t.y;
             gl_TessLevelOuter[2] = t.z;
             gl_TessLevelOuter[3] = t.w;
-            gl_TessLevelInner[0] = mix(t.y, t.z, 0.5);
-            gl_TessLevelInner[1] = mix(t.x, t.w, 0.5);
+            gl_TessLevelInner[0] = mix(t.x, t.z, 0.5);
+            gl_TessLevelInner[1] = mix(t.y, t.w, 0.5);
         }
     }
 
@@ -327,7 +329,7 @@ void main()
 		    vec4 luma4Dy = textureTriplanar(detailsDyTU, position.xyz, weight, LodBias + blurLevel);
 
             displacement *= tessellationDisplacement;
-            float H = displacement*dot(mixmap, luma4);
+            float H = displacement * clamp(dot(mixmap, luma4), 0.2, 0.9);
 			dH = vec3(
 			    dot(mixmap, luma4Dx),
 			    dot(mixmap, luma4Dy),

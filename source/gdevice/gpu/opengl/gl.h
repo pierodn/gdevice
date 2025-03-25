@@ -779,12 +779,8 @@ namespace GL
 
         void create( Cacheable& buffer )
         {
-            //PROFILE_ONCE;
-            DEBUG_CHECKPOINT_ONCE(create);
 	        glGenBuffers( 1, &buffer.id );
-            DEBUG_TRACE_ONCE(buffer.id);
 	        buffer.deallocator = deallocate;
-            DEBUG_TRACE_ONCE(deallocate);
         }
 
         void bind( Cacheable& buffer, int type )//=GL_ARRAY_BUFFER )
@@ -810,7 +806,6 @@ namespace GL
 
         void allocate( Cacheable& buffer, int size, void* data = NULL, int type = GL_ARRAY_BUFFER, int usage = GL_STATIC_DRAW )
         {
-            DEBUG_TRACE_ONCE(buffer.id);
 	        glBindBuffer( type, buffer.id );
 	        glBufferData( type, size, data, usage );
 	        assert_allocated_is( size, type );
@@ -823,10 +818,8 @@ namespace GL
 
         void update( Cacheable& buffer, int size, void* data = NULL, int type = GL_ARRAY_BUFFER, int usage = GL_STATIC_DRAW )
         {
-            DEBUG_TRACE_ONCE(buffer.videomem_invalidated);
 	        if( buffer.videomem_invalidated )
 	        {
-                DEBUG_TRACE_ONCE(buffer.id);
 		        buffer.deallocate();
 		        VBO::create( buffer );
 		        VBO::allocate( buffer, size, data, type, usage );

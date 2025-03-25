@@ -75,9 +75,10 @@ struct Tile : public Node, Transform, Child, Geometry, Updatable, Renderable
 	    GL::GLSL::set( programRenderTerrain, "NormalMatrix",				NormalMatrix );
 
         // tessellation
-        GL::GLSL::set( programRenderTerrain, "tessellationRange", 0.20f );
+        GL::GLSL::set( programRenderTerrain, "tessellationRange", 0.15f );
         GL::GLSL::set( programRenderTerrain, "tessellationFactor", 0.25f );
         GL::GLSL::set( programRenderTerrain, "tessellationDisplacement", 0.012f );
+        GL::GLSL::set( programRenderTerrain, "povZ", transform.position.z );
 
 	    // lighting
 	    GL::GLSL::set( programRenderTerrain, "Light0_position",	vec4(sceneState.sun, 0.0) );
