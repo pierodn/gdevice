@@ -54,11 +54,12 @@ CONTROL:
 uniform vec2  tileOffset;
 uniform float kernelSize;
 uniform int   Tessellator = 1;
-uniform float tessellationFactor;
-uniform float tessellationRange;
+uniform float tessellationKernelRange;
+uniform float tessellationMaxLeveL;
+uniform float tessellationPower;
 uniform mat4  ModelViewProjectionMatrix;
 uniform float scale;
-uniform float povZ; // TEMP
+uniform float povZ;
 
 in vec3 position[];
 
@@ -105,15 +106,13 @@ void main()
 			if(scale <= 1.0) 
 			{
 #if 1
-				// Tessellate by XY distance
+				// Tessellate by POV distance
 				vec4 ox = tileOffset.x + vec4( position[0].x, position[1].x, position[2].x, position[3].x );
 				vec4 oy = tileOffset.y + vec4( position[0].y, position[1].y, position[2].y, position[3].y );
-				// TODO Z distance should matter too
-				vec4 oz = vec4(povZ*0.0000000000000000000000000000001); 
-					      //- vec4(povZ*1.00000000000000000001) ;//+ vec4( position[0].z, position[1].z, position[2].z, position[3].z );
-				vec4 d = sqrt( ox*ox + oy*oy + oz*oz ); 				
-				d = 1.0 - smoothstep(0.0, tessellationFactor*(kernelSize-1), d);
-				t = 1.0 + 63.0 * Tessellator * tessellationFactor * pow(d, vec4(1.0));
+				vec4 oz = vec4(povZ)   + vec4( position[0].z, position[1].z, position[2].z, position[3].z );
+				vec4 d = pow( ox*ox + oy*oy + oz*oz, vec4(0.5) );
+                d = 1.0 - smoothstep(0.0, tessellationKernelRange*(kernelSize-1), d);
+                t = 1.0 + 63.0 * Tessellator * tessellationMaxLeveL * pow(d, vec4(tessellationPower));	
 				t = mix(t.yxwz, t.zyxw, 0.5);
 #else			
 				// Tessellate by screen space projection
@@ -123,8 +122,8 @@ void main()
 				float d23 = distance(p2, p3);
 				float d30 = distance(p3, p0);	
 				t = vec4(d01, d12, d23, d30);
-				t = 1.0 + 63.0 * Tessellator * tessellationFactor * 0.5 * t;
-				t += 0.000000000000000001 * tessellationFactor;
+				t = 1.0 + 63.0 * Tessellator * tessellationMaxLeveL * 0.5 * t;
+				t += 0.000000000000000001 * tessellationMaxLeveL;
 #endif
 			}
 			
@@ -171,7 +170,7 @@ int tileSize = textureSize(mixmapsTU, 0).x;
     uniform sampler2D detailsDxTU;
     uniform sampler2D detailsDyTU;
     uniform float kernelSize; //
-uniform float tessellationRange;
+uniform float tessellationKernelRange;
 uniform float tessellationDisplacement; 
     
 uniform vec4 defaultColorR;
@@ -312,7 +311,7 @@ void main()
         // TODO: And compute the new normal.
         vec3 normal;
         vec3 dH = vec3(gradient.xy, 0.0);
-	    float displacement = 1.0 - smoothstep(0.0, 1.0*tessellationRange*(kernelSize-1), povDistance);
+	    float displacement = 1.0 - smoothstep(0.0, 1.0*tessellationKernelRange*(kernelSize-1), povDistance);
 	    if( displacement > 0.0 )// NOTE: Only within the 1st LOD (otherwise you get cracks).
            /*&& color.a == 0.0 )*/ // Only for non water surfaces
 	    { 
