@@ -158,8 +158,8 @@ vec4 hybrid(vec2 point, int octaves,
     inout float frequency)
 {  
     float H = 0.11;             // 0.13 - The lower, the rougher
-    float offset = 0.62;	    // The heigher, the rougher
-    float lacunarity = 2.11;    // 2.00 - Decomposes bodies but increases spikes (?)
+    float offset = 0.69;	    // The heigher, the rougher (**)
+    float lacunarity = 2.03;    // 2.00 - Decomposes bodies but increases spikes (?)
     float maxFrequency = 17.0;  // The lower, the rougher
     float maxWeight = 0.05;     // 1.00 - Low values reduce the spikes, reduce height, introduce artifacts
  				
@@ -201,9 +201,9 @@ vec4 fbm(vec2 p, float scale)
     const mat2 M2 = mat2(0.8,-0.6,0.6,0.8);
 
     vec4 f = vec4(0.0);
-    f += 0.5000*noise(p*SCALE); p = M2*p*2.02;
-    f += 0.2500*noise(p*SCALE); p = M2*p*2.03;
-    f += 0.1250*noise(p*SCALE); p = M2*p*2.01;
+    f += 0.5000*noise(p*SCALE); p = M2*p*2.01;
+    f += 0.2500*noise(p*SCALE); p = M2*p*2.02;
+    f += 0.1250*noise(p*SCALE); p = M2*p*2.03;
     f += 0.0625*noise(p*SCALE);
 
     return f/0.9375;

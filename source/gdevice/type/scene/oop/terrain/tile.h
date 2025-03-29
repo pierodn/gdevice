@@ -77,7 +77,7 @@ struct Tile : public Node, Transform, Child, Geometry, Updatable, Renderable
         // tessellation
         GL::GLSL::set( programRenderTerrain, "tessellationKernelRange", 0.40f );
         GL::GLSL::set( programRenderTerrain, "tessellationMaxLeveL", 0.25f );
-        GL::GLSL::set( programRenderTerrain, "tessellationPower", 10.0f );
+        GL::GLSL::set( programRenderTerrain, "tessellationPower", 8.0f );
         GL::GLSL::set( programRenderTerrain, "tessellationDisplacement", 0.011f );
         GL::GLSL::set( programRenderTerrain, "povZ", pHeightmap->transform.position.z );
 

@@ -133,7 +133,7 @@ public:
 	    // 
 	    // Misc controls
 	    //
-	    speedFactor = clamp(speedFactor + window.mouseDeltaWheel()/200.0, 0.05, 31.6228);
+	    speedFactor = clamp(speedFactor + window.mouseDeltaWheel()/200.0, 0.4, 31.6228);
 	    if(Key(ESCAPE).isJustPressed()) window.togglePointer();
         if(Key('L').isJustPressed()) window.toogleFullscreen();
 	    if(Key('X').isPressed()) window.close();

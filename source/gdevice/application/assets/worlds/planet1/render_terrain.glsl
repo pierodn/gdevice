@@ -115,8 +115,7 @@ void main()
                 t = 1.0 + 63.0 * Tessellator * tessellationMaxLeveL * pow(d, vec4(tessellationPower));	
 				t = mix(t.yxwz, t.zyxw, 0.5);
 #else			
-				// Tessellate by screen space projection
-				// [WIP]
+				// Tessellate by screen space projection [WIP]
 				float d01 = distance(p0, p1);
 				float d12 = distance(p1, p2);
 				float d23 = distance(p2, p3);
