@@ -54,9 +54,10 @@ CONTROL:
 uniform vec2  tileOffset;
 uniform float kernelSize;
 uniform int   Tessellator = 1;
+uniform float tessellationKernelStart;
 uniform float tessellationKernelRange;
-uniform float tessellationMaxLeveL;
-uniform float tessellationPower;
+uniform float tessellationVanishPower;
+uniform float tessellationMaxLevel;
 uniform mat4  ModelViewProjectionMatrix;
 uniform float scale;
 uniform float povZ;
@@ -105,25 +106,19 @@ void main()
         	vec4 t = vec4(1.0);
 			if(scale <= 1.0) 
 			{
-#if 1
 				// Tessellate by POV distance
 				vec4 ox = tileOffset.x + vec4( position[0].x, position[1].x, position[2].x, position[3].x );
 				vec4 oy = tileOffset.y + vec4( position[0].y, position[1].y, position[2].y, position[3].y );
 				vec4 oz = vec4(povZ)   + vec4( position[0].z, position[1].z, position[2].z, position[3].z );
-				vec4 d = pow( ox*ox + oy*oy + oz*oz, vec4(0.5) );
-                d = 1.0 - smoothstep(0.0, tessellationKernelRange*(kernelSize-1), d);
-                t = 1.0 + 63.0 * Tessellator * tessellationMaxLeveL * pow(d, vec4(tessellationPower));	
-				t = mix(t.yxwz, t.zyxw, 0.5);
-#else			
-				// Tessellate by screen space projection [WIP]
-				float d01 = distance(p0, p1);
-				float d12 = distance(p1, p2);
-				float d23 = distance(p2, p3);
-				float d30 = distance(p3, p0);	
-				t = vec4(d01, d12, d23, d30);
-				t = 1.0 + 63.0 * Tessellator * tessellationMaxLeveL * 0.5 * t;
-				t += 0.000000000000000001 * tessellationMaxLeveL;
-#endif
+                vec4 d = pow(ox*ox + oy*oy + oz*oz, vec4(0.5));
+
+                float e0 = tessellationKernelStart * (kernelSize-1);
+                float e1 = tessellationKernelRange * (kernelSize-1);
+                d = smoothstep(e0, e1, d);
+                d = pow(d, vec4(tessellationVanishPower));
+                d = 1.0 - d;
+                t = 1.0 + 63.0 * Tessellator * 1.0 * tessellationMaxLevel * d;
+                t = mix(t.yxwz, t.zyxw, 0.5);
 			}
 			
             gl_TessLevelOuter[0] = t.x;

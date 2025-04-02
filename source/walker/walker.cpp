@@ -124,8 +124,8 @@ public:
         static bool skipRenderingOnce = true;
         int vertexCount = scene.Traverse( skipRenderingOnce );
 
-        // TODO scene.renderDomeGI
-        scene.drawSky();
+        // TODO place this node in th scene graph
+        scene.RenderSkydome();
 
         skipRenderingOnce = false;
 

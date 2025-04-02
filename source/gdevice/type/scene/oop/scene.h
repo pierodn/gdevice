@@ -29,7 +29,7 @@ struct Scene : Node, Transform, Parent
     NodeState nodeState;    
     SceneState sceneState;
 
-    Program programRenderSky;
+    Program programRenderSkydome;
 
     Scene()
 	{
@@ -37,7 +37,7 @@ struct Scene : Node, Transform, Parent
 
     void Initialize()
     {
-        GL::GLSL::build( programRenderSky, render_sky_glsl );
+        GL::GLSL::build( programRenderSkydome, render_sky_glsl );
     }
 
     int Traverse( bool skipRendering = false )
@@ -109,23 +109,21 @@ struct Scene : Node, Transform, Parent
     }
 
 
-
-    // TODO rename as drawGI
-    void drawSky()
+    void RenderSkydome()
     {
-	    GL::GLSL::bind( programRenderSky );
+	    GL::GLSL::bind( programRenderSkydome );
 
         for(int i = Controls::GAMMA; i <= Controls::VIGNETTING; i++)
         {
 		    int size = Controls::GetInstance().literals[i].size() <= 1 ? 2 : Controls::GetInstance().literals[i].size();
-		    GL::GLSL::set( programRenderSky, Controls::GetInstance().literals[i][0], Controls::GetInstance().values[Controls::Bindings[i]] % size ); 
+		    GL::GLSL::set( programRenderSkydome, Controls::GetInstance().literals[i][0], Controls::GetInstance().values[Controls::Bindings[i]] % size ); 
 	    }
 
         vec2 viewport = GL::GetViewport();
-	    GL::GLSL::set( programRenderSky, "viewport",	                viewport  );
-	    GL::GLSL::set( programRenderSky, "InverseRotationProjection",   nodeState.inverseRotationMatrix * inverseProjection(nodeState.ProjectionMatrix) );
-	    GL::GLSL::set( programRenderSky, "Light0_position",		        vec4(sceneState.sun, 0.0) );
-	    GL::GLSL::set( programRenderSky, "AbsoluteTime",	            float(Timer::absoluteTime()) );
+	    GL::GLSL::set( programRenderSkydome, "viewport",	                viewport  );
+	    GL::GLSL::set( programRenderSkydome, "InverseRotationProjection",   nodeState.inverseRotationMatrix * inverseProjection(nodeState.ProjectionMatrix) );
+	    GL::GLSL::set( programRenderSkydome, "Light0_position",		        vec4(sceneState.sun, 0.0) );
+	    GL::GLSL::set( programRenderSkydome, "AbsoluteTime",	            float(Timer::absoluteTime()) );
     	
         glDrawArrays(GL_POINTS, 0, 1);
     }
