@@ -52,6 +52,8 @@ CONTROL:
 // * Displace mapping
 
 uniform vec2  tileOffset;
+uniform float scale;
+uniform float povZ;
 uniform float kernelSize;
 uniform int   Tessellator = 1;
 uniform float tessellationKernelStart;
@@ -59,8 +61,6 @@ uniform float tessellationKernelRange;
 uniform float tessellationVanishPower;
 uniform float tessellationMaxLevel;
 uniform mat4  ModelViewProjectionMatrix;
-uniform float scale;
-uniform float povZ;
 
 in vec3 position[];
 
@@ -153,17 +153,13 @@ uniform sampler2D mixmapsTU;
 uniform float scale;
 int tileSize = textureSize(mixmapsTU, 0).x;
 
-// TEMP: These are necessary for Fog and Displacement:
-    uniform mat4 ModelViewMatrix; //
-    
-// TEMP: These are necessary for Fog:
-    uniform float fog_density = 0.0005; //
-
-// TEMP: These are necessary for displacement:
-    uniform sampler2D detailsTU;
-    uniform sampler2D detailsDxTU;
-    uniform sampler2D detailsDyTU;
-    uniform float kernelSize; //
+// Displacement:
+uniform sampler2D detailsTU;
+uniform sampler2D detailsDxTU;
+uniform sampler2D detailsDyTU;
+uniform float kernelSize;
+uniform vec2  tileOffset;
+uniform float povZ;
 uniform float tessellationKernelRange;
 uniform float tessellationDisplacement; 
     
@@ -187,26 +183,8 @@ out VertexData {
 
 
 
-
 ////////////////////////////////////////////////////////////
-// Common functions
-//
-
-vec4 noise(vec2 point) 
-{		
-    vec2 i = floor(point);
-    vec2 f = fract(point);
-	vec2 u = f*f*(3.0-2.0*f);
-	vec2 du = 6.0*f*(1.0-f);
-	
-    float WIDTH = 0.3137;
-    vec4 L = vec4(0.0, 1.0, WIDTH, WIDTH + 1.0);	
-    L = fract((L + dot(i, L.yz))*0.1731);
-    L += L*(L + 1.0);
-    L = fract(7.7771*L*L) - 0.5;
-	L = vec4(L.x, L.y-L.x, L.z-L.x, L.x-L.y-L.z+L.w);
-	return vec4(du*(L.yz + L.w*u.yx), L.x + L.y*u.x + L.z*u.y + L.w*u.x*u.y, 0.0 );
-}
+// TODO #include "triplanar.glsl" 
 
 vec4 textureNoTileLod( sampler2D samp, in vec2 uv, float lodBias ) 
 {
@@ -233,9 +211,6 @@ vec4 textureNoTileLod( sampler2D samp, in vec2 uv, float lodBias )
     
     return mix( cola, colb, smoothstep(0.2, 0.8, f - 0.1*dot(cola-colb, vec4(1.0))) );
 }
-
-
-
 
 vec3 getTriplanarWeightVector(vec3 N) 
 {
@@ -275,14 +250,14 @@ vec4 blendColor(vec4 color, vec4 mixmap, float x1, float x2)
     return color/4.0;
 }
 
-// http://weber.itn.liu.se/~stegu/TNM084-2017/bumpmapping/bumpmapping.pdf
-// Also check doBumpMap() in Desert Canyon (https://www.shadertoy.com/view/Xs33Df)
 void displaceVertexAndRecomputeNormal(inout vec3 p, inout vec3 N, float H, vec3 dH)
 {
     p = p + H*N;
     N = normalize( (1.0 + dot(dH,N))*N - dH );
 }
-////////////////////////////////////////////////////////////
+
+//
+////////////////////////////////////////
 
 
 void main()
@@ -297,69 +272,40 @@ void main()
 	vec4 mixmap	= textureLod(mixmapsTU, p, 0);
 	vec2 coords = position.xy * scale;	// TODO needed?
 
-    // Used for Displacement and also for Fog later.
-    // TODO Compute at vertex shader (it's E vector).
-    float povDistance = length((ModelViewMatrix * vec4(position,1)).xyz);
-		
-#if 1   // Displace position along the normal in LOD zero.
-        // TODO: And compute the new normal.
-        vec3 normal;
-        vec3 dH = vec3(gradient.xy, 0.0);
-	    float displacement = 1.0 - smoothstep(0.0, 1.0*tessellationKernelRange*(kernelSize-1), povDistance);
-	    if( displacement > 0.0 )// NOTE: Only within the 1st LOD (otherwise you get cracks).
-           /*&& color.a == 0.0 )*/ // Only for non water surfaces
-	    { 
-	    	const float LodBias = 0.0;
-	    	//normal = normalize(vec3(gradient.xy/scale, 1));
-            
-            float blurLevel = 2;
-            vec3 weight = getTriplanarWeightVector(/*normal*/normalize(vec3(gradient.xy/scale, 1)));
-            vec4 luma4 = textureTriplanar(detailsTU, position.xyz, weight, LodBias + blurLevel);
-            vec4 mixmap = blendMixmap(mixmap + luma4);
+    vec3 dH = vec3(gradient.xy, 0.0);
+    
+    float dist4nce = length(vec3(tileOffset, povZ) + position);
+    float displacementAmount = 1.0 - smoothstep(0.0, 1.0*tessellationKernelRange*(kernelSize-1), dist4nce);
+    if( displacementAmount > 0.0 ) // && color.a == 0.0 ) // Only for non water surfaces
+    { 
+        displacementAmount *= tessellationDisplacement;
 
-            //float luma = 0.2;
-            vec4 luma4Dx = textureTriplanar(detailsDxTU, position.xyz, weight, LodBias + blurLevel);
-		    vec4 luma4Dy = textureTriplanar(detailsDyTU, position.xyz, weight, LodBias + blurLevel);
+        vec3 normal = normalize(vec3(gradient.xy/scale, 1));
+        vec3 weight = getTriplanarWeightVector(normal);
 
-            displacement *= tessellationDisplacement;
-            float H = displacement * clamp(dot(mixmap, luma4), 0.2, 0.9);
-			dH = vec3(
-			    dot(mixmap, luma4Dx),
-			    dot(mixmap, luma4Dy),
-			    displacement
-			);
+        float blurLevel = 2.0;
+        vec4 luma4   = textureTriplanar(detailsTU,   position.xyz, weight, blurLevel);
+        vec4 luma4Dx = textureTriplanar(detailsDxTU, position.xyz, weight, blurLevel);
+	    vec4 luma4Dy = textureTriplanar(detailsDyTU, position.xyz, weight, blurLevel);
+        vec4 mixmap  = blendMixmap(mixmap + luma4); //
 
-			//vec3 position1 = position.xyz;
-			//vec3 normal1   = normal.xyz;
-                normal = normalize(vec3(gradient.xy, 1));
-            displaceVertexAndRecomputeNormal(position, normal, H, dH);
-	    
-	        color += 0.00000000001*blendColor(color, mixmap, 0.30, 1.6);
-	    
-/*	        vec4 details = pow(texture(detailsTU, coords.xy, +4.5), vec4(1.0));
-		    
-	        vec4 displacementWeights = vec4(0.120, 0.040, 0.030, 0.050);
-	        float extrusion = dot(displacementWeights, mixmap);
-	        float luma = extrusion * dot(details, mixmap);
-	        luma = (luma - extrusion/2) * displacement;
-            vec3 N = normalize(vec3(gradient.xy, 1));
-		    position += luma * N;
-            #if 0  // Re-adjusting gradient after displacement
-                // FIX Discontinuity
-		        gradient.xy += (1.0 + dot(luma*gradient.xy,N.xy))*N.xy - luma*gradient.xy;
-            #endif 
-            */
-	    }
-#endif  
-
+        float H = displacementAmount * clamp(dot(mixmap,luma4), 0.2, 0.9);
+        dH = vec3(
+		    dot(mixmap, luma4Dx),
+		    dot(mixmap, luma4Dy),
+		    H
+		);
+        displaceVertexAndRecomputeNormal(position, normal, H, dH);
+    
+        color = blendColor(color, mixmap, 0.30, 1.96); //
+    }
 
 	// Output vertex
-	tVertex.position = vec4(coords, position.z,	povDistance ); // TODO: povDistance is not currently used down the pipeline
+	tVertex.position = vec4(coords, position.z,	0.0); // TODO bake fog data here?
 	tVertex.gradient = gradient;
-            //vec4(dH.xy, gradient.zw);
-            //vec4( normalize(vec3(normal.xy/normal.z, 1.0)).xy, gradient.zw );
     tVertex.color	 = color;
 	tVertex.mixmap	 = mixmap;
+
     gl_Position = vec4(position, 1.0);
 }
 
@@ -413,7 +359,7 @@ void main()
 		gVertex.mixmap		= tVertex[i].mixmap;
 		
 		gVertex.N0	= NormalMatrix * normalize(vec3(tVertex[i].gradient.zw, 1));
-		gVertex.E	= (ModelViewMatrix * gl_in[i].gl_Position).xyz; // length of it, is povDistance
+		gVertex.E	= (ModelViewMatrix * gl_in[i].gl_Position).xyz; // length of it, is d1stance
 		gVertex.L	= (ModelViewMatrix * vec4(Light0_position.xy/scale, Light0_position.zw)).xyz;	// TODO precompute?
 
 		gVertex.barycentric =	i == 0 ? vec3(1,0,0) : 
@@ -643,8 +589,6 @@ vec4 blendColor(vec4 color, vec4 mixmap, float x1, float x2)
     return color/4.0;
 }
 
-// http://weber.itn.liu.se/~stegu/TNM084-2017/bumpmapping/bumpmapping.pdf
-// Also check doBumpMap() in Desert Canyon (https://www.shadertoy.com/view/Xs33Df)
 void displaceVertexAndRecomputeNormal(inout vec3 p, inout vec3 N, float H, vec3 dH)
 {
     p = p + H*N;
