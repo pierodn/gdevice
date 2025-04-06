@@ -270,7 +270,7 @@ void main()
 	vec4 gradient = textureLod(gradientsTU, p, 0); 
 	vec4 color = textureLod(colorsTU,  p, 0); 
 	vec4 mixmap	= textureLod(mixmapsTU, p, 0);
-	vec2 coords = position.xy * scale;	// TODO needed?
+	vec2 coords = position.xy * scale;
 
     vec3 dH = vec3(gradient.xy, 0.0);
     
@@ -287,17 +287,10 @@ void main()
         vec4 luma4   = textureTriplanar(detailsTU,   position.xyz, weight, blurLevel);
         vec4 luma4Dx = textureTriplanar(detailsDxTU, position.xyz, weight, blurLevel);
 	    vec4 luma4Dy = textureTriplanar(detailsDyTU, position.xyz, weight, blurLevel);
-        vec4 mixmap  = blendMixmap(mixmap + luma4); //
 
         float H = displacementAmount * clamp(dot(mixmap,luma4), 0.2, 0.9);
-        dH = vec3(
-		    dot(mixmap, luma4Dx),
-		    dot(mixmap, luma4Dy),
-		    H
-		);
+        dH = vec3( dot(mixmap, luma4Dx), dot(mixmap, luma4Dy), 1.0 );
         displaceVertexAndRecomputeNormal(position, normal, H, dH);
-    
-        color = blendColor(color, mixmap, 0.30, 1.96); //
     }
 
 	// Output vertex

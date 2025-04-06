@@ -69,19 +69,19 @@ namespace
 
 namespace GL
 { 
-	inline const char* vendor()
+	inline char* vendor()
 	{
-		return (const char *)glGetString(GL_VENDOR);
+		return (char*)glGetString(GL_VENDOR);
 	}
 
-    inline const char* renderer()
+    inline char* renderer()
 	{
-        return (const char *)glGetString(GL_RENDERER);
+        return (char*)glGetString(GL_RENDERER);
     }
 
 	float version()
 	{
-		return atof((const char *)glGetString(GL_VERSION));
+		return atof((char *)glGetString(GL_VERSION));
 	}
 
 	bool isExtensionSupported( const char *extension )
@@ -1172,6 +1172,8 @@ namespace GL
         {
             //PROFILE;
             DEBUG_PATH;
+            //char* programName = "<PROGRAM-NAME>";
+            //DEBUG_PRINT(programName);
 
 	        if(!source) {
 		        DEBUG_CRITICAL("Source null");
@@ -1186,14 +1188,14 @@ namespace GL
 		        program.id = glCreateProgram();
 		        program.deallocator = deallocateProgram;
 
-		        char* shader_names[] = { "VERTEX", "CONTROL", "EVALUATION", "GEOMETRY", "FRAGMENT", "COMPUTE" };
-		        int   shader_types[] = { GL_VERTEX_SHADER, GL_TESS_CONTROL_SHADER, GL_TESS_EVALUATION_SHADER, GL_GEOMETRY_SHADER, GL_FRAGMENT_SHADER, GL_COMPUTE_SHADER };
-		        int num_of_shaders = sizeof(shader_types)/sizeof(int);
+		        const char* shaderTypes[] = { "VERTEX", "CONTROL", "EVALUATION", "GEOMETRY", "FRAGMENT", "COMPUTE" };
+		        const int   shaderTypeCodes[] = { GL_VERTEX_SHADER, GL_TESS_CONTROL_SHADER, GL_TESS_EVALUATION_SHADER, GL_GEOMETRY_SHADER, GL_FRAGMENT_SHADER, GL_COMPUTE_SHADER };
+		        int num_of_shaders = sizeof(shaderTypeCodes)/sizeof(int);
 
 		        char* shader_sources[20];
 		        for(int i=0; i<num_of_shaders; i++) {
 			        char temp[20];
-			        strcpy(temp, shader_names[i]);
+			        strcpy(temp, shaderTypes[i]);
 			        strcat(temp,":\r");
 			        shader_sources[i] = strstr2( source, temp );
 		        }
@@ -1219,17 +1221,21 @@ namespace GL
 					        shader_lenght = strlen( shader_sources[i] );
 				        }
         			
-				        bool hasShaderCompiled = attach(program, shader_sources[i], shader_lenght, shader_types[i]);
-				        color(CMD_WHITE,CMD_CYAN); DEBUG_PRINT("%s", shader_names[i]);
-						color(CMD_WHITE, 0); DEBUG_PRINT(" ");
+				        bool hasShaderCompiled = attach(program, shader_sources[i], shader_lenght, shaderTypeCodes[i]);
+				        color(CMD_BROWN, 0); DEBUG_PRINT("%s ", shaderTypes[i]);
+						//color(CMD_WHITE, 0); DEBUG_PRINT(" ");
+                        //DEBUG_TRACE(shaderTypes[i]);
                         
 				        if( !hasShaderCompiled )
 				        {
-							color(CMD_LIGHTRED,0); DEBUG_PRINT("%s", "==> ERROR\n\n");
+							//color(CMD_LIGHTRED,0); DEBUG_PRINT("%s", "==> ERROR\n\n");
+                            color(CMD_LIGHTRED,0); DEBUG_PRINT("\n\n");
+
 
                             char message[512];
 	                        glGetShaderInfoLog( program.tail().id, sizeof(message), NULL, message );
 							printf("%s\n", message);
+                            //DEBUG_PRINT(message);
 
 							// Parse to get the error line.
 							// NOTE: Different drivers give different error messages
@@ -1257,7 +1263,7 @@ namespace GL
                                 printf("\n");
                             #endif
 
-                            //CRITICAL("Shader compile error");
+                            CRITICAL("Shader compile error");
 				        }
 			        }
 		        }
@@ -1335,11 +1341,11 @@ namespace GL
 
 namespace GPU
 {
-    void CheckCapabilities(int minimumVersion = 4.3)
+    void Check(int requiredVersion = 4.3)
 	{
         DEBUG_TRACE(GL::renderer());
         DEBUG_TRACE(GL::version());
-        DEBUG_ASSERT( GL::version() >= minimumVersion );
+        DEBUG_ASSERT( GL::version() >= requiredVersion );
 
 	    GL::Texturing::available();
 	    GL::Texturing::textureNonPowerOfTwoAvailable();
@@ -1394,7 +1400,7 @@ namespace GPU
 
     void Initialize(int minimumVersion = 4.3)
     {
-        CheckCapabilities(minimumVersion);
+        Check(minimumVersion);
 
 		glEnable(GL_TEXTURE_2D);
 		glEnable(GL_LIGHTING);
