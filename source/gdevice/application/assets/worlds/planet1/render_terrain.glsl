@@ -893,9 +893,9 @@ if( bool(PBR) )
 	
     //light += 0.00 * zenithColor * matColor.rgb * (1.0 - occlusion); // Ambient ?
     light += 2.00 * Diffuse  * occlusion * daylight * lfShadow * sunColor * REFLECTANCE(L, E, N, diffuseColor, F0, roughness, metallic);
-    light += 0.14 * Indirect * occlusion * daylight * sunColor * REFLECTANCE(I, E, N, diffuseColor, F0, roughness, metallic);
-    light += 0.01 * Sky		 * occlusion *			  zenithColor * N.z; //REFLECTANCE(vec3(0,0,-1), E, N, diffuseColor, F0, roughness, metallic);
-    light += 0.01 * Fresnel  * relief	 * (fresnelColor - light) * fresnel;
+    light += 0.10 * Indirect * occlusion * daylight * sunColor * REFLECTANCE(I, E, N, diffuseColor, F0, roughness, metallic);
+    light += 0.03 * Sky		 * occlusion *			  zenithColor * N.z; //REFLECTANCE(vec3(0,0,-1), E, N, diffuseColor, F0, roughness, metallic);
+    light += 0.03 * Fresnel  * relief	 * (fresnelColor - light) * fresnel;
 } 
 else 
 { 

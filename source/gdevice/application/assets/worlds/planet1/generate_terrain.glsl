@@ -371,11 +371,18 @@ Vertex getVertex(ivec2 ij)
 		#endif 
     #endif
 
+#elif 1
+    float k = 0.2;
+    vec4 c0 = k * hybrid(point, shadowfreq-1,   signal, weight, scale0, frequency);
+    vec4 t0 = k * hybrid(point, 1,              signal, weight, scale0, frequency);
+    vec4 c1 = k * hybrid(point, terrainFreq-1,  signal, weight, scale0, frequency);
+    vec4 t1 = k * hybrid(point, 1,              signal, weight, scale0, frequency);
 #else
-    vec4 c0 = hybrid(point, shadowfreq-1,   signal, weight, scale0, frequency);
-    vec4 t0 = hybrid(point, 1,              signal, weight, scale0, frequency);
-    vec4 c1 = hybrid(point, terrainFreq-1,  signal, weight, scale0, frequency);
-    vec4 t1 = hybrid(point, 1,              signal, weight, scale0, frequency);
+    float k = 0.7;
+    vec4 c0 = k * fbm(point, shadowfreq*1-1);
+    vec4 t0 = k * fbm(point, shadowfreq*1);
+    vec4 c1 = k * fbm(point, terrainFreq*1-1);
+    vec4 t1 = k * fbm(point, terrainFreq*1);
 #endif
 
     // The domain scale is applied to gradient as well.
