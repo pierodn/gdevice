@@ -9,7 +9,6 @@
 #include "__temp/vertexbuffer.h"
 #include "gpu/indexbuffer.h"
 
-#include "gpu/renderer.h"
 
 struct Node
 {
@@ -20,7 +19,7 @@ struct Node
 struct Child;
 struct Parent 
 {
-	Array<Child*> children; // TODO use Child* instead of Node*
+	Array<Child*> children;
     virtual ~Parent() {};
 };
 
@@ -60,12 +59,13 @@ struct Geometry
     };
 };
 
-typedef int RenderTarget;
-class Renderer;
+// TODO typedef int RenderTarget;
+struct NodeState;
+struct SceneState;
 struct Renderable
 {
     vec4 AABB;
-    virtual void Render(Renderer& renderer, RenderTarget& target) = 0;
+    virtual void Render(NodeState& nodeState, SceneState& sceneState ) = 0;
     virtual ~Renderable() {};
 };
 
@@ -80,7 +80,7 @@ struct Impostor
 class Renderer;
 struct Updatable : Cacheable
 {
-    virtual void Update(Renderer& renderer) = 0;
+    virtual void Update() = 0;
     virtual ~Updatable() {};
 };
 

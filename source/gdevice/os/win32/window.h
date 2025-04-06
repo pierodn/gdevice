@@ -5,7 +5,6 @@
 #include "os/listener.h"
 #include "os/win32/timer.h" // ??
 #include "type/glsl.h"
-#include "gpu/renderer.h"
 
 //#include "os/log.h"
 
@@ -15,7 +14,6 @@ class Window
 {
 public:
 	Listener<Application>* listener;
-	Renderer* renderer;
 
     bool isActive;
     //bool isIconified;
@@ -60,12 +58,10 @@ private:
 
 public:
 
-    Window( Listener<Application>* listener = 0 ) : hWnd(NULL), hDC(NULL), hRC(NULL), renderer(NULL) //
+    Window( Listener<Application>* listener = 0 ) : hWnd(NULL), hDC(NULL), hRC(NULL) //
 	{
         DEBUG_ASSERT(!listener); // TODO Windows without listener
 		this->listener = listener;
-		renderer = new Renderer();
-        renderer->controls.values = Key::getCounters(); // TEMP?
         isActive = false;
 		fullscreen = false;
 		isPointerVisible = false;
@@ -261,7 +257,7 @@ public:
 					case SIZE_RESTORED:
 					{
                         DEBUG_RUN_ONCE(
-                            renderer->initialize();
+                            GPU::Initialize();
 			                listener->onOpen(*this);
                         );
                         

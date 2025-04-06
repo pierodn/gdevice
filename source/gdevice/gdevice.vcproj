@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="gdevice"
 	ProjectGUID="{4C5E1C57-34D7-46A4-AD34-2D86D74176E9}"
 	RootNamespace="gdevice"
@@ -244,7 +244,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\type\scene\terrain\clipmap.h"
+				RelativePath=".\type\scene\oop\terrain\clipmap.h"
 				>
 			</File>
 			<File
@@ -284,7 +284,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\type\scene\terrain\heightmap.h"
+				RelativePath=".\type\scene\oop\terrain\heightmap.h"
 				>
 			</File>
 			<File
@@ -304,15 +304,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\os\keyboard.h"
-				>
-			</File>
-			<File
 				RelativePath=".\os\win32\keyboard.h"
 				>
 			</File>
 			<File
-				RelativePath=".\__temp\light.h"
+				RelativePath=".\os\keyboard.h"
 				>
 			</File>
 			<File
@@ -328,7 +324,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\type\scene\ecs\node.h"
+				>
+			</File>
+			<File
 				RelativePath=".\type\scene\node.h"
+				>
+			</File>
+			<File
+				RelativePath=".\type\scene\oop\node.h"
+				>
+			</File>
+			<File
+				RelativePath=".\type\parameter.h"
 				>
 			</File>
 			<File
@@ -348,15 +356,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\gpu\renderer.h"
-				>
-			</File>
-			<File
-				RelativePath=".\gpu\opengl\renderer.h"
-				>
-			</File>
-			<File
-				RelativePath=".\type\scene\scene.h"
+				RelativePath=".\type\scene\oop\scene.h"
 				>
 			</File>
 			<File
@@ -368,23 +368,23 @@
 				>
 			</File>
 			<File
-				RelativePath=".\os\thread.h"
-				>
-			</File>
-			<File
 				RelativePath=".\os\win32\thread.h"
 				>
 			</File>
 			<File
-				RelativePath=".\type\scene\terrain\tile.h"
+				RelativePath=".\os\thread.h"
 				>
 			</File>
 			<File
-				RelativePath=".\os\timer.h"
+				RelativePath=".\type\scene\oop\terrain\tile.h"
 				>
 			</File>
 			<File
 				RelativePath=".\os\win32\timer.h"
+				>
+			</File>
+			<File
+				RelativePath=".\os\timer.h"
 				>
 			</File>
 			<File
@@ -396,11 +396,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\os\window.h"
+				RelativePath=".\os\win32\window.h"
 				>
 			</File>
 			<File
-				RelativePath=".\os\win32\window.h"
+				RelativePath=".\os\window.h"
 				>
 			</File>
 		</Filter>

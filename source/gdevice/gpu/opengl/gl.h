@@ -8,8 +8,6 @@
 	#include <OpenGL/glext.h>
 #endif
 
-//#include "engines/graphic/material.h"
-#include "__temp/Light.h"
 #include "__temp/Texture.h"
 #include "gpu/Program.h"
 #include "__temp/VertexBuffer.h"
@@ -71,19 +69,19 @@ namespace
 
 namespace GL
 { 
-	inline const char* vendor()
+	inline char* vendor()
 	{
-		return (const char *)glGetString(GL_VENDOR);
+		return (char*)glGetString(GL_VENDOR);
 	}
 
-    inline const char* renderer()
+    inline char* renderer()
 	{
-        return (const char *)glGetString(GL_RENDERER);
+        return (char*)glGetString(GL_RENDERER);
     }
 
 	float version()
 	{
-		return atof((const char *)glGetString(GL_VERSION));
+		return atof((char *)glGetString(GL_VERSION));
 	}
 
 	bool isExtensionSupported( const char *extension )
@@ -112,56 +110,6 @@ namespace GL
             error == GL_INVALID_FRAMEBUFFER_OPERATION   ? "Invalid framebuffer operation" :
                                                           "Unknown error";
 	}
-
-    /// ============================
-    //  Materials
-    /// ============================
-/*
-	namespace Materials
-	{
-		void bind( Material& material )
-		{
-			glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT,   material.ambient.array );
-			glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE,   material.diffuse.array );
-			glMaterialfv( GL_FRONT_AND_BACK, GL_EMISSION,  material.emission.array );
-			glMaterialfv( GL_FRONT_AND_BACK, GL_SPECULAR,  material.specular.array );
-			glMaterialf(  GL_FRONT_AND_BACK, GL_SHININESS, material.shininess );
-		}
-	};*/
-
-    /// ============================
-    //  Lighting
-    /// ============================
-
-	namespace Lighting
-	{
-		void bind( Light& light )
-		{
-			int id = GL_LIGHT0 + light.id;
-
-			glEnable( id );
-		
-			if( light.positional )
-			{
-				glLightfv( id, GL_SPOT_DIRECTION, light.spot_direction.array );
-				glLighti(  id, GL_SPOT_EXPONENT,  light.spot_exponent );
-				glLighti(  id, GL_SPOT_CUTOFF,    light.spot_cutoff );
-				glLightf(  id, GL_CONSTANT_ATTENUATION,  light.constant_attenuation );
-				glLightf(  id, GL_LINEAR_ATTENUATION,    light.linear_attenuation );
-				glLightf(  id, GL_QUADRATIC_ATTENUATION, light.quadratic_attenuation );
-			}
-
-			glLightfv( id, GL_POSITION, light.position.array );
-			glLightfv( id, GL_AMBIENT,  light.ambient.array  );
-			glLightfv( id, GL_DIFFUSE,  light.diffuse.array  );
-			glLightfv( id, GL_SPECULAR, light.specular.array );
-		}
-
-		void unbind( Light& light )
-		{
-			glDisable( GL_LIGHT0 + light.id );
-		}
-	};
 
     /// ============================
     //  Texturing
@@ -740,6 +688,27 @@ namespace GL
     }
 }
 
+// TEMP
+namespace GL 
+{
+    vec2 GetViewport()
+    {
+        GLint viewport[4];
+        glGetIntegerv(GL_VIEWPORT, viewport);
+
+        return vec2(viewport[2], viewport[3]);
+    }
+
+    void SetViewport(vec2& viewport)
+    {
+        glViewport( 0, 0, viewport.x, viewport.y );
+    }
+
+    void ClearBuffer() // TODO buffer param
+	{
+        glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+    }
+}
 /// ============================================ 
 //  Vertex Buffer Objects
 /// ============================================
@@ -810,12 +779,8 @@ namespace GL
 
         void create( Cacheable& buffer )
         {
-            //PROFILE_ONCE;
-            DEBUG_CHECKPOINT_ONCE(create);
 	        glGenBuffers( 1, &buffer.id );
-            DEBUG_TRACE_ONCE(buffer.id);
 	        buffer.deallocator = deallocate;
-            DEBUG_TRACE_ONCE(deallocate);
         }
 
         void bind( Cacheable& buffer, int type )//=GL_ARRAY_BUFFER )
@@ -841,7 +806,6 @@ namespace GL
 
         void allocate( Cacheable& buffer, int size, void* data = NULL, int type = GL_ARRAY_BUFFER, int usage = GL_STATIC_DRAW )
         {
-            DEBUG_TRACE_ONCE(buffer.id);
 	        glBindBuffer( type, buffer.id );
 	        glBufferData( type, size, data, usage );
 	        assert_allocated_is( size, type );
@@ -854,10 +818,8 @@ namespace GL
 
         void update( Cacheable& buffer, int size, void* data = NULL, int type = GL_ARRAY_BUFFER, int usage = GL_STATIC_DRAW )
         {
-            DEBUG_TRACE_ONCE(buffer.videomem_invalidated);
 	        if( buffer.videomem_invalidated )
 	        {
-                DEBUG_TRACE_ONCE(buffer.id);
 		        buffer.deallocate();
 		        VBO::create( buffer );
 		        VBO::allocate( buffer, size, data, type, usage );
@@ -1210,6 +1172,8 @@ namespace GL
         {
             //PROFILE;
             DEBUG_PATH;
+            //char* programName = "<PROGRAM-NAME>";
+            //DEBUG_PRINT(programName);
 
 	        if(!source) {
 		        DEBUG_CRITICAL("Source null");
@@ -1224,14 +1188,14 @@ namespace GL
 		        program.id = glCreateProgram();
 		        program.deallocator = deallocateProgram;
 
-		        char* shader_names[] = { "VERTEX", "CONTROL", "EVALUATION", "GEOMETRY", "FRAGMENT", "COMPUTE" };
-		        int   shader_types[] = { GL_VERTEX_SHADER, GL_TESS_CONTROL_SHADER, GL_TESS_EVALUATION_SHADER, GL_GEOMETRY_SHADER, GL_FRAGMENT_SHADER, GL_COMPUTE_SHADER };
-		        int num_of_shaders = sizeof(shader_types)/sizeof(int);
+		        const char* shaderTypes[] = { "VERTEX", "CONTROL", "EVALUATION", "GEOMETRY", "FRAGMENT", "COMPUTE" };
+		        const int   shaderTypeCodes[] = { GL_VERTEX_SHADER, GL_TESS_CONTROL_SHADER, GL_TESS_EVALUATION_SHADER, GL_GEOMETRY_SHADER, GL_FRAGMENT_SHADER, GL_COMPUTE_SHADER };
+		        int num_of_shaders = sizeof(shaderTypeCodes)/sizeof(int);
 
 		        char* shader_sources[20];
 		        for(int i=0; i<num_of_shaders; i++) {
 			        char temp[20];
-			        strcpy(temp, shader_names[i]);
+			        strcpy(temp, shaderTypes[i]);
 			        strcat(temp,":\r");
 			        shader_sources[i] = strstr2( source, temp );
 		        }
@@ -1257,17 +1221,21 @@ namespace GL
 					        shader_lenght = strlen( shader_sources[i] );
 				        }
         			
-				        bool hasShaderCompiled = attach(program, shader_sources[i], shader_lenght, shader_types[i]);
-				        color(CMD_WHITE,CMD_CYAN); DEBUG_PRINT("%s", shader_names[i]);
-						color(CMD_WHITE, 0); DEBUG_PRINT(" ");
+				        bool hasShaderCompiled = attach(program, shader_sources[i], shader_lenght, shaderTypeCodes[i]);
+				        color(CMD_BROWN, 0); DEBUG_PRINT("%s ", shaderTypes[i]);
+						//color(CMD_WHITE, 0); DEBUG_PRINT(" ");
+                        //DEBUG_TRACE(shaderTypes[i]);
                         
 				        if( !hasShaderCompiled )
 				        {
-							color(CMD_LIGHTRED,0); DEBUG_PRINT("%s", "==> ERROR\n\n");
+							//color(CMD_LIGHTRED,0); DEBUG_PRINT("%s", "==> ERROR\n\n");
+                            color(CMD_LIGHTRED,0); DEBUG_PRINT("\n\n");
+
 
                             char message[512];
 	                        glGetShaderInfoLog( program.tail().id, sizeof(message), NULL, message );
 							printf("%s\n", message);
+                            //DEBUG_PRINT(message);
 
 							// Parse to get the error line.
 							// NOTE: Different drivers give different error messages
@@ -1295,7 +1263,7 @@ namespace GL
                                 printf("\n");
                             #endif
 
-                            //CRITICAL("Shader compile error");
+                            CRITICAL("Shader compile error");
 				        }
 			        }
 		        }
@@ -1371,3 +1339,108 @@ namespace GL
     }
 }
 
+namespace GPU
+{
+    void Check(int requiredVersion = 4.3)
+	{
+        DEBUG_TRACE(GL::renderer());
+        DEBUG_TRACE(GL::version());
+        DEBUG_ASSERT( GL::version() >= requiredVersion );
+
+	    GL::Texturing::available();
+	    GL::Texturing::textureNonPowerOfTwoAvailable();
+	    GL::secondaryColorAvailable();
+	    GL::swapControlAvailable();
+	    GL::VBO::available();
+	    GL::GLSL::available();
+	    GL::GLSL::tessellatorAvailable();
+	    GL::GLSL::computeAvailable();
+	    GL::MRT::available();
+
+        if( GL::swapControlAvailable() )
+        {
+            GL::swapControl(0); // TODO check
+        }
+
+		if(true) 
+        {
+            int maxTextureUnits;
+			glGetIntegerv(GL_MAX_TEXTURE_UNITS, &maxTextureUnits);
+            DEBUG_TRACE(maxTextureUnits);
+		}
+
+		if( GL::GLSL::available() ) 
+        {
+            int maxTextureImageUnits;
+			glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextureImageUnits);
+            DEBUG_TRACE(maxTextureImageUnits);
+		}
+
+		if(glEnableVertexAttribArray) 
+        {
+            int maxVertexAttributes;
+			glGetIntegerv( GL_MAX_VERTEX_ATTRIBS, &maxVertexAttributes );
+            DEBUG_TRACE(maxVertexAttributes);
+		}
+
+	    if( GL::GLSL::tessellatorAvailable() ) 
+        {
+            int maxPatchVertices;
+		    glGetIntegerv(GL_MAX_PATCH_VERTICES, &maxPatchVertices);
+            DEBUG_TRACE(maxPatchVertices);
+	    }
+
+		if(true)
+        {
+			int maxDrawBuffers;
+			glGetIntegerv(GL_MAX_DRAW_BUFFERS, &maxDrawBuffers);
+            DEBUG_TRACE(maxDrawBuffers);
+		}
+    }
+
+    void Initialize(int minimumVersion = 4.3)
+    {
+        Check(minimumVersion);
+
+		glEnable(GL_TEXTURE_2D);
+		glEnable(GL_LIGHTING);
+		
+		glEnable(GL_DEPTH_TEST);
+		glClearDepth(1.0f); 
+		glDepthFunc(GL_LEQUAL);
+		
+		glShadeModel( GL_SMOOTH );	
+		glHint( GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST );
+        glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+
+		glDrawBuffer( GL_BACK );
+
+		glEnable(GL_COLOR_MATERIAL);
+		glColorMaterial( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE );
+
+		bool drawBackfaces = false;
+		(drawBackfaces ? glDisable : glEnable)( GL_CULL_FACE );
+
+		GL::Texturing::unbind();
+
+		glMatrixMode(GL_TEXTURE);
+		glLoadIdentity();
+		
+		// Reset VA state
+		glDisableClientState(GL_VERTEX_ARRAY);
+		glDisableClientState(GL_NORMAL_ARRAY);
+		glDisableClientState(GL_COLOR_ARRAY);
+		glDisableClientState(GL_SECONDARY_COLOR_ARRAY);
+		glDisableClientState(GL_INDEX_ARRAY);
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		glDisableClientState(GL_EDGE_FLAG_ARRAY);
+
+		// Reset VBO state
+        if( GL::VBO::available() ) 
+        {
+			GL::VBO::unbind(GL_ARRAY_BUFFER);
+			GL::VBO::unbind(GL_ELEMENT_ARRAY_BUFFER);
+		}
+        GL::GLSL::unbind();
+	}
+}

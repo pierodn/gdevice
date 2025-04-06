@@ -1,9 +1,7 @@
 #pragma once
 
-#include "application/assets/worlds/planet1/parameters.h"
-#include "type/scene/node.h"
-
-#include "type/scene/terrain/tile.h"
+#include "type/scene/oop/node.h"
+#include "type/scene/oop/terrain/tile.h"
 
 
 struct Clipmap : public Node, Transform, Parent, Child
@@ -24,7 +22,7 @@ struct Clipmap : public Node, Transform, Parent, Child
 		return tiles[i+j*CLIPMAP_SIZE];
 	}
 
-	Clipmap( Parent* parent, int lod, int tileRes, IndexBuffer* ibo )
+	Clipmap( Parent* parent, int lod, int tileRes, IndexBuffer* ibo, Program* generator, Program* renderer )
 	{
 		this->parent = parent;
 		this->lod = lod;
@@ -46,14 +44,14 @@ struct Clipmap : public Node, Transform, Parent, Child
 			tile.videomem_invalidated = true;
 			//tile.hostmem_invalidated = true; //
 
+            tile.generator = generator;
+            tile.renderer = renderer;
 			tile.vbo = new VertexBuffer();
 			VertexBuffer& vbo = *tile.vbo;
-
 			vbo.init( tileRes );
 			vbo.mixmaps.scale.st = tileSize;
 
 			tile.ibo = ibo;
-
 			tile.parent = this;
 		}
 	}
@@ -83,8 +81,9 @@ struct Clipmap : public Node, Transform, Parent, Child
 		int dj = -(tileValue(location.y, 2*tileSize) - tileValue(previousLocation.y, 2*tileSize))*2;
 
 		bool invalidation = di!=0 || dj!=0;
-		
-		if( invalidation ) {
+
+		if( invalidation )
+        {
 			scrollTiles( di, dj, location );
 		}
 
@@ -141,11 +140,6 @@ struct Clipmap : public Node, Transform, Parent, Child
 			getTile(i,j).tileID = vec4( point, tileSize, 0.0 );
 		}
 	}
-
-    void render(RenderTarget target)
-    {
-        // TODO
-    }
 
 	void updateChildren( bool bx, bool by )
 	{

@@ -2,73 +2,69 @@
 
 #define DEBUG_SHOW_GLSL_SOURCE	
 
+#include "application/assets/worlds/planet1/parameters.h" // CLIPMAP_WINDOW, TEXTURE_RANGE
+
+
 #include "os/platform.h"
 #include "os/application.h"
 #include "os/keyboard.h"
 
 #include "type/glsl.h"
-#include "type/scene/scene.h"
-#include "type/scene/terrain/heightmap.h"
+#include "type/scene/oop/scene.h"
+#include "type/scene/oop/terrain/heightmap.h"
 
-#include "application/assets/worlds/planet1/parameters.h"
+
 
 
 
 
 class Walker : gd::Application<Walker>
 {
-
-    dmat3 camera; 
+    dmat3 camera;
     double speedFactor;
 
     Scene scene;
     Heightmap heightmap;
     float time; 
-    Light sun;  // TODO vec3 sun;
+    vec3 sun;
 
-    // TODO Texture renderTarget(DC);
-
-	
 public:
 
 	void onOpen(Window<Walker>& window)
     {
         heightmap.setTileResolution(TILE_RESOLUTION);
-	    heightmap.setLODs(CLIPMAPS_COUNT);	
+	    heightmap.setLODs(CLIPMAPS_COUNT);
+        heightmap.Initialize();
 
+        scene.children.push(&heightmap);
         scene.transform.rotation = vec3(-90, 0, 0);
-	    scene.children.push(&heightmap);
+        scene.Initialize();
 
         speedFactor = 40;
 	    camera.position = dvec3(0,0,10.0);
 	    camera.rotation = dvec3(0,0,0);
     	
         time = TIME_START;
-	    sun.spot_direction = rotate((time-7)*360/24, 0.7f, 1.7f) * vec3(0.1,-0.8,0.1); 
+	    sun = rotate((time-7)*360/24, 0.7f, 1.7f) * vec3(0.1,-0.8,0.1); 
 
         // TODO add InputControl
+
+        DEBUG_PRINT("\n");
+		Controls::GetInstance().ShowLegenda();
     }
 
 	void onSize(Window<Walker>& window)
     {
-        // TODO renderTarget.SetSize(window.size)
-	    window.renderer->setViewport(window.size);
-
-        // TODO scene.setProjection( Mat4.Projection(FOV, NEAR_CLIP_PLANE, heightmap.visibility()) );
-	    window.renderer->setProjection(FOV, NEAR_CLIP_PLANE, heightmap.visibility());
+        scene.nodeState.ProjectionMatrix = projection( window.size, FOV, NEAR_CLIP_PLANE, heightmap.GetVisibilityDistance() );
     }
 
 	void onDraw(Window<Walker>& window, double elapsed)
     {
-        Renderer& renderer = *window.renderer;
-	    
         ///////////////////////////////
         // Update scene by user input.
         //
 
-        // TODO 
-        // camera = transform(camera, window, ROTATION_SPEED);
-
+        // TODO camera = transform(camera, window, ROTATION_SPEED);
 	        // Camera rotation
 	        dvec3 mouse_rotation     = dvec3(window.mouseDeltaY(), 0, window.mouseDeltaX());
             dvec3 cursors_rotation   = dvec3(Key::cursorDeltaY(), 0, Key::cursorDeltaX()); // TODO window.HasFocus()
@@ -95,7 +91,7 @@ public:
         // time = 
 	    float timeSpeed = (Key('E').isPressed() ? +1 : Key('R').isPressed() ? -1 : 0) * float(TIME_SPEED) * (speedFactor);
 	    time = fmod( time + timeSpeed*float(elapsed), 24.0f );
-	    sun.spot_direction = rotate((time-7)*360.0f/24.0f, 40.0f, 0.0f) * vec3(0.2, -0.8, 0.1);
+	    sun = rotate((time-7)*360.0f/24.0f, 40.0f, 0.0f) * vec3(0.2, -0.8, 0.1);
 
 	    // TODO: Resolve this dependency.
 	    for(int i=0; i<Controls::CONTROLCOUNT; i++)
@@ -108,48 +104,36 @@ public:
         ////////////////////////////
         // Update scene
         //
-        double level = heightmap.moveAt(camera); // moves and rotates the world (not the camera)
-        // TEMP heightmap.generateInvalidatedTiles(renderer);
+        double level = heightmap.moveAt(camera); // moves the world around the camera
 
-        // TODO: Sleep while compute shader is working.
-/*      double amountSleep = 1.0/TARGET_FPS - elapsed;
-        DEBUG_TRACE(amountSleep);
-        if( amountSleep>0 ) {
-            Sleep( amountSleep ); 
-        }*/
-
-        
 
 	    ////////////////////////////
 	    // Rendering
 	    //
-        // TODO: renderer.barrier 
-        // TODO renderTarget.clear();
-	    renderer.clearBuffer();
-        renderer.setModelViewMatrix(mat4(1));
-	    renderer.inverseRotationMatrix = transpose(RotationMatrix(scene.transform.rotation) * RotationMatrix(heightmap.transform.rotation));
-        renderer.setLight(sun);
-        // TODO: renderer.setTarget<rgba>( NULL );
+        GL::SetViewport(window.size); // TODO GL::SetTarget<rgba>(window)
+        GL::ClearBuffer();
+
+        scene.nodeState.ModelViewMatrix = mat4(1);
+	    scene.nodeState.inverseRotationMatrix = transpose(RotationMatrix(scene.transform.rotation) * RotationMatrix(heightmap.transform.rotation));
+        scene.sceneState.sun = sun;
 
         // ****  NOTE  **** ////////////
         // Do not send in pipeline a node the very first time is generated as it might not be updated (and valid) yet.
         // From 2nd generation on, the node might be updated or not, yet valid. In case it is not updated, it will be the previous version.
         // This is workaround to avoid waiting for glDispatchCompute() to finish (syncronization GPU/CPU).
-        static bool skipRenderingOnce = false;
+        static bool skipRenderingOnce = true;
+        int vertexCount = scene.Traverse( skipRenderingOnce );
 
-        
-        // TODO scene.traverse( skipRenderingOnce, {update, drawing} )
-	    int vertexCount = renderer.traverse( scene, skipRenderingOnce );
-        // TODO use vertexCount
-	    renderer.drawSky();
+        // TODO place this node in th scene graph
+        scene.RenderSkydome();
 
-        skipRenderingOnce = true;
+        skipRenderingOnce = false;
 
 
 	    // 
 	    // Misc controls
 	    //
-	    speedFactor = clamp(speedFactor + window.mouseDeltaWheel()/200.0, 0.05, 31.6228);
+	    speedFactor = clamp(speedFactor + window.mouseDeltaWheel()/200.0, 0.4, 31.6228);
 	    if(Key(ESCAPE).isJustPressed()) window.togglePointer();
         if(Key('L').isJustPressed()) window.toogleFullscreen();
 	    if(Key('X').isPressed()) window.close();
@@ -157,8 +141,8 @@ public:
         //
         // Show rendering state
         //
-	    char controls_string[255];
-	    renderer.controls.getString(controls_string);
+	    char controls[255];
+	    Controls::GetInstance().GetStatusString(controls);
 
 	    static Timer fpsTimer;
 	    static dvec3 previous_pos; 
@@ -177,7 +161,7 @@ public:
         // TODO FPS=%i%s CPU=%i%s GPU=%i%s
 	    window.setTitle("FPS=%i%s Debug=[%s] Speed=%.2fkmh (x%i) Time=%02i.%02i Location=(%s) Direction=(%s)", 
 		    fps, fps<100 ? "  " : "",
-            controls_string, 
+            controls, 
 		    distance(camera.position, previous_pos) * METERS_PER_TILE*100/interval * 3600/1000,
 		    int(speedFactor),
 		    int(time), int(fract(time)*60),
@@ -186,7 +170,7 @@ public:
 	    );
 	    previous_pos = camera.position;
 
-        DEBUG_TRACE_ONCE(renderer.verticesCount);
+        // TODO DEBUG_TRACE_ONCE(renderer.verticesCount);
     }
 
     int run() {

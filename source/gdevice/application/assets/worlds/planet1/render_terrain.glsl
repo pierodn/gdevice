@@ -52,52 +52,47 @@ CONTROL:
 // * Displace mapping
 
 uniform vec2  tileOffset;
+uniform float scale;
+uniform float povZ;
 uniform float kernelSize;
 uniform int   Tessellator = 1;
-uniform float tessellationFactor;
-uniform float tessellationRange;
+uniform float tessellationKernelStart;
+uniform float tessellationKernelRange;
+uniform float tessellationVanishPower;
+uniform float tessellationMaxLevel;
 uniform mat4  ModelViewProjectionMatrix;
-uniform float scale;
-uniform float lod_factor = 100.0;   // TEMP
-uniform vec2  viewport;             // TEMP
 
 in vec3 position[];
 
 out vec3 tPosition[];
 layout(vertices = 4) out;
 
-vec4 projectToNDS(vec3 position) {
+vec4 projectToNDS(vec3 position)
+{
+   // TODO ModelViewProjectionMatrix can be applied at VS already (?) 
    vec4 result = ModelViewProjectionMatrix * vec4(position, 1.0);
    result /= result.w; // Scale to [-1,+1]
    return result;
 }
 
-bool isOffScreen(vec4 ndsPosition) {
-    //return (ndsPosition.z < -0.5) || any(lessThan(ndsPosition.xy, vec2(-1.0)) || greaterThan(ndsPosition.xy, vec2(1.0)));
-    //return (ndsPosition.z < -1.0) || any(lessThan(ndsPosition.xy, vec2(-2.0)) || greaterThan(ndsPosition.xy, vec2(2.0)));
-    //return (ndsPosition.z << -2.0) || any(lessThan(ndsPosition.xy, vec2(-4.0)) || greaterThan(ndsPosition.xy, vec2(4.0)));
-	return ndsPosition.z < -2.0
+bool isOffScreen(vec4 ndsPosition)
+{
+    return ndsPosition.z < -2.0
 		|| ndsPosition.x < -4.0 || ndsPosition.x > +4.0  
 		|| ndsPosition.y < -4.0 || ndsPosition.y > +4.0;
-}
-    
-vec2 projectToScreen(vec4 ndsPosition) {
-	return (clamp(ndsPosition.xy, -1.3, 1.3) + 1.0) * (viewport.xy*0.5);
-}
-
-float computeTessellationLevel(vec2 ss0, vec2 ss1) {
-	return clamp(distance(ss0, ss1)/lod_factor, 0, 1);
 }
 
 void main()
 {
-	if( gl_InvocationID == 0 ) {
+	if( gl_InvocationID == 0 )
+	{
 		vec4 p0 = projectToNDS(position[0]);
 		vec4 p1 = projectToNDS(position[1]);
 		vec4 p2 = projectToNDS(position[2]);
 		vec4 p3 = projectToNDS(position[3]);
 	
-        if(all(bvec4(isOffScreen(p0), isOffScreen(p1), isOffScreen(p2), isOffScreen(p3)))) {
+        if( all(bvec4(isOffScreen(p0), isOffScreen(p1), isOffScreen(p2), isOffScreen(p3))) )
+        {
             // Discard patch (late frustum culling).
             gl_TessLevelOuter[0] = 0;
             gl_TessLevelOuter[1] = 0;
@@ -105,33 +100,33 @@ void main()
             gl_TessLevelOuter[3] = 0;
             gl_TessLevelInner[0] = 0;
             gl_TessLevelInner[1] = 0;
-        } else {
-            // TODO: Fetch (and lod blend) gradient, submap, mixmap
-            // TODO: Tessellation control for plane change, tessellation of edges and big patch (also vertical).
-            
-        //// TEMP
-			vec2 ss0 = projectToScreen(p0);
-			vec2 ss1 = projectToScreen(p1);
-			vec2 ss2 = projectToScreen(p2);
-			vec2 ss3 = projectToScreen(p3);
+        } 
+        else
+        {
+        	vec4 t = vec4(1.0);
+			if(scale <= 1.0) 
+			{
+				// Tessellate by POV distance
+				vec4 ox = tileOffset.x + vec4( position[0].x, position[1].x, position[2].x, position[3].x );
+				vec4 oy = tileOffset.y + vec4( position[0].y, position[1].y, position[2].y, position[3].y );
+				vec4 oz = vec4(povZ)   + vec4( position[0].z, position[1].z, position[2].z, position[3].z );
+                vec4 d = pow(ox*ox + oy*oy + oz*oz, vec4(0.5));
 
-			float e0 = computeTessellationLevel(ss1, ss2);
-			float e1 = computeTessellationLevel(ss0, ss1);
-			float e2 = computeTessellationLevel(ss3, ss0);
-			float e3 = computeTessellationLevel(ss2, ss3);
-        ////
-			vec4 ox = tileOffset.x + vec4( position[0].x, position[1].x, position[2].x, position[3].x );
-			vec4 oy = tileOffset.y + vec4( position[0].y, position[1].y, position[2].y, position[3].y );
-			vec4 d = sqrt( ox*ox + oy*oy ); 				
-			d = 1.0 - smoothstep(0.0, tessellationFactor*(kernelSize-1), d);
-			vec4 t = 1.0 + Tessellator * 63.0 * tessellationFactor * float(scale == 1.0) * d ;//* (e0+e1+e2+e3)/4; // TEMP
-			t = mix(t.yxwz, t.zyxw, 0.5); 
+                float e0 = tessellationKernelStart * (kernelSize-1);
+                float e1 = tessellationKernelRange * (kernelSize-1);
+                d = smoothstep(e0, e1, d);
+                d = pow(d, vec4(tessellationVanishPower));
+                d = 1.0 - d;
+                t = 1.0 + 63.0 * Tessellator * 1.0 * tessellationMaxLevel * d;
+                t = mix(t.yxwz, t.zyxw, 0.5);
+			}
+			
             gl_TessLevelOuter[0] = t.x;
             gl_TessLevelOuter[1] = t.y;
             gl_TessLevelOuter[2] = t.z;
             gl_TessLevelOuter[3] = t.w;
-            gl_TessLevelInner[0] = mix(t.y, t.z, 0.5);
-            gl_TessLevelInner[1] = mix(t.x, t.w, 0.5);
+            gl_TessLevelInner[0] = mix(t.x, t.z, 0.5);
+            gl_TessLevelInner[1] = mix(t.y, t.w, 0.5);
         }
     }
 
@@ -158,18 +153,14 @@ uniform sampler2D mixmapsTU;
 uniform float scale;
 int tileSize = textureSize(mixmapsTU, 0).x;
 
-// TEMP: These are necessary for Fog and Displacement:
-    uniform mat4 ModelViewMatrix; //
-    
-// TEMP: These are necessary for Fog:
-    uniform float fog_density = 0.0005; //
-
-// TEMP: These are necessary for displacement:
-    uniform sampler2D detailsTU;
-    uniform sampler2D detailsDxTU;
-    uniform sampler2D detailsDyTU;
-    uniform float kernelSize; //
-uniform float tessellationRange;
+// Displacement:
+uniform sampler2D detailsTU;
+uniform sampler2D detailsDxTU;
+uniform sampler2D detailsDyTU;
+uniform float kernelSize;
+uniform vec2  tileOffset;
+uniform float povZ;
+uniform float tessellationKernelRange;
 uniform float tessellationDisplacement; 
     
 uniform vec4 defaultColorR;
@@ -192,26 +183,8 @@ out VertexData {
 
 
 
-
 ////////////////////////////////////////////////////////////
-// Common functions
-//
-
-vec4 noise(vec2 point) 
-{		
-    vec2 i = floor(point);
-    vec2 f = fract(point);
-	vec2 u = f*f*(3.0-2.0*f);
-	vec2 du = 6.0*f*(1.0-f);
-	
-    float WIDTH = 0.3137;
-    vec4 L = vec4(0.0, 1.0, WIDTH, WIDTH + 1.0);	
-    L = fract((L + dot(i, L.yz))*0.1731);
-    L += L*(L + 1.0);
-    L = fract(7.7771*L*L) - 0.5;
-	L = vec4(L.x, L.y-L.x, L.z-L.x, L.x-L.y-L.z+L.w);
-	return vec4(du*(L.yz + L.w*u.yx), L.x + L.y*u.x + L.z*u.y + L.w*u.x*u.y, 0.0 );
-}
+// TODO #include "triplanar.glsl" 
 
 vec4 textureNoTileLod( sampler2D samp, in vec2 uv, float lodBias ) 
 {
@@ -238,9 +211,6 @@ vec4 textureNoTileLod( sampler2D samp, in vec2 uv, float lodBias )
     
     return mix( cola, colb, smoothstep(0.2, 0.8, f - 0.1*dot(cola-colb, vec4(1.0))) );
 }
-
-
-
 
 vec3 getTriplanarWeightVector(vec3 N) 
 {
@@ -280,14 +250,14 @@ vec4 blendColor(vec4 color, vec4 mixmap, float x1, float x2)
     return color/4.0;
 }
 
-// http://weber.itn.liu.se/~stegu/TNM084-2017/bumpmapping/bumpmapping.pdf
-// Also check doBumpMap() in Desert Canyon (https://www.shadertoy.com/view/Xs33Df)
 void displaceVertexAndRecomputeNormal(inout vec3 p, inout vec3 N, float H, vec3 dH)
 {
     p = p + H*N;
     N = normalize( (1.0 + dot(dH,N))*N - dH );
 }
-////////////////////////////////////////////////////////////
+
+//
+////////////////////////////////////////
 
 
 void main()
@@ -300,71 +270,35 @@ void main()
 	vec4 gradient = textureLod(gradientsTU, p, 0); 
 	vec4 color = textureLod(colorsTU,  p, 0); 
 	vec4 mixmap	= textureLod(mixmapsTU, p, 0);
-	vec2 coords = position.xy * scale;	// TODO needed?
+	vec2 coords = position.xy * scale;
 
-    // Used for Displacement and also for Fog later.
-    // TODO Compute at vertex shader (it's E vector).
-    float povDistance = length((ModelViewMatrix * vec4(position,1)).xyz);
-		
-#if 1   // Displace position along the normal in LOD zero.
-        // TODO: And compute the new normal.
-        vec3 normal;
-        vec3 dH = vec3(gradient.xy, 0.0);
-	    float displacement = 1.0 - smoothstep(0.0, 1.0*tessellationRange*(kernelSize-1), povDistance);
-	    if( displacement > 0.0 )// NOTE: Only within the 1st LOD (otherwise you get cracks).
-           /*&& color.a == 0.0 )*/ // Only for non water surfaces
-	    { 
-	    	const float LodBias = 0.0;
-	    	//normal = normalize(vec3(gradient.xy/scale, 1));
-            
-            float blurLevel = 2;
-            vec3 weight = getTriplanarWeightVector(/*normal*/normalize(vec3(gradient.xy/scale, 1)));
-            vec4 luma4 = textureTriplanar(detailsTU, position.xyz, weight, LodBias + blurLevel);
-            vec4 mixmap = blendMixmap(mixmap + luma4);
+    vec3 dH = vec3(gradient.xy, 0.0);
+    
+    float dist4nce = length(vec3(tileOffset, povZ) + position);
+    float displacementAmount = 1.0 - smoothstep(0.0, 1.0*tessellationKernelRange*(kernelSize-1), dist4nce);
+    if( displacementAmount > 0.0 ) // && color.a == 0.0 ) // Only for non water surfaces
+    { 
+        displacementAmount *= tessellationDisplacement;
 
-            //float luma = 0.2;
-            vec4 luma4Dx = textureTriplanar(detailsDxTU, position.xyz, weight, LodBias + blurLevel);
-		    vec4 luma4Dy = textureTriplanar(detailsDyTU, position.xyz, weight, LodBias + blurLevel);
+        vec3 normal = normalize(vec3(gradient.xy/scale, 1));
+        vec3 weight = getTriplanarWeightVector(normal);
 
-            displacement *= tessellationDisplacement;
-            float H = displacement*dot(mixmap, luma4);
-			dH = vec3(
-			    dot(mixmap, luma4Dx),
-			    dot(mixmap, luma4Dy),
-			    displacement
-			);
+        float blurLevel = 2.0;
+        vec4 luma4   = textureTriplanar(detailsTU,   position.xyz, weight, blurLevel);
+        vec4 luma4Dx = textureTriplanar(detailsDxTU, position.xyz, weight, blurLevel);
+	    vec4 luma4Dy = textureTriplanar(detailsDyTU, position.xyz, weight, blurLevel);
 
-			//vec3 position1 = position.xyz;
-			//vec3 normal1   = normal.xyz;
-                normal = normalize(vec3(gradient.xy, 1));
-            displaceVertexAndRecomputeNormal(position, normal, H, dH);
-	    
-	        color += 0.00000000001*blendColor(color, mixmap, 0.30, 1.6);
-	    
-/*	        vec4 details = pow(texture(detailsTU, coords.xy, +4.5), vec4(1.0));
-		    
-	        vec4 displacementWeights = vec4(0.120, 0.040, 0.030, 0.050);
-	        float extrusion = dot(displacementWeights, mixmap);
-	        float luma = extrusion * dot(details, mixmap);
-	        luma = (luma - extrusion/2) * displacement;
-            vec3 N = normalize(vec3(gradient.xy, 1));
-		    position += luma * N;
-            #if 0  // Re-adjusting gradient after displacement
-                // FIX Discontinuity
-		        gradient.xy += (1.0 + dot(luma*gradient.xy,N.xy))*N.xy - luma*gradient.xy;
-            #endif 
-            */
-	    }
-#endif  
-
+        float H = displacementAmount * clamp(dot(mixmap,luma4), 0.2, 0.9);
+        dH = vec3( dot(mixmap, luma4Dx), dot(mixmap, luma4Dy), 1.0 );
+        displaceVertexAndRecomputeNormal(position, normal, H, dH);
+    }
 
 	// Output vertex
-	tVertex.position = vec4(coords, position.z,	povDistance ); // TODO: povDistance is not currently used down the pipeline
+	tVertex.position = vec4(coords, position.z,	0.0); // TODO bake fog data here?
 	tVertex.gradient = gradient;
-            //vec4(dH.xy, gradient.zw);
-            //vec4( normalize(vec3(normal.xy/normal.z, 1.0)).xy, gradient.zw );
     tVertex.color	 = color;
 	tVertex.mixmap	 = mixmap;
+
     gl_Position = vec4(position, 1.0);
 }
 
@@ -418,7 +352,7 @@ void main()
 		gVertex.mixmap		= tVertex[i].mixmap;
 		
 		gVertex.N0	= NormalMatrix * normalize(vec3(tVertex[i].gradient.zw, 1));
-		gVertex.E	= (ModelViewMatrix * gl_in[i].gl_Position).xyz; // length of it, is povDistance
+		gVertex.E	= (ModelViewMatrix * gl_in[i].gl_Position).xyz; // length of it, is d1stance
 		gVertex.L	= (ModelViewMatrix * vec4(Light0_position.xy/scale, Light0_position.zw)).xyz;	// TODO precompute?
 
 		gVertex.barycentric =	i == 0 ? vec3(1,0,0) : 
@@ -648,8 +582,6 @@ vec4 blendColor(vec4 color, vec4 mixmap, float x1, float x2)
     return color/4.0;
 }
 
-// http://weber.itn.liu.se/~stegu/TNM084-2017/bumpmapping/bumpmapping.pdf
-// Also check doBumpMap() in Desert Canyon (https://www.shadertoy.com/view/Xs33Df)
 void displaceVertexAndRecomputeNormal(inout vec3 p, inout vec3 N, float H, vec3 dH)
 {
     p = p + H*N;
@@ -935,7 +867,7 @@ void main()
 	float daylight		= smoothstep(0.0, 0.1, L.z);
 	float sunHaloWidth  = mix(2, 30, smoothstep(0.0, 0.4, L.z));
 	vec3 sunColor		= mix(vec3(0.80, 0.40, 0.20), vec3(1.00, 0.90, 0.75), smoothstep( 0.0, 0.3, L.z));
-	vec3 zenithColor	= mix(vec3(0.01, 0.02, 0.04), vec3(0.35, 0.48, 0.60), smoothstep(-0.8, 0.0, L.z));
+	vec3 zenithColor	= mix(vec3(0.01, 0.02, 0.04), vec3(0.22, 0.35, 0.60), smoothstep(-0.8, 0.0, L.z));
 	vec3 horizonColor	= mix(vec3(0.02, 0.03, 0.04), sunColor,               smoothstep(-0.4, 0.5, L.z));
 	vec3 groundColor	= vec3( dot( mix(0.03*zenithColor, 1.4*zenithColor,   smoothstep( 0.0, 0.4, L.z)), vec3(0.22,0.33,0.45)) );
 	vec3 specularColor	= sampleAmbient(reflect(L,N), L, sunColor, zenithColor, horizonColor, groundColor, lfShadow, sunHaloWidth);
@@ -961,9 +893,9 @@ if( bool(PBR) )
 	
     //light += 0.00 * zenithColor * matColor.rgb * (1.0 - occlusion); // Ambient ?
     light += 2.00 * Diffuse  * occlusion * daylight * lfShadow * sunColor * REFLECTANCE(L, E, N, diffuseColor, F0, roughness, metallic);
-    light += 0.14 * Indirect * occlusion * daylight * sunColor * REFLECTANCE(I, E, N, diffuseColor, F0, roughness, metallic);
-    light += 0.01 * Sky		 * occlusion *			  zenithColor * N.z; //REFLECTANCE(vec3(0,0,-1), E, N, diffuseColor, F0, roughness, metallic);
-    light += 0.01 * Fresnel  * relief	 * (fresnelColor - light) * fresnel;
+    light += 0.10 * Indirect * occlusion * daylight * sunColor * REFLECTANCE(I, E, N, diffuseColor, F0, roughness, metallic);
+    light += 0.03 * Sky		 * occlusion *			  zenithColor * N.z; //REFLECTANCE(vec3(0,0,-1), E, N, diffuseColor, F0, roughness, metallic);
+    light += 0.03 * Fresnel  * relief	 * (fresnelColor - light) * fresnel;
 } 
 else 
 { 
@@ -981,10 +913,10 @@ else
 
 
 	light += 0.40 * Diffuse  * occlusion * daylight * lfShadow * sunColor * pow(lambertian, 0.8) ;//* (1.0 - specular);
-	light += 0.06 * Specular * relief	 * daylight * mix(0.2, 1.0, lfShadow) * specularColor * specular;//* max(0.0, dot(N,L));
-	light += 0.01 * Indirect * occlusion * daylight * sunColor * max(0.0, dot(N,I));
-	light += 0.02 * Sky      * occlusion *			  zenithColor * N.z;
-	light += 0.02 * Fresnel  * relief	 * (fresnelColor - light) * fresnel;
+	light += 0.10 * Specular * relief	 * daylight * mix(0.2, 1.0, lfShadow) * specularColor * specular;//* max(0.0, dot(N,L));
+	light += 0.02 * Indirect * occlusion * daylight * sunColor * max(0.0, dot(N,I));
+	light += 0.03 * Sky      * occlusion *			  zenithColor * N.z;
+	light += 0.03 * Fresnel  * relief	 * (fresnelColor - light) * fresnel;
 }
 
     if(Heatmap > 0)
