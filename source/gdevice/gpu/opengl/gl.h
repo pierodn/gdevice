@@ -1222,7 +1222,7 @@ namespace GL
 				        }
         			
 				        bool hasShaderCompiled = attach(program, shader_sources[i], shader_lenght, shaderTypeCodes[i]);
-				        color(CMD_BROWN, 0); DEBUG_PRINT("%s ", shaderTypes[i]);
+				        color(CMD_YELLOW, 0); DEBUG_PRINT("%s ", shaderTypes[i]);
 						//color(CMD_WHITE, 0); DEBUG_PRINT(" ");
                         //DEBUG_TRACE(shaderTypes[i]);
                         

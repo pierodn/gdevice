@@ -1,7 +1,7 @@
 #pragma once
 
-// TODO: get rid of this dependency
-#include <windows.h>
+#include "type/array.h"
+
 #define F1			VK_F1
 #define F2			VK_F2
 #define	F3			VK_F3
@@ -14,10 +14,6 @@
 #define	F10			VK_F10
 #define F11			VK_F11
 #define F12			VK_F12
-///////////////////////////////////////////
-
-#include "type/array.h"
-
 
 static const unsigned char BINDINGS[] = 
 { 
@@ -33,7 +29,7 @@ struct Controls
 	static const unsigned char* Bindings; 
 
 	enum constants {	WIREFRAME, DEBUGMODE, DIFFUSE, SPECULAR,
-						INDIRECT, SKY, FRESNEL, SCATTERING, 
+						FRESNEL, INDIRECT, SKY, SCATTERING, 
                         TESSELLATOR, BUMPS, SHADOWS, PBR, 
                         HEATMAP,
 						GAMMA, CONTRAST, UNSATURATE, TINT, VIGNETTING, 
@@ -93,19 +89,14 @@ struct Controls
 private:
     Controls()
     {
-        Initialize();
-    }
-
-    void Initialize() 
-	{	
         literals[WIREFRAME]	    .push("Wireframe");
         literals[DEBUGMODE]	    .push("DebugMode").push("Color").push("HeightBlend").push("Normal").push("Light");
 		literals[DIFFUSE]		.push("Diffuse");		// Direct light: Lambertian (classic or some other)
         literals[SPECULAR]		.push("Specular");		// Direct light: Specular (classic or PBR)
 
+        literals[FRESNEL]		.push("Fresnel");		// Ambient light: fresnel
 		literals[INDIRECT]		.push("Indirect");		// Ambient light: direct light bouncing back
 		literals[SKY]			.push("Sky");			// Ambient light: sky
-		literals[FRESNEL]		.push("Fresnel");		// Ambient light: fresnel
 		literals[SCATTERING]	.push("Scattering");	// Light scattering
 
 		literals[TESSELLATOR]	.push("Tessellator");	// Micropolygons
@@ -130,10 +121,10 @@ private:
         values[Bindings[DEBUGMODE]]	    = 0;
 		values[Bindings[DIFFUSE]]		= 1;
         values[Bindings[SPECULAR]]		= 1;
-		
+        
+        values[Bindings[FRESNEL]]		= 1;
 		values[Bindings[INDIRECT]]		= 1;
 		values[Bindings[SKY]]			= 1;
-		values[Bindings[FRESNEL]]		= 1;
 		values[Bindings[SCATTERING]]	= 1;
         
 		values[Bindings[TESSELLATOR]]	= 1;

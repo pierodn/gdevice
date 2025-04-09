@@ -46,65 +46,65 @@ struct Tile : public Node, Transform, Child, Geometry, Updatable, Renderable
 	    for( int i=0; i<Controls::CONTROLCOUNT; i++ ) 
 	    {
 		    int size = Controls::GetInstance().literals[i].size() <=1 ? 2 : Controls::GetInstance().literals[i].size();
-		    GL::GLSL::set( programRenderTerrain, Controls::GetInstance().literals[i][0], Controls::GetInstance().values[Controls::Bindings[i]] % size ); 
+		    renderer->Set(Controls::GetInstance().literals[i][0], Controls::GetInstance().values[Controls::Bindings[i]] % size); 
 	    }
     	
-	    GL::GLSL::set( programRenderTerrain, "quartetsTU",  0); GL::Texturing::bind( 0, vbo.quartets );
-	    GL::GLSL::set( programRenderTerrain, "gradientsTU", 1); GL::Texturing::bind( 1, vbo.gradients );
-	    GL::GLSL::set( programRenderTerrain, "colorsTU",    2); GL::Texturing::bind( 2, vbo.colors ); 
-	    GL::GLSL::set( programRenderTerrain, "mixmapsTU",   3); GL::Texturing::bind( 3, vbo.mixmaps ); 
-	    GL::GLSL::set( programRenderTerrain, "detailsTU",   4); GL::Texturing::bind( 4, details );
-	    GL::GLSL::set( programRenderTerrain, "detailsDxTU", 5); GL::Texturing::bind( 5, detailsDx );
-	    GL::GLSL::set( programRenderTerrain, "detailsDyTU", 6); GL::Texturing::bind( 6, detailsDy );
+	    renderer->Set("quartetsTU",  0); GL::Texturing::bind( 0, vbo.quartets );
+	    renderer->Set("gradientsTU", 1); GL::Texturing::bind( 1, vbo.gradients );
+	    renderer->Set("colorsTU",    2); GL::Texturing::bind( 2, vbo.colors ); 
+	    renderer->Set("mixmapsTU",   3); GL::Texturing::bind( 3, vbo.mixmaps ); 
+	    renderer->Set("detailsTU",   4); GL::Texturing::bind( 4, details );
+	    renderer->Set("detailsDxTU", 5); GL::Texturing::bind( 5, detailsDx );
+	    renderer->Set("detailsDyTU", 6); GL::Texturing::bind( 6, detailsDy );
 
     //#define NAME(var) #var
-      //GL::GLSL::set( programRenderTerrain, NAME(detailsDy) "TU", 6);
+      //renderer->Set(NAME(detailsDy) "TU", 6);
     //        programRenderTerrain->set(NAME(detailsDy) "TU", detailsDy, 6);
         // SET( program, detailsDy, 6)
 
 	    // LOD transitions blending
-	    GL::GLSL::set( programRenderTerrain, "tileOffset", tileOffset );
-	    GL::GLSL::set( programRenderTerrain, "kernelSize", float(CLIPMAP_WINDOW/2) );
-	    GL::GLSL::set( programRenderTerrain, "scale", vbo.mixmaps.scale.s );
+        renderer->Set("tileOffset", tileOffset);
+        renderer->Set("kernelSize", float(CLIPMAP_WINDOW/2));
+	    renderer->Set("scale", vbo.mixmaps.scale.s);
 
 	    // transformation
         mat4 ModelViewProjectionMatrix = nodeState.ProjectionMatrix * nodeState.ModelViewMatrix;
-        mat3 NormalMatrix = inverseTranspose( mat3(nodeState.ModelViewMatrix) );
-	    GL::GLSL::set( programRenderTerrain, "ModelViewProjectionMatrix",	ModelViewProjectionMatrix );
-	    GL::GLSL::set( programRenderTerrain, "ModelViewMatrix",				nodeState.ModelViewMatrix );
-	    GL::GLSL::set( programRenderTerrain, "NormalMatrix",				NormalMatrix );
+        mat3 NormalMatrix = inverseTranspose(mat3(nodeState.ModelViewMatrix));
+	    renderer->Set("ModelViewProjectionMatrix", ModelViewProjectionMatrix);
+	    renderer->Set("ModelViewMatrix", nodeState.ModelViewMatrix);
+	    renderer->Set("NormalMatrix", NormalMatrix);
 
         // tessellation
-        GL::GLSL::set( programRenderTerrain, "tessellationKernelStart", 0.04f ); // 0.03
-        GL::GLSL::set( programRenderTerrain, "tessellationKernelRange", 0.16f ); // 0.10
-        GL::GLSL::set( programRenderTerrain, "tessellationVanishPower", 0.50f ); // less is more
-        GL::GLSL::set( programRenderTerrain, "tessellationMaxLevel", 0.25f );
-        GL::GLSL::set( programRenderTerrain, "tessellationDisplacement", 0.010f );
-        GL::GLSL::set( programRenderTerrain, "povZ", pHeightmap->transform.position.z );
+        renderer->Set("tessellationKernelStart", 0.04f ); // 0.03
+        renderer->Set("tessellationKernelRange", 0.16f ); // 0.10
+        renderer->Set("tessellationVanishPower", 0.50f ); // less is more
+        renderer->Set("tessellationMaxLevel", 0.25f );
+        renderer->Set("tessellationDisplacement", 0.010f );
+        renderer->Set("povZ", pHeightmap->transform.position.z );
 
 	    // lighting
-	    GL::GLSL::set( programRenderTerrain, "Light0_position",	vec4(sceneState.sun, 0.0) );
+	    renderer->Set("Light0_position",	vec4(sceneState.sun, 0.0) );
 
 	    // light scattering 
         vec2 viewport = GL::GetViewport();
-	    GL::GLSL::set( programRenderTerrain, "viewport", viewport  );
-	    GL::GLSL::set( programRenderTerrain, "InverseRotationProjection", nodeState.inverseRotationMatrix * inverseProjection(nodeState.ProjectionMatrix) );
+	    renderer->Set("viewport", viewport  );
+	    renderer->Set("InverseRotationProjection", nodeState.inverseRotationMatrix * inverseProjection(nodeState.ProjectionMatrix) );
         
-        GL::GLSL::set( programRenderTerrain, "visibileDistance", visibileDistance );
-	    GL::GLSL::set( programRenderTerrain, "AbsoluteTime",	float(Timer::absoluteTime()) );
+        renderer->Set("visibileDistance", visibileDistance );
+	    renderer->Set("AbsoluteTime",	float(Timer::absoluteTime()) );
 
         const int HeightBlendView = 2;
         if( Controls::GetInstance().values[Controls::Bindings[Controls::DEBUGMODE]] == HeightBlendView )
         {
-            GL::GLSL::set(programRenderTerrain, "defaultColorR", vec4(1.0, 0.0, 0.0, 0.0));
-            GL::GLSL::set(programRenderTerrain, "defaultColorG", vec4(0.0, 1.0, 0.0, 0.0));
-            GL::GLSL::set(programRenderTerrain, "defaultColorB", vec4(0.0, 0.0, 1.0, 0.0));
-            GL::GLSL::set(programRenderTerrain, "defaultColorA", vec4(1.0, 0.0, 0.0, 0.0));
+            renderer->Set("defaultColorR", vec4(1.0, 0.0, 0.0, 0.0));
+            renderer->Set("defaultColorG", vec4(0.0, 1.0, 0.0, 0.0));
+            renderer->Set("defaultColorB", vec4(0.0, 0.0, 1.0, 0.0));
+            renderer->Set("defaultColorA", vec4(1.0, 0.0, 0.0, 0.0));
         } else {
-            GL::GLSL::set(programRenderTerrain, "defaultColorR", vec4(0.36, 0.30, 0.26, 0.0));  // Light stone
-            GL::GLSL::set(programRenderTerrain, "defaultColorG", vec4(0.28, 0.24, 0.20, 0.0));  // Pebbles
-            GL::GLSL::set(programRenderTerrain, "defaultColorB", vec4(0.34, 0.26, 0.22, 0.0));  // Brownish stone
-            GL::GLSL::set(programRenderTerrain, "defaultColorA", vec4(0.50, 0.38, 0.30, 0.0));  // Dirty sand
+            renderer->Set("defaultColorR", vec4(0.36, 0.30, 0.26, 0.0));  // Light stone
+            renderer->Set("defaultColorG", vec4(0.28, 0.24, 0.20, 0.0));  // Pebbles
+            renderer->Set("defaultColorB", vec4(0.34, 0.26, 0.22, 0.0));  // Brownish stone
+            renderer->Set("defaultColorA", vec4(0.50, 0.38, 0.30, 0.0));  // Dirty sand
         }
     		
 	    GL::VBO::bind( vbo );

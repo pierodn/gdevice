@@ -338,7 +338,7 @@ public:
 				return 0;
 	
 			case WM_MOVE:
-				DEBUG_CHECKPOINT_ONCE(WM_MOVE);
+				//DEBUG_CHECKPOINT_ONCE(WM_MOVE);
 				return 0;
 
 			case WM_SYSCOMMAND:
