@@ -9,9 +9,10 @@
 #endif
 
 #include "__temp/Texture.h"
-#include "gpu/Program.h"
 #include "__temp/VertexBuffer.h"
 #include "gpu/IndexBuffer.h"
+
+const bool Verbose = false;
 
 namespace 
 {
@@ -92,7 +93,11 @@ namespace GL
 			if( *s==' ' || *s == '\0' ) break;
 		}
 
-		//DEBUG_PRINT( TAB32 ": %s\n", extension, s ? "OK" : "MISSING" );
+        if(Verbose)
+        {
+            color(CMD_DARKGRAY, 0);
+		    DEBUG_PRINT(TAB32 ": %s\n", extension, s ? "OK" : "MISSING" );
+        }
 		return (bool)s;
 	}
 
@@ -111,6 +116,8 @@ namespace GL
                                                           "Unknown error";
 	}
 
+    const int FirstTime = -1;
+
     /// ============================
     //  Texturing
     /// ============================
@@ -119,9 +126,9 @@ namespace GL
 	{
 		bool available()
 		{
-			static int supported = -1;
+			static int supported = FirstTime;
 
-			if( supported==-1 )
+			if( supported == FirstTime )
 			{
 				supported = isExtensionSupported("GL_ARB_multitexture");
 						 
@@ -140,7 +147,11 @@ namespace GL
 					&& isExtensionSupported("GL_ARB_texture_env_combine")
 					&& isExtensionSupported("GL_ARB_texture_env_dot3");
 
-				//printf( "%-8s: %s\n", "FIXED", supported ? "OK" : "NOT AVAILABLE" );
+                if(Verbose)
+                {
+                    color(CMD_DARKGRAY, 0);
+				    DEBUG_PRINT(TAB32 ": %s\n", "FIXED", supported ? "OK" : "NOT AVAILABLE" );
+                }
 			}
 
 			return supported;
@@ -148,9 +159,9 @@ namespace GL
 
 		bool textureNonPowerOfTwoAvailable()
 		{
-			static int supported = -1;
+			static int supported = FirstTime;
 
-			if( supported==-1 )
+			if( supported == FirstTime )
 			{
 				supported = isExtensionSupported("GL_ARB_texture_non_power_of_two" );
 			}
@@ -374,9 +385,9 @@ namespace GL
 { 
 	bool secondaryColorAvailable()
 	{
-		static int supported = -1;
+		static int supported = FirstTime;
 
-		if( supported==-1 )
+		if( supported == FirstTime )
 		{
 			supported = isExtensionSupported("GL_EXT_secondary_color" );
 		
@@ -385,9 +396,13 @@ namespace GL
 				&& (glSecondaryColorPointer	= (PFNGLSECONDARYCOLORPOINTERPROC) getProc("glSecondaryColorPointer", "glSecondaryColorPointerEXT") )
 			;
 			#endif
-
-			//printf( "%-8s: %s\n", "SECONDARY COLOR", supported ? "OK" : "NOT AVAILABLE" );
-		}
+            
+            if(Verbose)
+            {
+                color(CMD_DARKGRAY, 0);
+			    DEBUG_PRINT(TAB32 ": %s\n", "SECONDARY COLOR", supported ? "OK" : "NOT AVAILABLE" );
+		    }
+        }
 
 		return supported;
 	}
@@ -409,8 +424,9 @@ namespace GL
 { 
 	bool swapControlAvailable()
 	{
-		static int supported = -1;
-		if( supported==-1 ) {
+		static int supported = FirstTime;
+		if( supported == FirstTime )
+        {
 			supported = isExtensionSupported( "WGL_EXT_swap_control" );
 			#if defined(_WIN32)
 			supported = supported
@@ -506,9 +522,9 @@ namespace GL
     {
         bool available()
         {
-	        static int supported = -1;
+	        static int supported = FirstTime;
 
-	        if( supported==-1 )
+	        if( supported == FirstTime )
 	        {
 		        supported = GL::isExtensionSupported("GL_EXT_framebuffer_object") 
 			             || GL::isExtensionSupported("GL_ARB_framebuffer_object");
@@ -539,7 +555,11 @@ namespace GL
 		        ;
 		        #endif
 
-		        //printf( "%-8s: %s\n", "MRT", supported ? "OK" : "NOT AVAILABLE" );
+                if(Verbose)
+                {
+                    color(CMD_DARKGRAY, 0);
+		            DEBUG_PRINT(TAB32 ": %s\n", "MRT", supported ? "OK" : "NOT AVAILABLE" );
+                }
 	        }
 
 	        return supported;
@@ -656,9 +676,9 @@ namespace GL
     {
         bool available()
         {
-	        static int supported = -1;
+	        static int supported = FirstTime;
 
-	        if( supported==-1 )
+	        if( supported == FirstTime )
 	        {
 		        supported = GL::isExtensionSupported("GL_EXT_transform_feedback") 
 			             || GL::isExtensionSupported("GL_NV_transform_feedback");	// uguale a EXT?	
@@ -680,7 +700,11 @@ namespace GL
 		        // TODO or EXT_framebuffer_object + glCopyPixel
 		        // TODO or write_to_backbuffer    + glCopyPixel
 
-		        //printf( "%-8s: %s\n", "RTT", supported ? "OK" : "NOT AVAILABLE" );
+                if(Verbose)
+                {
+                    color(CMD_DARKGRAY, 0);
+		            DEBUG_PRINT(TAB32 ": %s\n", "RTT", supported ? "OK" : "NOT AVAILABLE" );
+                }
 	        }
 
 	        return supported;
@@ -746,9 +770,9 @@ namespace GL
     {
         bool available()
         {
-	        static int supported = -1;
+	        static int supported = FirstTime;
 
-	        if( supported==-1 )
+	        if( supported == FirstTime )
 	        {
 		        // ?
 		        supported = GL::isExtensionSupported("GL_ARB_vertex_buffer_object");
@@ -765,7 +789,11 @@ namespace GL
 			        && (glUnmapBuffer			= (PFNGLUNMAPBUFFERPROC)			getProc("glUnmapBuffer"));
 		        #endif
 
-		        //printf( "%-8s: %s\n", "VBO", supported ? "OK" : "NOT AVAILABLE" );
+                if(Verbose)
+                {
+                    color(CMD_DARKGRAY, 0);
+		            DEBUG_PRINT(TAB32 ": %s\n", "VBO", supported ? "OK" : "NOT AVAILABLE" );
+                }
 	        }
 
 	        return supported;
@@ -987,420 +1015,392 @@ namespace GL
 
 namespace GL
 {
-    namespace GLSL
-    {
-        double version()
-        {
-	        return atof((const char *)glGetString(GL_SHADING_LANGUAGE_VERSION));
+    // private
+    void printSource(char* source, int length, int focusLine = -1)
+	{
+        ASSERT( length <= MAX_PROGRAM_SOURCE_LENGTH );
+
+        char buffer[MAX_PROGRAM_SOURCE_LENGTH];
+        strncpy(buffer, source, length);
+
+        char* p = buffer;
+        char lineText[256];
+        for(int line = 2; *p; line++) 
+		{
+	        char* nIndex = strstr2(p, "\n");
+	        if(nIndex==0) break;
+
+            if((focusLine < 0) || (focusLine >= 0) && (focusLine-6 <= line) && (line <= focusLine+3)) 
+            { 
+	            int length = nIndex - p;			
+	            strncpy(lineText, p, length);
+	            lineText[length] = 0;
+
+                if(line == focusLine) {
+                    color(CMD_WHITE, CMD_RED); 
+                } else {
+                    color(CMD_LIGHTGRAY, 0); 
+                }
+	            printf("%i: %s\n", line, lineText);
+            }
+
+	        p = nIndex + 1;
         }
+    }
 
-        bool available()
+    int CompileShader(char* source, int len, int type)
+    {
+        for(; *source>0 && *source<=' '; source++) len--;
+
+        ASSERT(*source);
+        ASSERT(len >= 0);
+
+        GLint shaderId = glCreateShader( type );
+        glShaderSource(shaderId, 1, (const char**)&source, &len );
+        glCompileShader(shaderId);
+
+        int successful = 0;
+        glGetShaderiv( shaderId, GL_COMPILE_STATUS, &successful );
+
+        if( !successful )
         {
-	        static int supported = -1;
+            color(CMD_LIGHTRED,0); DEBUG_PRINT("\n\n");
 
-	        if( supported==-1 )
+            char message[512];
+            glGetShaderInfoLog( shaderId, sizeof(message), NULL, message );
+			printf("%s\n", message);
+            //DEBUG_PRINT(message);
+
+			// Parse to get the error line.
+			// NOTE: Different drivers give different error messages
+			// https://gamedev.stackexchange.com/questions/38685/is-this-a-reliable-method-of-parsing-glgetshaderinfolog
+			int line = -1;
+			if(line <= 0)
+            {
+				// NVIDIA error message
+				char *p1 = 0, *p2 = 0;
+				p1 = strchr(message, '(');
+				if( p1>0 ) p2 = strchr(p1+1, ')');
+				if( p1>0 && p2>0 ) line = strtol(p1+1, &p2, 10) + 1; // it was +0 
+			}
+			if(line <= 0)
+            {
+				// ATI/Intel error message
+				char *p0 = 0, *p1 = 0, *p2 = 0;
+				p0 = strchr(message, ':');
+				if( p0>0 ) p1 = strchr(p0+1, ':');
+				if( p1>0 ) p2 = strchr(p1+1, ':');
+				if(p0>0 && p1>0 && p2>0) line = strtol(p1+1, &p2, 10) + 1;
+			}
+			ASSERT(line > 0);
+
+            #if defined(DEBUG_SHOW_GLSL_SOURCE)
+	            printSource( source, len, line ); 
+                printf("\n");
+            #endif
+
+            CRITICAL("Shader compile error");
+        }  	
+        return shaderId;
+    }
+
+    void CheckProgram( int programId )
+    {
+        int successful;
+        glGetProgramiv( programId, GL_LINK_STATUS, &successful);
+        if( successful ) return;
+
+        char message[512];
+        glGetProgramInfoLog( programId, sizeof(message), 0, message );
+        DEBUG_CRITICAL( message );
+    }
+
+    void AttachShaderToProgram(int programId, int shaderId)
+    {
+        glAttachShader(programId, shaderId);
+    }
+
+    void LinkProgram(int programId)
+    {
+	    glLinkProgram(programId);
+        CheckProgram(programId);
+    }
+
+    int BuildShaders(const char* source, int* shaders)
+    {
+        DEBUG_PATH;
+
+        const char* shaderTypes[] = { "VERTEX", "CONTROL", "EVALUATION", "GEOMETRY", "FRAGMENT", "COMPUTE" };
+        const int   shaderTypeCodes[] = { GL_VERTEX_SHADER, GL_TESS_CONTROL_SHADER, GL_TESS_EVALUATION_SHADER, GL_GEOMETRY_SHADER, GL_FRAGMENT_SHADER, GL_COMPUTE_SHADER };
+        int shadersCount = sizeof(shaderTypeCodes)/sizeof(int);
+
+        int shaderIndex = 0;
+        for( int i=0; i<shadersCount; i++ )
+        {
+            char* shaderPosition = strstr2( (char*)source, shaderTypes[i]);
+            if(shaderPosition == NULL) continue;
+            
+            shaderPosition += strlen(shaderTypes[i]);
+            DEBUG_ASSERT(*shaderPosition = ':');
+            shaderPosition++;
+
+            // Find next shader (if any) to compute the current shader length in characters.
+	        int shaderLenght = 0;
+	        for( int j=i+1; j<shadersCount; j++ )
 	        {
-		        supported = GL::isExtensionSupported("GL_ARB_shader_objects");
-
-		        supported = supported						 
-			        && GL::isExtensionSupported("GL_ARB_vertex_shader")
-			        && GL::isExtensionSupported("GL_ARB_fragment_shader")
-			        && GL::isExtensionSupported("GL_ARB_shading_language_100");
-
-		        #if defined(_WIN32)
-		        supported = supported
-			        && (glCreateShader =			(PFNGLCREATESHADERPROC)				getProc("glCreateShader",			"glCreateShaderObjectARB"))
-			        && (glShaderSource =			(PFNGLSHADERSOURCEPROC)				getProc("glShaderSource",			"glShaderSourceARB"))
-			        && (glCompileShader =			(PFNGLCOMPILESHADERPROC)			getProc("glCompileShader",			"glCompileShaderARB"))
-			        && (glCreateProgram =			(PFNGLCREATEPROGRAMPROC)			getProc("glCreateProgram",			"glCreateProgramObjectARB"))
-			        && (glAttachShader =			(PFNGLATTACHSHADERPROC)				getProc("glAttachShader",			"glAttachObjectARB"))
-			        && (glLinkProgram =				(PFNGLLINKPROGRAMPROC)				getProc("glLinkProgram",			"glLinkProgramARB"))
-			        && (glUseProgram =				(PFNGLUSEPROGRAMPROC)				getProc("glUseProgram",				"glUseProgramObjectARB"))
-			        && (glDeleteShader =			(PFNGLDELETESHADERPROC)				getProc("glDeleteShader",			"glDeleteObjectARB"))
-			        && (glDeleteProgram =			(PFNGLDELETEPROGRAMPROC)			getProc("glDeleteProgram",			"glDeleteObjectARB"))
-			        && (glGetShaderiv =				(PFNGLGETSHADERIVPROC)				getProc("glGetShaderiv",			"glGetObjectParameterivARB"))
-			        && (glGetShaderInfoLog =		(PFNGLGETSHADERINFOLOGPROC)			getProc("glGetShaderInfoLog",		"glGetInfoLogARB"))
-			        && (glGetProgramiv =			(PFNGLGETPROGRAMIVPROC)				getProc("glGetProgramiv",			"glGetObjectParameterivARB"))
-			        && (glGetProgramInfoLog =		(PFNGLGETPROGRAMINFOLOGPROC)		getProc("glGetProgramInfoLog",		"glGetInfoLogARB"))
-			        && (glGetUniformLocation =		(PFNGLGETUNIFORMLOCATIONPROC)		getProc("glGetUniformLocation",		"glGetUniformLocationARB"))
-			        && (glUniform1f =				(PFNGLUNIFORM1FPROC)				getProc("glUniform1f",				"glUniform1fARB"))
-			        && (glUniform2f =				(PFNGLUNIFORM2FPROC)				getProc("glUniform2f",				"glUniform2fARB"))
-			        && (glUniform3f =				(PFNGLUNIFORM3FPROC)				getProc("glUniform3f",				"glUniform3fARB"))
-			        && (glUniform4f =				(PFNGLUNIFORM4FPROC)				getProc("glUniform4f",				"glUniform4fARB"))
-			        && (glUniform1fv =				(PFNGLUNIFORM1FVPROC)				getProc("glUniform1fv",				"glUniform1fvARB"))
-			        && (glUniform2fv =				(PFNGLUNIFORM2FVPROC)				getProc("glUniform2fv",				"glUniform2fvARB"))
-			        && (glUniform3fv =				(PFNGLUNIFORM3FVPROC)				getProc("glUniform3fv",				"glUniform3fvARB"))
-			        && (glUniform4fv =				(PFNGLUNIFORM4FVPROC)				getProc("glUniform4fv",				"glUniform4fvARB"))		
-			        && (glUniform1i =				(PFNGLUNIFORM1IPROC)				getProc("glUniform1i",				"glUniform1iARB"))
-			        && (glUniformMatrix2fv =		(PFNGLUNIFORMMATRIX2FVPROC)			getProc("glUniformMatrix2fv",		"glUniformMatrix2fvARB"))
-			        && (glUniformMatrix3fv =		(PFNGLUNIFORMMATRIX3FVPROC)			getProc("glUniformMatrix3fv",		"glUniformMatrix3fvARB"))
-			        && (glUniformMatrix4fv =		(PFNGLUNIFORMMATRIX4FVPROC)			getProc("glUniformMatrix4fv",		"glUniformMatrix4fvARB"))
-			        && (glVertexAttribPointer =		(PFNGLVERTEXATTRIBPOINTERPROC)		getProc("glVertexAttribPointer",	"glVertexAttribPointerARB"))
-			        && (glEnableVertexAttribArray =	(PFNGLENABLEVERTEXATTRIBARRAYPROC)	getProc("glEnableVertexAttribArray","glEnableVertexAttribArrayARB"))
-			        && (glDisableVertexAttribArray =(PFNGLDISABLEVERTEXATTRIBARRAYPROC)	getProc("glDisableVertexAttribArray","glDisableVertexAttribArrayARB"))
-			        && (glBindAttribLocation =		(PFNGLBINDATTRIBLOCATIONPROC)		getProc("glBindAttribLocation",		"glBindAttribLocationARB"))
-			        && (glGetAttribLocation =		(PFNGLGETATTRIBLOCATIONPROC)		getProc("glGetAttribLocation",		"glGetAttribLocationARB"))
-			        && (glDrawBuffers =				(PFNGLDRAWBUFFERSPROC)				getProc("glDrawBuffers",			"glDrawBuffersARB",					"glDrawBuffersATI"))
-		        ;
-		        #endif
-
-		        //printf( "%-8s: %s\n", "GLSL", supported ? "OK" : "NOT AVAILABLE" );
+                char* nextShaderPosition = strstr2( (char*)source, shaderTypes[j]);
+                if(nextShaderPosition != NULL)
+                {
+		            shaderLenght = nextShaderPosition - shaderPosition;
+		            break;
+                }
 	        }
 
-	        return supported;
+	        if( shaderLenght==0 )
+	        {
+		        shaderLenght = strlen(shaderPosition);
+	        }
+		
+            color(CMD_YELLOW, 0); DEBUG_PRINT("%s ", shaderTypes[i]);
+
+	        int shaderId = GL::CompileShader(shaderPosition, shaderLenght, shaderTypeCodes[i]);
+            DEBUG_ASSERT(shaderId);
+
+            shaders[shaderIndex++] = shaderId;
+        }
+        DEBUG_PRINT("\n");
+        ASSERT(shaderIndex > 0);
+        shaders[shaderIndex] = 0;
+        
+        return shaderIndex;
+    }
+
+    int GetUniformLocation( int programId, char* name )
+    {
+        int location = glGetUniformLocation( programId, name );
+
+        if( location<0 )
+        {	
+	        char buffer[200];
+	        sprintf( buffer, "Uniform '%s' not found.\n", name );
+	        DEBUG_CRITICAL( buffer );
+        }
+        return location;
+    }
+    void SetUniform( int programId, char* name, int value )
+    {
+        glUniform1i( GetUniformLocation(programId, name), value );
+    }
+    void SetUniform( int programId, char* name, float value )
+    {
+        glUniform1f( GetUniformLocation(programId, name), value );
+    }
+    void SetUniform( int programId, char* name, vec2 vector )
+    {
+        glUniform2fv( GetUniformLocation(programId, name), 1, vector.array );
+    }
+    void SetUniform( int programId, char* name, vec3& vector )
+    {
+        glUniform3fv( GetUniformLocation(programId, name), 1, vector.array );
+    }
+    void SetUniform( int programId, char* name, vec4& vector )
+    {
+        glUniform4fv( GetUniformLocation(programId, name), 1, vector.array );
+    }
+    void SetUniform( int programId, char* name, mat4& matrix )
+    {
+        glUniformMatrix4fv( GetUniformLocation(programId, name), 1, 0, matrix.array );
+    }
+    void SetUniform( int programId, char* name, mat3& matrix )
+    {
+        glUniformMatrix3fv( GetUniformLocation(programId, name), 1, 0, matrix.array );
+    }
+
+    int GetCurrentProgramId()
+    {
+        GLint _currentProgram;
+        glGetIntegerv(GL_CURRENT_PROGRAM, &_currentProgram);
+        return _currentProgram;
+    }
+
+    void UseProgram(int programId)
+    {
+        glUseProgram(programId);
+    }
+
+    namespace GLSL
+    {
+/*
+        double version()
+        {
+            return atof((const char *)glGetString(GL_SHADING_LANGUAGE_VERSION));
+        }
+*/
+        bool available()
+        {
+            static int supported = FirstTime;
+
+            if( supported == FirstTime )
+            {
+	            supported = GL::isExtensionSupported("GL_ARB_shader_objects");
+
+	            supported = supported						 
+		            && GL::isExtensionSupported("GL_ARB_vertex_shader")
+		            && GL::isExtensionSupported("GL_ARB_fragment_shader")
+		            && GL::isExtensionSupported("GL_ARB_shading_language_100");
+
+	            #if defined(_WIN32)
+	            supported = supported
+		            && (glCreateShader =			(PFNGLCREATESHADERPROC)				getProc("glCreateShader",			"glCreateShaderObjectARB"))
+		            && (glShaderSource =			(PFNGLSHADERSOURCEPROC)				getProc("glShaderSource",			"glShaderSourceARB"))
+		            && (glCompileShader =			(PFNGLCOMPILESHADERPROC)			getProc("glCompileShader",			"glCompileShaderARB"))
+		            && (glCreateProgram =			(PFNGLCREATEPROGRAMPROC)			getProc("glCreateProgram",			"glCreateProgramObjectARB"))
+		            && (glAttachShader =			(PFNGLATTACHSHADERPROC)				getProc("glAttachShader",			"glAttachObjectARB"))
+		            && (glLinkProgram =				(PFNGLLINKPROGRAMPROC)				getProc("glLinkProgram",			"glLinkProgramARB"))
+		            && (glUseProgram =				(PFNGLUSEPROGRAMPROC)				getProc("glUseProgram",				"glUseProgramObjectARB"))
+		            && (glDeleteShader =			(PFNGLDELETESHADERPROC)				getProc("glDeleteShader",			"glDeleteObjectARB"))
+		            && (glDeleteProgram =			(PFNGLDELETEPROGRAMPROC)			getProc("glDeleteProgram",			"glDeleteObjectARB"))
+		            && (glGetShaderiv =				(PFNGLGETSHADERIVPROC)				getProc("glGetShaderiv",			"glGetObjectParameterivARB"))
+		            && (glGetShaderInfoLog =		(PFNGLGETSHADERINFOLOGPROC)			getProc("glGetShaderInfoLog",		"glGetInfoLogARB"))
+		            && (glGetProgramiv =			(PFNGLGETPROGRAMIVPROC)				getProc("glGetProgramiv",			"glGetObjectParameterivARB"))
+		            && (glGetProgramInfoLog =		(PFNGLGETPROGRAMINFOLOGPROC)		getProc("glGetProgramInfoLog",		"glGetInfoLogARB"))
+		            && (glGetUniformLocation =		(PFNGLGETUNIFORMLOCATIONPROC)		getProc("glGetUniformLocation",		"glGetUniformLocationARB"))
+		            && (glUniform1f =				(PFNGLUNIFORM1FPROC)				getProc("glUniform1f",				"glUniform1fARB"))
+		            && (glUniform2f =				(PFNGLUNIFORM2FPROC)				getProc("glUniform2f",				"glUniform2fARB"))
+		            && (glUniform3f =				(PFNGLUNIFORM3FPROC)				getProc("glUniform3f",				"glUniform3fARB"))
+		            && (glUniform4f =				(PFNGLUNIFORM4FPROC)				getProc("glUniform4f",				"glUniform4fARB"))
+		            && (glUniform1fv =				(PFNGLUNIFORM1FVPROC)				getProc("glUniform1fv",				"glUniform1fvARB"))
+		            && (glUniform2fv =				(PFNGLUNIFORM2FVPROC)				getProc("glUniform2fv",				"glUniform2fvARB"))
+		            && (glUniform3fv =				(PFNGLUNIFORM3FVPROC)				getProc("glUniform3fv",				"glUniform3fvARB"))
+		            && (glUniform4fv =				(PFNGLUNIFORM4FVPROC)				getProc("glUniform4fv",				"glUniform4fvARB"))		
+		            && (glUniform1i =				(PFNGLUNIFORM1IPROC)				getProc("glUniform1i",				"glUniform1iARB"))
+		            && (glUniformMatrix2fv =		(PFNGLUNIFORMMATRIX2FVPROC)			getProc("glUniformMatrix2fv",		"glUniformMatrix2fvARB"))
+		            && (glUniformMatrix3fv =		(PFNGLUNIFORMMATRIX3FVPROC)			getProc("glUniformMatrix3fv",		"glUniformMatrix3fvARB"))
+		            && (glUniformMatrix4fv =		(PFNGLUNIFORMMATRIX4FVPROC)			getProc("glUniformMatrix4fv",		"glUniformMatrix4fvARB"))
+		            && (glVertexAttribPointer =		(PFNGLVERTEXATTRIBPOINTERPROC)		getProc("glVertexAttribPointer",	"glVertexAttribPointerARB"))
+		            && (glEnableVertexAttribArray =	(PFNGLENABLEVERTEXATTRIBARRAYPROC)	getProc("glEnableVertexAttribArray","glEnableVertexAttribArrayARB"))
+		            && (glDisableVertexAttribArray =(PFNGLDISABLEVERTEXATTRIBARRAYPROC)	getProc("glDisableVertexAttribArray","glDisableVertexAttribArrayARB"))
+		            && (glBindAttribLocation =		(PFNGLBINDATTRIBLOCATIONPROC)		getProc("glBindAttribLocation",		"glBindAttribLocationARB"))
+		            && (glGetAttribLocation =		(PFNGLGETATTRIBLOCATIONPROC)		getProc("glGetAttribLocation",		"glGetAttribLocationARB"))
+		            && (glDrawBuffers =				(PFNGLDRAWBUFFERSPROC)				getProc("glDrawBuffers",			"glDrawBuffersARB",					"glDrawBuffersATI"))
+	            ;
+	            #endif
+
+                if(Verbose)
+                {
+                    color(CMD_DARKGRAY, 0);
+	                DEBUG_PRINT(TAB32 ": %s\n", "GLSL", supported ? "OK" : "NOT AVAILABLE" );
+                }
+            }
+
+            return supported;
         }
 
         bool tessellatorAvailable()
         {
-	        static int supported = -1;
-	        if(supported==-1) {
-		        supported = 
-			            GL::isExtensionSupported("GL_ARB_texture_float") 
-			        &&  GL::isExtensionSupported("GL_EXT_gpu_shader4")  // this should enable gl_vertexID
-			        &&  GL::version() >= 4.1
-			        && (glPatchParameteri =	(PFNGLPATCHPARAMETERIPROC) getProc("glPatchParameteri",	"glPatchParameteriARB"))
-		        ;
-	        }
-	        return supported;
+            static int supported = FirstTime;
+            if( supported == FirstTime )
+            {
+	            supported = 
+		                GL::isExtensionSupported("GL_ARB_texture_float") 
+		            &&  GL::isExtensionSupported("GL_EXT_gpu_shader4")  // this should enable gl_vertexID
+		            &&  GL::version() >= 4.1
+		            && (glPatchParameteri =	(PFNGLPATCHPARAMETERIPROC) getProc("glPatchParameteri",	"glPatchParameteriARB"))
+	            ;
+            }
+            return supported;
         }
 
         bool computeAvailable()
         {
-	        static int supported = -1;
+            static int supported = FirstTime;
 
-	        if( supported==-1 )
-	        {
-		        supported = 
-			            GL::isExtensionSupported("GL_ARB_compute_shader") 
-			        && (GL::isExtensionSupported("GL_ARB_shader_image_load_store") || GL::isExtensionSupported("GL_EXT_shader_image_load_store"))
-			        &&  GL::version() >= 4.3
-			        && (glBindImageTexture			= (PFNGLBINDIMAGETEXTUREPROC)			getProc("glBindImageTexture",	"glBindImageTextureEXT"))
-			        && (glDispatchCompute			= (PFNGLDISPATCHCOMPUTEPROC)			getProc("glDispatchCompute"))
-			        && (glDispatchComputeIndirect	= (PFNGLDISPATCHCOMPUTEINDIRECTPROC)	getProc("glDispatchComputeIndirect"))
-		        ;
-	        }
-
-	        return supported;
-        }
-
-        void deallocateShader( uint& id )
-        {
-	        if( id ) glDeleteShader(id);
-	        id = 0;
-        }
-
-        void deallocateProgram( uint& id )
-        {
-	        if( id ) glDeleteProgram(id);
-	        id = 0;
-        }
-
-        bool attach( Program& program, char* source, int len, int type )
-        {
-	        for(; *source<=' '; source++) len--;
-	        if(!source || len<=0) return false;
-
-	        if(len>MAX_SHADER_SOURCE_LENGTH) {
-		        DEBUG_CRITICAL("Length of shader source exceeds buffer");
-	        }
-
-	        char buffer[MAX_SHADER_SOURCE_LENGTH];
-	        strncpy( buffer, source, len );
-	        buffer[len] = 0;
-
-	        Cacheable& shader = program.push().tail();
-	        shader.id = glCreateShader( type );
-	        shader.deallocator = deallocateShader;
-
-	        glShaderSource( shader.id, 1, (const char**)&source, &len );
-	        glCompileShader( shader.id );
-
-	        int successful = 0;
-	        glGetShaderiv( program.tail().id, GL_COMPILE_STATUS, &successful );
-
-	        if( successful )
-	        {
-		        glAttachShader( program.id, program.tail().id );
-	        }
-        	
-	        return successful;
-        }
-
-        void printSource(char* source, int length, int focusLine = -1)
-		{
-            ASSERT( length <= MAX_PROGRAM_SOURCE_LENGTH );
-
-	        char buffer[MAX_PROGRAM_SOURCE_LENGTH];
-	        strncpy(buffer, source, length);
-
-	        char* p = buffer;
-            char lineText[256];
-	        for(int line = 2; *p; line++) 
-			{
-		        char* nIndex = strstr2(p, "\n");
-		        if(nIndex==0) break;
-
-                if((focusLine < 0) || (focusLine >= 0) && (focusLine-6 <= line) && (line <= focusLine+3)) { 
-		            int length = nIndex - p;			
-		            strncpy(lineText, p, length);
-		            lineText[length] = 0;
-
-                    if(line == focusLine) {
-                        color(CMD_WHITE, CMD_RED); 
-                    } else {
-                        color(CMD_LIGHTGRAY, 0); 
-                    }
-		            printf("%i: %s\n", line, lineText);
-                }
-
-		        p = nIndex + 1;
-	        }
-        }
-
-        void checkProgram( Program& program )
-        {
-	        int successful;
-	        glGetProgramiv( program.id, GL_LINK_STATUS, &successful);
-	        if( successful ) return;
-
-	        char message[512];
-	        glGetProgramInfoLog( program.id, sizeof(message), 0, message );
-	        DEBUG_CRITICAL( message );
-        }
-
-        void build( Program& program, char* source )
-        {
-            //PROFILE;
-            DEBUG_PATH;
-            //char* programName = "<PROGRAM-NAME>";
-            //DEBUG_PRINT(programName);
-
-	        if(!source) {
-		        DEBUG_CRITICAL("Source null");
-	        }
-
-	        if(strlen(source) > MAX_PROGRAM_SOURCE_LENGTH) {
-		        DEBUG_CRITICAL("Length of program source exceeds buffer");
-	        }
-
-	        if( program.id==0 && source )
-	        {
-		        program.id = glCreateProgram();
-		        program.deallocator = deallocateProgram;
-
-		        const char* shaderTypes[] = { "VERTEX", "CONTROL", "EVALUATION", "GEOMETRY", "FRAGMENT", "COMPUTE" };
-		        const int   shaderTypeCodes[] = { GL_VERTEX_SHADER, GL_TESS_CONTROL_SHADER, GL_TESS_EVALUATION_SHADER, GL_GEOMETRY_SHADER, GL_FRAGMENT_SHADER, GL_COMPUTE_SHADER };
-		        int num_of_shaders = sizeof(shaderTypeCodes)/sizeof(int);
-
-		        char* shader_sources[20];
-		        for(int i=0; i<num_of_shaders; i++) {
-			        char temp[20];
-			        strcpy(temp, shaderTypes[i]);
-			        strcat(temp,":\r");
-			        shader_sources[i] = strstr2( source, temp );
-		        }
-
-		        for( int i=0; i<num_of_shaders; i++ )
-		        {
-			        if( shader_sources[i] != NULL )
-			        {
-				        shader_sources[i] = strstr2( shader_sources[i], "\n" ) + 1;
-
-				        int shader_lenght = 0;
-				        for( int j=i+1; j<num_of_shaders; j++ )
-				        {
-					        if( shader_sources[j] != NULL ) 
-					        {
-						        shader_lenght = (int)(shader_sources[j]-shader_sources[i]);
-						        break;
-					        }
-				        }
-
-				        if( shader_lenght==0 )
-				        {
-					        shader_lenght = strlen( shader_sources[i] );
-				        }
-        			
-				        bool hasShaderCompiled = attach(program, shader_sources[i], shader_lenght, shaderTypeCodes[i]);
-				        color(CMD_YELLOW, 0); DEBUG_PRINT("%s ", shaderTypes[i]);
-						//color(CMD_WHITE, 0); DEBUG_PRINT(" ");
-                        //DEBUG_TRACE(shaderTypes[i]);
-                        
-				        if( !hasShaderCompiled )
-				        {
-							//color(CMD_LIGHTRED,0); DEBUG_PRINT("%s", "==> ERROR\n\n");
-                            color(CMD_LIGHTRED,0); DEBUG_PRINT("\n\n");
-
-
-                            char message[512];
-	                        glGetShaderInfoLog( program.tail().id, sizeof(message), NULL, message );
-							printf("%s\n", message);
-                            //DEBUG_PRINT(message);
-
-							// Parse to get the error line.
-							// NOTE: Different drivers give different error messages
-							// https://gamedev.stackexchange.com/questions/38685/is-this-a-reliable-method-of-parsing-glgetshaderinfolog
-							int line = -1;
-							if(line <= 0) {
-								// NVIDIA error message
-								char *p1 = 0, *p2 = 0;
-								p1 = strchr(message, '(');
-								if( p1>0 ) p2 = strchr(p1+1, ')');
-								if( p1>0 && p2>0 ) line = strtol(p1+1, &p2, 10) + 1; // it was +0 
-							}
-							if(line <= 0) {
-								// ATI/Intel error message
-								char *p0 = 0, *p1 = 0, *p2 = 0;
-								p0 = strchr(message, ':');
-								if( p0>0 ) p1 = strchr(p0+1, ':');
-								if( p1>0 ) p2 = strchr(p1+1, ':');
-								if(p0>0 && p1>0 && p2>0) line = strtol(p1+1, &p2, 10) + 1;
-							}
-							ASSERT(line > 0);
-
-                            #if defined(DEBUG_SHOW_GLSL_SOURCE)
-					            printSource( shader_sources[i], shader_lenght, line ); 
-                                printf("\n");
-                            #endif
-
-                            CRITICAL("Shader compile error");
-				        }
-			        }
-		        }
-
-		        glLinkProgram( program.id );
-		        checkProgram( program );
-	        }
-            DEBUG_PRINT("\n");
-        }
-
-        void bind( Program& program )
-        {
-            DEBUG_ASSERT( program.id != 0 );
-            if( program.id != 0 ) {
-		        glUseProgram( program.id );
+            if( supported == FirstTime )
+            {
+	            supported = 
+		                GL::isExtensionSupported("GL_ARB_compute_shader") 
+		            && (GL::isExtensionSupported("GL_ARB_shader_image_load_store") || GL::isExtensionSupported("GL_EXT_shader_image_load_store"))
+		            &&  GL::version() >= 4.3
+		            && (glBindImageTexture			= (PFNGLBINDIMAGETEXTUREPROC)			getProc("glBindImageTexture",	"glBindImageTextureEXT"))
+		            && (glDispatchCompute			= (PFNGLDISPATCHCOMPUTEPROC)			getProc("glDispatchCompute"))
+		            && (glDispatchComputeIndirect	= (PFNGLDISPATCHCOMPUTEINDIRECTPROC)	getProc("glDispatchComputeIndirect"))
+	            ;
             }
+
+            return supported;
         }
 
-        void unbind()
-        {
-            if( available() ) {
-		        glUseProgram( 0 );
+        void Check(int requiredVersion = 4.3)
+	    {
+            DEBUG_TRACE(GL::renderer());
+            DEBUG_TRACE(GL::version());
+            DEBUG_ASSERT( GL::version() >= requiredVersion );
+
+	        GL::Texturing::available();
+	        GL::Texturing::textureNonPowerOfTwoAvailable();
+	        GL::secondaryColorAvailable();
+	        GL::swapControlAvailable();
+	        GL::VBO::available();
+            GL::GLSL::available();
+	        GL::GLSL::tessellatorAvailable();
+	        GL::GLSL::computeAvailable();
+	        GL::MRT::available();
+
+            if( GL::swapControlAvailable() )
+            {
+                GL::swapControl(0); // TODO check
             }
-        }
 
-        int getLocation( Program& program, char* name )
-        {
-	        int location = glGetUniformLocation( program.id, name );
+            if(!Verbose) 
+            {
+                return;
+            }
+    
+		    if(true) 
+            {
+                int maxTextureUnits;
+			    glGetIntegerv(GL_MAX_TEXTURE_UNITS, &maxTextureUnits);
+                color(CMD_DARKGRAY, 0);
+                DEBUG_TRACE(maxTextureUnits);
+		    }
 
-	        if( location<0 )
-	        {	
-		        char buffer[200];
-		        sprintf( buffer, "Uniform '%s' not found.\n", name );
-		        DEBUG_CRITICAL( buffer );
+		    if( GL::GLSL::available() ) 
+            {
+                int maxTextureImageUnits;
+			    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextureImageUnits);
+                color(CMD_DARKGRAY, 0);
+                DEBUG_TRACE(maxTextureImageUnits);
+		    }
+
+		    if(glEnableVertexAttribArray) 
+            {
+                int maxVertexAttributes;
+			    glGetIntegerv( GL_MAX_VERTEX_ATTRIBS, &maxVertexAttributes );
+                color(CMD_DARKGRAY, 0);
+                DEBUG_TRACE(maxVertexAttributes);
+		    }
+
+	        if( GL::GLSL::tessellatorAvailable() ) 
+            {
+                int maxPatchVertices;
+		        glGetIntegerv(GL_MAX_PATCH_VERTICES, &maxPatchVertices);
+                color(CMD_DARKGRAY, 0);
+                DEBUG_TRACE(maxPatchVertices);
 	        }
-	        return location;
-        }
 
-        void set( Program& program, char* name, int value )
-        {
-	        glUniform1i( getLocation(program, name), value );
-        }
-
-        void set(  Program& program, char* name, float value )
-        {
-	        glUniform1f( getLocation(program, name), value );
-        }
-
-        void set(  Program& program, char* name, vec2 vector )
-        {
-	        glUniform2fv( getLocation(program, name), 1, vector.array );
-        }
-
-        void set(  Program& program, char* name, vec3& vector )
-        {
-	        glUniform3fv( getLocation(program, name), 1, vector.array );
-        }
-
-        void set(  Program& program, char* name, vec4& vector )
-        {
-	        glUniform4fv( getLocation(program, name), 1, vector.array );
-        }
-
-        void set(  Program& program, char* name, mat4& matrix )
-        {
-	        glUniformMatrix4fv( getLocation(program, name), 1, 0, matrix.array );
-        }
-
-        void set(  Program& program, char* name, mat3& matrix )
-        {
-	        glUniformMatrix3fv( getLocation(program, name), 1, 0, matrix.array );
-        }
-    }
-}
-
-namespace GPU
-{
-    void Check(int requiredVersion = 4.3)
-	{
-        DEBUG_TRACE(GL::renderer());
-        DEBUG_TRACE(GL::version());
-        DEBUG_ASSERT( GL::version() >= requiredVersion );
-
-	    GL::Texturing::available();
-	    GL::Texturing::textureNonPowerOfTwoAvailable();
-	    GL::secondaryColorAvailable();
-	    GL::swapControlAvailable();
-	    GL::VBO::available();
-	    GL::GLSL::available();
-	    GL::GLSL::tessellatorAvailable();
-	    GL::GLSL::computeAvailable();
-	    GL::MRT::available();
-
-        if( GL::swapControlAvailable() )
-        {
-            GL::swapControl(0); // TODO check
-        }
-
-		if(true) 
-        {
-            int maxTextureUnits;
-			glGetIntegerv(GL_MAX_TEXTURE_UNITS, &maxTextureUnits);
-            DEBUG_TRACE(maxTextureUnits);
-		}
-
-		if( GL::GLSL::available() ) 
-        {
-            int maxTextureImageUnits;
-			glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextureImageUnits);
-            DEBUG_TRACE(maxTextureImageUnits);
-		}
-
-		if(glEnableVertexAttribArray) 
-        {
-            int maxVertexAttributes;
-			glGetIntegerv( GL_MAX_VERTEX_ATTRIBS, &maxVertexAttributes );
-            DEBUG_TRACE(maxVertexAttributes);
-		}
-
-	    if( GL::GLSL::tessellatorAvailable() ) 
-        {
-            int maxPatchVertices;
-		    glGetIntegerv(GL_MAX_PATCH_VERTICES, &maxPatchVertices);
-            DEBUG_TRACE(maxPatchVertices);
-	    }
-
-		if(true)
-        {
-			int maxDrawBuffers;
-			glGetIntegerv(GL_MAX_DRAW_BUFFERS, &maxDrawBuffers);
-            DEBUG_TRACE(maxDrawBuffers);
-		}
-    }
+		    if(true)
+            {
+			    int maxDrawBuffers;
+			    glGetIntegerv(GL_MAX_DRAW_BUFFERS, &maxDrawBuffers);
+                color(CMD_DARKGRAY, 0);
+                DEBUG_TRACE(maxDrawBuffers);
+		    }
+        } 
+    } // GLSL
 
     void Initialize(int minimumVersion = 4.3)
     {
-        Check(minimumVersion);
+        GLSL::Check(minimumVersion);
 
 		glEnable(GL_TEXTURE_2D);
 		glEnable(GL_LIGHTING);
@@ -1441,6 +1441,7 @@ namespace GPU
 			GL::VBO::unbind(GL_ARRAY_BUFFER);
 			GL::VBO::unbind(GL_ELEMENT_ARRAY_BUFFER);
 		}
-        GL::GLSL::unbind();
+
+        GL::UseProgram(0);
 	}
 }

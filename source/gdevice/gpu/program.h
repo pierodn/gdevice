@@ -1,17 +1,15 @@
 #pragma once
 
-#include "type/array.h"
-#include "gpu/opengl/gl.h"
-#include "gpu/cacheable.h"
 
+#include "type/array.h"
+#include "gpu/cacheable.h"
+#include "gpu/opengl/gl.h"
 
 struct Program : public Array<Cacheable>, Cacheable
 {
-	char* source;
-
-	Program( char* source = NULL )
+    Program()
 	{
-		this->source = source;
+        id = 0;
 	}
 
 	~Program() 
@@ -22,14 +20,74 @@ struct Program : public Array<Cacheable>, Cacheable
 		}
 	}
 
-    void Bind()
+    // private
+    static void deallocateProgram( uint& id )
     {
-        // TODO GL::GLSL::bind(*this);
+        if( id ) glDeleteProgram(id);
+        id = 0;
+    }
+    static void deallocateShader( uint& id )
+    {
+        if( id ) glDeleteShader(id);
+        id = 0;
     }
 
-    template<class T> 
-    void Set(char* name, T value)
+    void Build(char* source)
     {
-        GL::GLSL::set(*this, name, value);
+        ASSERT(source != NULL);
+        ASSERT(strlen(source) < MAX_PROGRAM_SOURCE_LENGTH);
+        ASSERT(id == 0);
+
+        id = glCreateProgram();  // TODO GL::CreateProgram();
+        deallocator = &Program::deallocateProgram;
+
+        const int ShaderTypesCount = 10;
+        int shaders[ShaderTypesCount];
+        int shaderCount = GL::BuildShaders(source, shaders);
+        
+        for(int i=0; i<shaderCount; i++)
+        {
+            ASSERT(shaders[i]);
+
+            Cacheable& shader = push().tail();
+            shader.id = shaders[i];
+            shader.deallocator = &Program::deallocateShader;        
+            GL::AttachShaderToProgram(id, shader.id ); 
+        }
+
+        GL::LinkProgram(id);
+    }
+    
+    template<class T> 
+    void SetUniform(char* name, T value)
+    {
+        ASSERT(id);
+        // TODO ASSERT program is bound
+        GL::SetUniform(id, name, value);
+    }
+
+    void Use()
+    {
+        GL::UseProgram(id);
+    }
+
+    void Run()
+    {
+        bool isBuilt = (id != 0);
+        ASSERT(isBuilt);
+        
+
+        // TODO if notBound, bind
+
+        // TODO
+/*
+        glPatchParameteri(GL_PATCH_VERTICES, 4);		
+	    glDrawElements(
+		    GL_PATCHES, 
+		    ibo.lods[lod].count, // It is 1024 for tiles 17x17
+		    GL_UNSIGNED_SHORT, 
+		    0
+	    ); 
+*/
     }
 };

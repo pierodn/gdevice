@@ -257,7 +257,7 @@ public:
 					case SIZE_RESTORED:
 					{
                         DEBUG_RUN_ONCE(
-                            GPU::Initialize();
+                            GL::Initialize();
 			                listener->onOpen(*this);
                         );
                         

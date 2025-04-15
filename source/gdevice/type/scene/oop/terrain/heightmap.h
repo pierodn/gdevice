@@ -40,10 +40,8 @@ public:
     {
 		InitializeTerrainDetails();
 
-        GL::GLSL::build( generator, generate_terrain_glsl);
-        // TODO GL::GLSL::build( generateGradientMapProgram, generate_grandienmap_glsl );
-        GL::GLSL::build( renderer, render_terrain_glsl );
-		//GL::GLSL::build( renderSkyProgram, render_sky_glsl );
+        generator.Build(generate_terrain_glsl);
+        renderer.Build(render_terrain_glsl);
 
         return true;
     }

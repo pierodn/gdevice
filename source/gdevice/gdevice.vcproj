@@ -316,11 +316,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\os\win32\mutex.h"
+				>
+			</File>
+			<File
 				RelativePath=".\os\mutex.h"
 				>
 			</File>
 			<File
-				RelativePath=".\os\win32\mutex.h"
+				RelativePath=".\type\scene\oop\node.h"
 				>
 			</File>
 			<File
@@ -329,10 +333,6 @@
 			</File>
 			<File
 				RelativePath=".\type\scene\node.h"
-				>
-			</File>
-			<File
-				RelativePath=".\type\scene\oop\node.h"
 				>
 			</File>
 			<File
@@ -368,11 +368,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\os\win32\thread.h"
+				RelativePath=".\os\thread.h"
 				>
 			</File>
 			<File
-				RelativePath=".\os\thread.h"
+				RelativePath=".\os\win32\thread.h"
 				>
 			</File>
 			<File

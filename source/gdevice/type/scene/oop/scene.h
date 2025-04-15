@@ -1,7 +1,7 @@
 #pragma once
 
 #include "gpu/controls.h"
-#include "gpu/opengl/gl.h"
+#include "gpu/program.h"
 #include "type/scene/oop/node.h"
 
 #include "application/assets/worlds/planet1/render_sky.glsl.h"
@@ -29,7 +29,7 @@ struct Scene : Node, Transform, Parent
     NodeState nodeState;    
     SceneState sceneState;
 
-    Program programRenderSkydome;
+    Program renderSkydome;
 
     Scene()
 	{
@@ -37,7 +37,7 @@ struct Scene : Node, Transform, Parent
 
     void Initialize()
     {
-        GL::GLSL::build( programRenderSkydome, render_sky_glsl );
+        renderSkydome.Build(render_sky_glsl);
     }
 
     int Traverse( bool skipRendering = false )
@@ -111,20 +111,20 @@ struct Scene : Node, Transform, Parent
 
     void RenderSkydome()
     {
-	    GL::GLSL::bind( programRenderSkydome );
+	    renderSkydome.Use();
 
         for(int i = Controls::GAMMA; i <= Controls::VIGNETTING; i++)
         {
 		    int size = Controls::GetInstance().literals[i].size() <= 1 ? 2 : Controls::GetInstance().literals[i].size();
-		    GL::GLSL::set( programRenderSkydome, Controls::GetInstance().literals[i][0], Controls::GetInstance().values[Controls::Bindings[i]] % size ); 
-	    }
+		    renderSkydome.SetUniform( Controls::GetInstance().literals[i][0], Controls::GetInstance().values[Controls::Bindings[i]] % size );    
+        }
 
-        vec2 viewport = GL::GetViewport();
-	    GL::GLSL::set( programRenderSkydome, "viewport",	                viewport  );
-	    GL::GLSL::set( programRenderSkydome, "InverseRotationProjection",   nodeState.inverseRotationMatrix * inverseProjection(nodeState.ProjectionMatrix) );
-	    GL::GLSL::set( programRenderSkydome, "Light0_position",		        vec4(sceneState.sun, 0.0) );
-	    GL::GLSL::set( programRenderSkydome, "AbsoluteTime",	            float(Timer::absoluteTime()) );
+	    renderSkydome.SetUniform("viewport",	                GL::GetViewport() );
+	    renderSkydome.SetUniform("InverseRotationProjection",   nodeState.inverseRotationMatrix * inverseProjection(nodeState.ProjectionMatrix) );
+	    renderSkydome.SetUniform("Light0_position",		        vec4(sceneState.sun, 0.0) );
+	    renderSkydome.SetUniform("AbsoluteTime",	            float(Timer::absoluteTime()) );
     	
+        // TODO renderSkydome.Run();
         glDrawArrays(GL_POINTS, 0, 1);
     }
 

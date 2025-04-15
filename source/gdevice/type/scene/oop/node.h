@@ -5,7 +5,6 @@
 #include "type/array.h"
 
 #include "__temp/texture.h"
-#include "gpu/program.h"
 #include "__temp/vertexbuffer.h"
 #include "gpu/indexbuffer.h"
 

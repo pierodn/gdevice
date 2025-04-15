@@ -111,7 +111,7 @@ struct IndexBuffer : public Cacheable
 
 	void push( int value )
 	{
-		if( length+1>allocated ) resize( allocated+granularity );
+		if( length+1 > allocated ) resize( allocated+granularity );
 		set( length++, value );
 	}
 /*

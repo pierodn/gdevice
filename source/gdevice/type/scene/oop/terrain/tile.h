@@ -1,7 +1,7 @@
 #pragma once
 
+#include "gpu/program.h"
 #include "type/scene/oop/node.h"
-
 #include "application/assets/worlds/planet1/textures.h"
 
 struct NodeTransform;
@@ -37,25 +37,24 @@ struct Tile : public Node, Transform, Child, Geometry, Updatable, Renderable
 
         float visibileDistance = 2*(1<<(pHeightmapAsParent->children.size()));
 
-        Program& programRenderTerrain = *this->renderer;
         VertexBuffer& vbo = *this->vbo;
         IndexBuffer& ibo = *this->ibo;
 
-        GL::GLSL::bind(programRenderTerrain);
+        renderer->Use();
 
 	    for( int i=0; i<Controls::CONTROLCOUNT; i++ ) 
 	    {
 		    int size = Controls::GetInstance().literals[i].size() <=1 ? 2 : Controls::GetInstance().literals[i].size();
-		    renderer->Set(Controls::GetInstance().literals[i][0], Controls::GetInstance().values[Controls::Bindings[i]] % size); 
+		    renderer->SetUniform(Controls::GetInstance().literals[i][0], Controls::GetInstance().values[Controls::Bindings[i]] % size); 
 	    }
     	
-	    renderer->Set("quartetsTU",  0); GL::Texturing::bind( 0, vbo.quartets );
-	    renderer->Set("gradientsTU", 1); GL::Texturing::bind( 1, vbo.gradients );
-	    renderer->Set("colorsTU",    2); GL::Texturing::bind( 2, vbo.colors ); 
-	    renderer->Set("mixmapsTU",   3); GL::Texturing::bind( 3, vbo.mixmaps ); 
-	    renderer->Set("detailsTU",   4); GL::Texturing::bind( 4, details );
-	    renderer->Set("detailsDxTU", 5); GL::Texturing::bind( 5, detailsDx );
-	    renderer->Set("detailsDyTU", 6); GL::Texturing::bind( 6, detailsDy );
+	    renderer->SetUniform("quartetsTU",  0); GL::Texturing::bind( 0, vbo.quartets );
+	    renderer->SetUniform("gradientsTU", 1); GL::Texturing::bind( 1, vbo.gradients );
+	    renderer->SetUniform("colorsTU",    2); GL::Texturing::bind( 2, vbo.colors ); 
+	    renderer->SetUniform("mixmapsTU",   3); GL::Texturing::bind( 3, vbo.mixmaps ); 
+	    renderer->SetUniform("detailsTU",   4); GL::Texturing::bind( 4, details );
+	    renderer->SetUniform("detailsDxTU", 5); GL::Texturing::bind( 5, detailsDx );
+	    renderer->SetUniform("detailsDyTU", 6); GL::Texturing::bind( 6, detailsDy );
 
     //#define NAME(var) #var
       //renderer->Set(NAME(detailsDy) "TU", 6);
@@ -63,48 +62,48 @@ struct Tile : public Node, Transform, Child, Geometry, Updatable, Renderable
         // SET( program, detailsDy, 6)
 
 	    // LOD transitions blending
-        renderer->Set("tileOffset", tileOffset);
-        renderer->Set("kernelSize", float(CLIPMAP_WINDOW/2));
-	    renderer->Set("scale", vbo.mixmaps.scale.s);
+        renderer->SetUniform("tileOffset", tileOffset);
+        renderer->SetUniform("kernelSize", float(CLIPMAP_WINDOW/2));
+	    renderer->SetUniform("scale", vbo.mixmaps.scale.s);
 
 	    // transformation
         mat4 ModelViewProjectionMatrix = nodeState.ProjectionMatrix * nodeState.ModelViewMatrix;
         mat3 NormalMatrix = inverseTranspose(mat3(nodeState.ModelViewMatrix));
-	    renderer->Set("ModelViewProjectionMatrix", ModelViewProjectionMatrix);
-	    renderer->Set("ModelViewMatrix", nodeState.ModelViewMatrix);
-	    renderer->Set("NormalMatrix", NormalMatrix);
+	    renderer->SetUniform("ModelViewProjectionMatrix", ModelViewProjectionMatrix);
+	    renderer->SetUniform("ModelViewMatrix", nodeState.ModelViewMatrix);
+	    renderer->SetUniform("NormalMatrix", NormalMatrix);
 
         // tessellation
-        renderer->Set("tessellationKernelStart", 0.04f ); // 0.03
-        renderer->Set("tessellationKernelRange", 0.16f ); // 0.10
-        renderer->Set("tessellationVanishPower", 0.50f ); // less is more
-        renderer->Set("tessellationMaxLevel", 0.25f );
-        renderer->Set("tessellationDisplacement", 0.010f );
-        renderer->Set("povZ", pHeightmap->transform.position.z );
+        renderer->SetUniform("tessellationKernelStart", 0.04f ); // 0.03
+        renderer->SetUniform("tessellationKernelRange", 0.16f ); // 0.10
+        renderer->SetUniform("tessellationVanishPower", 0.50f ); // less is more
+        renderer->SetUniform("tessellationMaxLevel", 0.25f );
+        renderer->SetUniform("tessellationDisplacement", 0.010f );
+        renderer->SetUniform("povZ", pHeightmap->transform.position.z );
 
 	    // lighting
-	    renderer->Set("Light0_position",	vec4(sceneState.sun, 0.0) );
+	    renderer->SetUniform("Light0_position",	vec4(sceneState.sun, 0.0) );
 
 	    // light scattering 
         vec2 viewport = GL::GetViewport();
-	    renderer->Set("viewport", viewport  );
-	    renderer->Set("InverseRotationProjection", nodeState.inverseRotationMatrix * inverseProjection(nodeState.ProjectionMatrix) );
+	    renderer->SetUniform("viewport", viewport  );
+	    renderer->SetUniform("InverseRotationProjection", nodeState.inverseRotationMatrix * inverseProjection(nodeState.ProjectionMatrix) );
         
-        renderer->Set("visibileDistance", visibileDistance );
-	    renderer->Set("AbsoluteTime",	float(Timer::absoluteTime()) );
+        renderer->SetUniform("visibileDistance", visibileDistance );
+	    renderer->SetUniform("AbsoluteTime",	float(Timer::absoluteTime()) );
 
         const int HeightBlendView = 2;
         if( Controls::GetInstance().values[Controls::Bindings[Controls::DEBUGMODE]] == HeightBlendView )
         {
-            renderer->Set("defaultColorR", vec4(1.0, 0.0, 0.0, 0.0));
-            renderer->Set("defaultColorG", vec4(0.0, 1.0, 0.0, 0.0));
-            renderer->Set("defaultColorB", vec4(0.0, 0.0, 1.0, 0.0));
-            renderer->Set("defaultColorA", vec4(1.0, 0.0, 0.0, 0.0));
+            renderer->SetUniform("defaultColorR", vec4(1.0, 0.0, 0.0, 0.0));
+            renderer->SetUniform("defaultColorG", vec4(0.0, 1.0, 0.0, 0.0));
+            renderer->SetUniform("defaultColorB", vec4(0.0, 0.0, 1.0, 0.0));
+            renderer->SetUniform("defaultColorA", vec4(1.0, 0.0, 0.0, 0.0));
         } else {
-            renderer->Set("defaultColorR", vec4(0.36, 0.30, 0.26, 0.0));  // Light stone
-            renderer->Set("defaultColorG", vec4(0.28, 0.24, 0.20, 0.0));  // Pebbles
-            renderer->Set("defaultColorB", vec4(0.34, 0.26, 0.22, 0.0));  // Brownish stone
-            renderer->Set("defaultColorA", vec4(0.50, 0.38, 0.30, 0.0));  // Dirty sand
+            renderer->SetUniform("defaultColorR", vec4(0.36, 0.30, 0.26, 0.0));  // Light stone
+            renderer->SetUniform("defaultColorG", vec4(0.28, 0.24, 0.20, 0.0));  // Pebbles
+            renderer->SetUniform("defaultColorB", vec4(0.34, 0.26, 0.22, 0.0));  // Brownish stone
+            renderer->SetUniform("defaultColorA", vec4(0.50, 0.38, 0.30, 0.0));  // Dirty sand
         }
     		
 	    GL::VBO::bind( vbo );
@@ -112,6 +111,7 @@ struct Tile : public Node, Transform, Child, Geometry, Updatable, Renderable
 
         int lod = 0; // TODO
 
+        // TODO renderer->Run()
 	    glPatchParameteri(GL_PATCH_VERTICES, 4);		
 	    glDrawElements(
 		    GL_PATCHES, 
@@ -123,7 +123,7 @@ struct Tile : public Node, Transform, Child, Geometry, Updatable, Renderable
 	    GL::Texturing::unbind(3);
 	    GL::Texturing::unbind(4);
 	    GL::Texturing::unbind(5);
-	    GL::GLSL::unbind();
+	    GL::UseProgram(0); // unbind
 
 	    GL::VBO::unbind( GL_ARRAY_BUFFER );
 	    GL::VBO::unbind( GL_ELEMENT_ARRAY_BUFFER );
@@ -138,9 +138,9 @@ struct Tile : public Node, Transform, Child, Geometry, Updatable, Renderable
         DEBUG_ASSERT(vbo);
         DEBUG_ASSERT(generator);
 
-        GL::GLSL::bind( *generator );
-        GL::GLSL::set( *generator, "offset",	tileID.xy );
-        GL::GLSL::set( *generator, "size", tileID.z );
+        generator->Use();
+        generator->SetUniform("offset", tileID.xy);
+        generator->SetUniform("size", tileID.z);
 
         GL::Texturing::bind( 0, vbo->quartets );
         GL::Texturing::bind( 1, vbo->gradients );
@@ -152,6 +152,7 @@ struct Tile : public Node, Transform, Child, Geometry, Updatable, Renderable
         glBindImageTexture(2, vbo->colors.id,	    0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
         glBindImageTexture(3, vbo->mixmaps.id,	    0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
 
+        // Run
         glDispatchCompute( vbo->quartets.size.x/2 + 1, vbo->quartets.size.y/2 + 1, 1 );
     }
 
