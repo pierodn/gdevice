@@ -13,6 +13,29 @@ struct Tile : public Node, Transform, Child, Geometry, Updatable, Renderable
     Program* generator;
     Program* renderer;
 
+    void Update()
+    {
+        DEBUG_ASSERT(vbo);
+        DEBUG_ASSERT(generator);
+
+        generator->Use();
+        generator->SetUniform("offset", tileID.xy);
+        generator->SetUniform("size", tileID.z);
+
+        // TODO generator->SetOutputBuffer()
+        GL::Texturing::bind( 0, vbo->quartets );
+        GL::Texturing::bind( 1, vbo->gradients );
+        GL::Texturing::bind( 2, vbo->colors ); 
+        GL::Texturing::bind( 3, vbo->mixmaps ); 
+        glBindImageTexture(0, vbo->quartets.id,	    0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);  
+        glBindImageTexture(1, vbo->gradients.id,	0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+        glBindImageTexture(2, vbo->colors.id,	    0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+        glBindImageTexture(3, vbo->mixmaps.id,	    0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+
+        // TODO generator->Run(vbo->quartets.size/2.0 + 1.0);
+        glDispatchCompute( vbo->quartets.size.x/2 + 1, vbo->quartets.size.y/2 + 1, 1 );
+    }
+
     void Render(NodeState& nodeState, SceneState& sceneState)
     {
         // Ensure it's overriding the virtual function of the base class.
@@ -115,10 +138,12 @@ struct Tile : public Node, Transform, Child, Geometry, Updatable, Renderable
 	    glPatchParameteri(GL_PATCH_VERTICES, 4);		
 	    glDrawElements(
 		    GL_PATCHES, 
-		    ibo.lods[lod].count, // It is 1024 for tiles 17x17
+		    64*64, //ibo.lods[lod].count, // It is 1024 for tiles 17x17
 		    GL_UNSIGNED_SHORT, 
 		    0
 	    ); 
+
+//        glDrawArrays(GL_PATCHES, 0, 64*64);
 
 	    GL::Texturing::unbind(3);
 	    GL::Texturing::unbind(4);
@@ -133,28 +158,7 @@ struct Tile : public Node, Transform, Child, Geometry, Updatable, Renderable
  
 
 
-    void Update() 
-    {
-        DEBUG_ASSERT(vbo);
-        DEBUG_ASSERT(generator);
 
-        generator->Use();
-        generator->SetUniform("offset", tileID.xy);
-        generator->SetUniform("size", tileID.z);
-
-        GL::Texturing::bind( 0, vbo->quartets );
-        GL::Texturing::bind( 1, vbo->gradients );
-        GL::Texturing::bind( 2, vbo->colors ); 
-        GL::Texturing::bind( 3, vbo->mixmaps ); 
-
-        glBindImageTexture(0, vbo->quartets.id,	    0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);  
-        glBindImageTexture(1, vbo->gradients.id,	0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
-        glBindImageTexture(2, vbo->colors.id,	    0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
-        glBindImageTexture(3, vbo->mixmaps.id,	    0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
-
-        // Run
-        glDispatchCompute( vbo->quartets.size.x/2 + 1, vbo->quartets.size.y/2 + 1, 1 );
-    }
 
 };
 

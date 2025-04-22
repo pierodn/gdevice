@@ -63,6 +63,7 @@ struct Program : public Array<Cacheable>, Cacheable
     {
         ASSERT(id);
         // TODO ASSERT program is bound
+        //ASSERT(GetCurrentProgramId() == id); // FIX
         GL::SetUniform(id, name, value);
     }
 
@@ -73,13 +74,8 @@ struct Program : public Array<Cacheable>, Cacheable
 
     void Run()
     {
-        bool isBuilt = (id != 0);
-        ASSERT(isBuilt);
-        
+        ASSERT(id);
 
-        // TODO if notBound, bind
-
-        // TODO
 /*
         glPatchParameteri(GL_PATCH_VERTICES, 4);		
 	    glDrawElements(

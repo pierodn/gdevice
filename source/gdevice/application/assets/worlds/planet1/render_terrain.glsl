@@ -861,7 +861,8 @@ void main()
 	// Ambient occluders
 	float lfShadow = clamp(4.0*dot(N0,L), 1.0 - Shadows, 1.0);
 	float occlusion = pow(luma, 1.0);
-	float relief	= smoothstep(0.2, 0.7, luma);
+    float metallicity = 1.0; // TODO from vertex property
+	float relief	= metallicity * smoothstep(0.2, 0.7, luma);
 
 	// Sampling ambient light
 	float daylight		= smoothstep(0.0, 0.1, L.z);
@@ -911,8 +912,7 @@ else
     float EdotL = max(0.0, dot(E,L));
     float EdotLcontrast = 1.0 - 0.5*EdotL * smoothstep(+0.05, 0.5, L.z);
 
-
-	light += 0.40 * Diffuse  * occlusion * daylight * lfShadow * sunColor * pow(lambertian, 0.8) ;//* (1.0 - specular);
+	light += 0.40 * Diffuse  * occlusion * daylight * lfShadow * sunColor * pow(lambertian, 1.0) ;//* (1.0 - specular);
 	light += 0.10 * Specular * relief	 * daylight * mix(0.2, 1.0, lfShadow) * specularColor * specular;//* max(0.0, dot(N,L));
 	light += 0.02 * Indirect * occlusion * daylight * sunColor * max(0.0, dot(N,I));
 	light += 0.03 * Sky      * occlusion *			  zenithColor * N.z;
@@ -924,8 +924,8 @@ else
         float diffuse  = Diffuse  * occlusion * daylight * lfShadow                * lambertian;
         float specular = Specular * relief	  * daylight * mix(0.2, 1.0, lfShadow) * specular;
         float matLuma  = dot(matColor.rgb, vec3(0.299, 0.587, 0.114));
-        matColor.rgb = mix(matColor.rgb, vec3(matLuma), 1.0*occlusion*pow(mix(diffuse, specular, 0.1),        occlusion*2.00));
-        matColor.rgb = mix(matColor.rgb, sunColor,      0.8*occlusion*pow(mix(diffuse, specular, 1.0-relief), occlusion*0.25));
+        matColor.rgb = mix(matColor.rgb, vec3(matLuma), 1.0*occlusion*pow(diffuse, 1.0/32.0));
+        matColor.rgb = mix(matColor.rgb, sunColor,      0.7*relief*pow(specular*diffuse, 1.0/8.0));
     }
     
     // Tone mapping

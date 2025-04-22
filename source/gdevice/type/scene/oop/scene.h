@@ -124,7 +124,6 @@ struct Scene : Node, Transform, Parent
 	    renderSkydome.SetUniform("Light0_position",		        vec4(sceneState.sun, 0.0) );
 	    renderSkydome.SetUniform("AbsoluteTime",	            float(Timer::absoluteTime()) );
     	
-        // TODO renderSkydome.Run();
         glDrawArrays(GL_POINTS, 0, 1);
     }
 
