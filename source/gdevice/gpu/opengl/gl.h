@@ -1028,7 +1028,7 @@ namespace GL
         for(int line = 2; *p; line++) 
 		{
 	        char* nIndex = strstr2(p, "\n");
-	        if(nIndex==0) break;
+	        if(nIndex == NULL) break;
 
             if((focusLine < 0) || (focusLine >= 0) && (focusLine-6 <= line) && (line <= focusLine+3)) 
             { 

@@ -751,7 +751,8 @@ void main()
               a3 = 0.2, a4 = 0.2, a5 = 0.2;         // LOD1
         float sand0 = 0.8, grit0 = 0.2;             // SAND and GRIT on LOD0
         vec4 L1,L2;
-        if(Tessellator > 0.0) {
+        if(Tessellator > 0.0)
+        {
             //luma4 = 0.666*luma4 + 0.333*textureTriplanar(detailsTU, gVertex.position.xyz*32.0, weight, LodBias).rbaa;
             //luma4 = (luma4 + 0.5*textureTriplanar(detailsTU, gVertex.position.xyz*32.0, weight, LodBias).rbaa)/1.5;
             L1 = luma4;
@@ -915,7 +916,7 @@ else
 	light += 0.22 * Diffuse  * occlusion * daylight * lfShadow * sunColor * pow(lambertian, 1.0) ;//* (1.0 - specular);
 	light += 0.06 * Specular * relief	 * daylight * mix(0.2, 1.0, lfShadow) * specularColor * specular;//* max(0.0, dot(N,L));
 	light += 0.02 * Indirect * occlusion * daylight * sunColor * max(0.0, dot(N,I));
-	light += 0.03 * Sky      * occlusion *			  zenithColor * N.z;
+	light += 0.01 * Sky      * occlusion *			  zenithColor * N.z;
 	light += 0.03 * Fresnel  * relief	 * (fresnelColor - light) * fresnel;
 }
 
@@ -926,6 +927,7 @@ else
         float matLuma  = dot(matColor.rgb, vec3(0.299, 0.587, 0.114));
         matColor.rgb = mix(matColor.rgb, vec3(matLuma), 1.4*occlusion*pow(diffuse, 1.0/32.0));
         matColor.rgb = mix(matColor.rgb, sunColor,      0.5*relief*pow(specular*diffuse, 1.0/8.0));
+        matColor.rgb = pow(matColor.rgb, vec3(1.0/(1.0 + 5.0*diffuse)));
     }
     
     // Tone mapping

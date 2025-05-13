@@ -29,7 +29,7 @@ struct Controls
 	static const unsigned char* Bindings; 
 
 	enum constants {	WIREFRAME, DEBUGMODE, DIFFUSE, SPECULAR,
-						FRESNEL, INDIRECT, SKY, SCATTERING, 
+						FRESNEL, SKY, INDIRECT, SCATTERING, 
                         TESSELLATOR, BUMPS, SHADOWS, PBR, 
                         HEATMAP,
 						GAMMA, CONTRAST, UNSATURATE, TINT, VIGNETTING, 
@@ -95,8 +95,8 @@ private:
         literals[SPECULAR]		.push("Specular");		// Direct light: Specular (classic or PBR)
 
         literals[FRESNEL]		.push("Fresnel");		// Ambient light: fresnel
-		literals[INDIRECT]		.push("Indirect");		// Ambient light: direct light bouncing back
 		literals[SKY]			.push("Sky");			// Ambient light: sky
+        literals[INDIRECT]		.push("Indirect");		// Ambient light: direct light bouncing back
 		literals[SCATTERING]	.push("Scattering");	// Light scattering
 
 		literals[TESSELLATOR]	.push("Tessellator");	// Micropolygons
@@ -123,8 +123,8 @@ private:
         values[Bindings[SPECULAR]]		= 1;
         
         values[Bindings[FRESNEL]]		= 1;
-		values[Bindings[INDIRECT]]		= 1;
 		values[Bindings[SKY]]			= 1;
+        values[Bindings[INDIRECT]]		= 1;
 		values[Bindings[SCATTERING]]	= 1;
         
 		values[Bindings[TESSELLATOR]]	= 1;

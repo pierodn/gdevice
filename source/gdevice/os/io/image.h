@@ -32,7 +32,7 @@ namespace IO
 		texture.resample<0>(width, height);
 		DEBUG_ASSERT(texture.bytes() == fread( texture.array, 1, texture.bytes(), file));
 
-        DEBUG_TRACE(filename);
+        //DEBUG_TRACE(filename);
 	}
 
     template<typename TEXEL>

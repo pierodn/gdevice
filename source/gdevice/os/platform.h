@@ -164,7 +164,7 @@ inline void printf(void* x)			{ printf("%08X", x); };
 inline void __ASSERT(char* statement, char* function, char* filename, int line)
 {
     _PRINT_PATH(function, filename, line);
-    color(12,0); printf("ASSERTION FAILED: %s\n", statement );
+    color(12,0); printf("ASSERT FAILED: %s\n", statement );
     getc(stdin);
     exit(-1);
 }
@@ -208,7 +208,7 @@ char* strstr2( char* src, const char* sub )
 		for( i=0; src[i]==sub[i] && src[i]; i++ ); 
 		if( !sub[i] ) return src;
 	}
-	return 0;
+	return NULL;
 }
 
 #if !defined(CONSOLE)
