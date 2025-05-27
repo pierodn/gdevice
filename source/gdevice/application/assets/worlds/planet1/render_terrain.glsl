@@ -336,7 +336,6 @@ out VertexData {
 	vec4 gradient;  // Gradients (T0 and T1)
 	vec4 color;
 	vec4 mixmap;
-	vec3 N0;        // TEMP?
 	vec3 E;		    // Position in world space
 	vec3 L;         // Light in world space
 	vec3 barycentric;
@@ -350,8 +349,6 @@ void main()
 		gVertex.gradient	= tVertex[i].gradient; 
 		gVertex.color		= tVertex[i].color;
 		gVertex.mixmap		= tVertex[i].mixmap;
-		
-		gVertex.N0	= NormalMatrix * normalize(vec3(tVertex[i].gradient.zw, 1));
 		gVertex.E	= (ModelViewMatrix * gl_in[i].gl_Position).xyz; // length of it, is d1stance
 		gVertex.L	= (ModelViewMatrix * vec4(Light0_position.xy/scale, Light0_position.zw)).xyz;	// TODO precompute?
 
@@ -429,8 +426,7 @@ in VertexData {
 	vec4 position; // Position in model space
     vec4 gradient; // Gradients (T0 and T1)
 	vec4 color;
-	vec4 mixmap;
-	vec3 N0;       // TEMP
+	vec4 mixmap;      
 	vec3 E;        // Position in world space
 	vec3 L;        // Light in world space
 	vec3 barycentric;
@@ -744,7 +740,9 @@ void main()
 	if( textureFadingFactor <= 1.0 )
 	{
         const float LodBias = -0.666; // 0.0 smooth, -0.5 sharper
-        vec3 weight = getTriplanarWeightVector( normalize(vec3(gVertex.gradient.xy/scale, 1)) );
+            
+        vec3 scaledNormal = normalize(vec3(gVertex.gradient.xy/scale, 1));
+        vec3 weight = getTriplanarWeightVector(scaledNormal);
         vec4 luma4 = textureTriplanar(detailsTU,  gVertex.position.xyz, weight, LodBias); 
 
         float a1 = 0.7, a2 = 1.2, // (1.0 - a1)*4,  // LOD0
@@ -823,9 +821,6 @@ void main()
                 //noise(gVertex.position.xy*1.0)
 			);
 			
-			// Energy adujustment across LODs (empiric).
-			//float scale00 = 1 + 0.0000030*log(scale); 
-			
 			// Graciously fade bumps out with distance.
 		    float _bump_intensity = mix(bump_intensity, 0.0, textureFadingFactor);
 /*
@@ -835,8 +830,7 @@ void main()
             H += b.z;
             dH.xy += b.xy;
 */			
-			//H  *= _bump_intensity * scale00; 
-			dH *= _bump_intensity;// * scale00;
+			dH *= _bump_intensity;
 			
 			vec3 P = gVertex.position.xyz;
             displaceVertexAndRecomputeNormal(P, normal, H, dH);
@@ -914,8 +908,8 @@ else
     float EdotLcontrast = 1.0 - 0.5*EdotL * smoothstep(+0.05, 0.5, L.z);
 
 	light += 0.22 * Diffuse  * occlusion * daylight * lfShadow * sunColor * pow(lambertian, 1.0) ;//* (1.0 - specular);
-	light += 0.06 * Specular * relief	 * daylight * mix(0.2, 1.0, lfShadow) * specularColor * specular;//* max(0.0, dot(N,L));
-	light += 0.02 * Indirect * occlusion * daylight * sunColor * max(0.0, dot(N,I));
+	light += 0.06 * Specular * relief	 * daylight * mix(0.1, 1.0, lfShadow) * specularColor * specular;//* max(0.0, dot(N,L));
+	light += 0.03 * Indirect * occlusion * daylight * sunColor * max(0.0, dot(N,I));
 	light += 0.01 * Sky      * occlusion *			  zenithColor * N.z;
 	light += 0.03 * Fresnel  * relief	 * (fresnelColor - light) * fresnel;
 }
@@ -923,7 +917,7 @@ else
     if(Heatmap > 0)
     {
         float diffuse  = Diffuse  * occlusion * daylight * lfShadow                * lambertian;
-        float specular = Specular * relief	  * daylight * mix(0.2, 1.0, lfShadow) * specular;
+        float specular = Specular * relief	  * daylight * mix(0.1, 1.0, lfShadow) * specular;
         float matLuma  = dot(matColor.rgb, vec3(0.299, 0.587, 0.114));
         matColor.rgb = mix(matColor.rgb, vec3(matLuma), 1.4*occlusion*pow(diffuse, 1.0/32.0));
         matColor.rgb = mix(matColor.rgb, sunColor,      0.5*relief*pow(specular*diffuse, 1.0/8.0));

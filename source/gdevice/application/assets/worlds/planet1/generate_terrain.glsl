@@ -403,18 +403,18 @@ Vertex getVertex(ivec2 ij)
     
 #if 1
 	// TODO insert samples
-	float w = 0.002; 
-	vec2 c = vec2(0.0);
+	float w = 0.00033; 
+	vec2 c = vec2(0.00017);
 	//vec2 a = c - w;
 	//vec2 b = c + w;
 	vec2 i0 = step(c - w, point);
 	vec2 i1 = step(point, c + w);
-	vec2 ii = i0*i1;
+	vec2 ii = i0 * i1;
 	float x = ii.x * ii.y;
 	if(x > 0) {
 		// TODO calculate derivatives
 		vec2 dxdy = vec2(0.0);
-		t0 = t1 = vec4(dxdy, 1.0, 0.0);
+		t0 = t1 = 0.1*vec4(dxdy, 1.0, 0.0);
 		substance.color  = vec4(1.0, 0.0, 0.0, 0.0);
 		substance.mixmap = vec4(1.0, 0.0, 0.0, 0.0);
 	}
