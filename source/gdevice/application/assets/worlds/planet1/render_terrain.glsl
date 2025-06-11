@@ -907,9 +907,9 @@ else
     float EdotL = max(0.0, dot(E,L));
     float EdotLcontrast = 1.0 - 0.5*EdotL * smoothstep(+0.05, 0.5, L.z);
 
-	light += 0.22 * Diffuse  * occlusion * daylight * lfShadow * sunColor * pow(lambertian, 1.0) ;//* (1.0 - specular);
+	light += 0.18 * Diffuse  * occlusion * daylight * lfShadow * sunColor * pow(lambertian, 1.0) ;//* (1.0 - specular);
 	light += 0.06 * Specular * relief	 * daylight * mix(0.1, 1.0, lfShadow) * specularColor * specular;//* max(0.0, dot(N,L));
-	light += 0.03 * Indirect * occlusion * daylight * sunColor * max(0.0, dot(N,I));
+	light += 0.02 * Indirect * occlusion * daylight * sunColor * max(0.0, dot(N,I));
 	light += 0.01 * Sky      * occlusion *			  zenithColor * N.z;
 	light += 0.03 * Fresnel  * relief	 * (fresnelColor - light) * fresnel;
 }
@@ -984,7 +984,7 @@ else
 	}
 
     // Banding removal
-	color.xyz += 0.02*(-0.5 + hash1(ndcoords + fract(AbsoluteTime)));
+	color.xyz += 0.01*(-0.5 + hash1(ndcoords + fract(AbsoluteTime)));
 
 	fragColor = vec4(color.rgb, 1.0);
 }

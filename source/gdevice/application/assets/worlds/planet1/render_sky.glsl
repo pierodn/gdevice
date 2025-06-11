@@ -90,7 +90,7 @@ FRAGMENT:
 		color *= mix(1.0, pow(2.0*(ndcoords.x*ndcoords.x-1.0)*(ndcoords.y*ndcoords.y-1), 0.20), 0.5 * Vignetting);
 	
 	    // Banding removal
-		color.xyz += 0.02*(-0.5 + hash1(ndcoords + fract(AbsoluteTime)));
+		color.xyz += 0.01*(-0.5 + hash1(ndcoords + fract(AbsoluteTime)));
 
 		fragColor = vec4(color.rgb, 1.0);
 		gl_FragDepth = 1.0;
