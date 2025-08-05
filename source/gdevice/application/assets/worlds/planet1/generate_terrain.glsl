@@ -79,48 +79,26 @@ vec4 invert2(vec4 n)			    { return vec4(-n.xy, 1.0 - n.z, 0.0); }
 vec4 minus(float t, vec4 n)         { return vec4(-n.xy, t - n.z, 0.0); }
 vec4 tone(vec4 n, float t)			{ return smoothStep(0.0, 1.0, multiply(n, invert(bias(n,t))))*(1.0 + t); }
 
-//
-// Triangular noise
-// 
-vec4 triangle(in vec2 p, float pack, float erode)
-{
-    p = fract(p) - 0.5;
-    
-    // TODO: smooth edges instead of avoiding them.
-    const float Epsilon = 0.0000001;
-    vec2 dp = vec2(abs(p.x) >= 0.5-Epsilon || abs(p.x)<=Epsilon ? 0.0 : abs(p.x)/p.x, 
-                   abs(p.y) >= 0.5-Epsilon || abs(p.y)<=Epsilon ? 0.0 : abs(p.y)/p.y);
-                    
-    vec4 a = vec4(dp, abs(p));
-    vec4 t = a.z > a.w ? vec4(a.x, 0.0, a.z, 0.0) : vec4(0.0, a.y, a.w, 0.0); // maximum
-    t = saturate(t, pack, erode);
-    return t;
-}
+vec4 sinus(vec2 p)                  { return bias(0.5*vec4(cos(p.x)*sin(p.y), sin(p.x)*cos(p.y), sin(p.x)*sin(p.y), 0.0), 0.5); }
 
-vec4 triangular(vec2 point, float scale, float low, float high)
+vec4 sinvor(vec2 point, float scale)
 {
     point *= scale;
     
     const mat2 R1 = mat2( -0.7373, -0.6755, +0.6755, -0.7373 ); // 137.5077 (Golden Angle)
     const mat2 R2 = mat2( +0.3623, -0.9320, +0.9320, +0.3623 ); // 19.64390 (Ga/7)
     const mat2 R3 = mat2( -0.7159, -0.6981, +0.6981, -0.7159 ); // 27.50154 (Ga/5)
-    vec4 F1 = triangle(point, low, high); 
-    vec4 F2 = triangle(R1*point + R1[0], low, high); F2.xy *= R1;
-    //vec4 F3 = triangle(R2*point + R2[0], low, high); F3.xy *= R2;
-    //vec4 F4 = triangle(R3*point + R3[0], low, high); F4.xy *= R3;
+    vec4 F1 = sinus(point); 
+    vec4 F2 = sinus(R1*point + R1[0]); F2.xy *= R1;
+    //vec4 F3 = sinus(R2*point + R2[0]); F3.xy *= R2;
+    //vec4 F4 = sinus(R3*point + R3[0]); F4.xy *= R3;
 
-    //if( F1.z > F2.z ) { vec4 t = F1; F1 = F2; F2 = t; };
     const float k = 2.0;
     F1 = power(F1, -k) + power(F2, -k);
     F1 = power(F1, -1.0/k);
-    
-    //if( F3.z > F4.z ) { vec4 t = F3; F3 = F4; F4 = t; };
-    //if( F1.z > F3.z ) { vec4 t = F1; F1 = F3; F3 = t; };
-    //if( F2.z > F4.z ) { vec4 t = F2; F2 = F4; F4 = t; };
-    //if( F2.z > F3.z ) { vec4 t = F2; F2 = F3; F3 = t; };
 
     vec4 result = vec4(F1.xyz, (F2-F1).z);
-    
+
 	result.xy *= scale;
     return result;
 }
@@ -236,7 +214,7 @@ Substance getSubstance(vec4 t, vec3 scale)
 	Substance ROCK = { vec4(0.36, 0.28, 0.22, 0.00), vec4(1.00, 0.00, 0.00, 0.00) };
     Substance GRIT = { vec4(0.46, 0.38, 0.35, 0.00), vec4(0.00, 1.00, 0.00, 0.00) };
     Substance BRAN = { vec4(0.34, 0.26, 0.22, 0.00), vec4(0.00, 0.00, 1.0 + 2.0*more, 0.00) };
-    Substance SAND = { vec4(0.70, 0.54, 0.45, 0.00), vec4(0.00, 0.00, 0.00, 1.1 + 0.2*more) };
+    Substance SAND = { vec4(0.75, 0.54, 0.45, 0.00), vec4(0.00, 0.00, 0.00, 1.1 + 0.2*more) };
 
     Substance grit = sMix(GRIT, BRAN, less);
     Substance sand = sMix(SAND, grit, flow);
@@ -352,7 +330,7 @@ Vertex getVertex(ivec2 ij)
         vec4 u = vec4(nu.xy + vec2(1.0, 0.0), nu.z + point1.x, 0.0);
         vec4 v = vec4(nv.xy + vec2(0.0, 1.0), nv.z + point1.y, 0.0);
         vec2 uv = vec2(u.z,v.z);
-        vec4 t = power(2.0*triangular(uv, 0.5, 0.00, 0.46), 3.0); 
+        vec4 t = power(1.2*sinvor(uv, 0.5), 2.0);
         t.x = t.x*u.x + t.y*v.x;
         t.y = t.x*u.y + t.y*v.y;
         t.xy *= scale1;
