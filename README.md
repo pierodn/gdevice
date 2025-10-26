@@ -26,6 +26,12 @@ This hobby project revisits and simplifies many best practices commonly used in 
 - What roles can **procedurally generated content** serve?
 - Can **materials** (albedo, normals, etc.) be **generated dynamically at runtime**?
 
+### Sponsor
+What began as a proof of concept for a terrain level-of-detail algorithm and a minimalist 3D engine gradually evolved into an open-ended journey through the uncharted intersections of real-time rendering and parallel computing, beyond the boundaries of enterprise settings where risk-taking is tightly constrained.
+
+As you can imagine, this is something I pursue in my free time. If you find what I do useful, or if you simply care about empowering creative people to keep building and innovating, please consider supporting a few hours of development or just offering a cup of coffee.
+
+![donate](https://github.com/user-attachments/assets/d4f11a78-c1b6-4c04-b032-c415947f2d0b)
 
 ### Screenshots
 ![Sunset](https://i.ibb.co/5hzZNGd/gdev10.png)
