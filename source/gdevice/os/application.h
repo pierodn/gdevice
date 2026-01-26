@@ -14,7 +14,7 @@ class gd::Application : public Listener<ConcreteApplication>
 {
  public:   
 	Window<ConcreteApplication> window;
-
+/*
     int run()
     {
         while(window.isOpen()) 
@@ -23,6 +23,11 @@ class gd::Application : public Listener<ConcreteApplication>
 		}
 		return 0;
 	}
+*/
+    int run() 
+    {
+        return window.runPlainMessageLoop();
+    }
 
     Application()
 	{

@@ -5,8 +5,8 @@
 	#pragma warning(disable: 4996)
 #endif
 
-// PROP discard // or # lines
-// PROP split the one in more appended strings separated by "\n"
+// TODO Turn into a std::vector<GLubyte> that contains the pre-compiled binary of the shader.
+// TODO Rename as "shic" (shader intermediate code / shader compiler) 
 
 int main(int argc, char **argv) 
 {

@@ -5,7 +5,9 @@
 #include "type/scene/oop/terrain/clipmap.h"
 #include "gpu/program.h"
 
+// TODO this should be a configuration to the generic Heightmap instance
 #include "application/assets/worlds/planet1/generate_terrain.glsl.h"
+//#include "application/assets/worlds/planet1/generate_terrain.h"
 #include "application/assets/worlds/planet1/render_terrain.glsl.h"
 
 
@@ -40,6 +42,7 @@ public:
     {
 		InitializeTerrainDetails();
 
+        //generator.Build(generateTerrainSource);
         generator.Build(generate_terrain_glsl);
         renderer.Build(render_terrain_glsl);
 

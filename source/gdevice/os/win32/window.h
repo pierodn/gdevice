@@ -256,10 +256,15 @@ public:
 					case SIZE_MAXIMIZED:
 					case SIZE_RESTORED:
 					{
-                        DEBUG_RUN_ONCE(
-                            GL::Initialize();
+                        //DEBUG_RUN_ONCE(
+                        static bool hasRanOnce = false;
+                        if( !hasRanOnce )
+                        {
+                            
 			                listener->onOpen(*this);
-                        );
+                            hasRanOnce = true;
+                        }
+                        //);
                         
 						size = vec2(LOWORD(lParam), HIWORD(lParam));
 						listener->onSize(*this);

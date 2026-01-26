@@ -2,8 +2,11 @@
 
 
 #include "type/array.h"
-#include "gpu/cacheable.h"
-#include "gpu/opengl/gl.h"
+
+#include "gpu/opengl/gloom.h"
+
+#define GLSL_(source) #source
+#define GLSL(type, version, source) "\n" #type ":\n#version " #version "\n" #source "\n"
 
 struct Program : public Array<Cacheable>, Cacheable
 {

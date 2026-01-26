@@ -7,6 +7,7 @@
 
 #include "os/platform.h"
 #include "os/application.h"
+#include "os/window.h"
 #include "os/keyboard.h"
 
 #include "type/glsl.h"
@@ -32,6 +33,8 @@ public:
 
 	void onOpen(Window<Walker>& window)
     {
+        GL::Initialize();
+
         heightmap.setTileResolution(TILE_RESOLUTION);
 	    heightmap.setLODs(CLIPMAPS_COUNT);
         heightmap.Initialize();

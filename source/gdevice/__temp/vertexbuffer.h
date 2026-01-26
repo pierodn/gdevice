@@ -3,7 +3,7 @@
 #include "type/glsl.h"
 
 #include "gpu/cacheable.h"
-#include "texture.h"
+//#include "texture.h"
 
 struct VertexBuffer : Cacheable // this will be used as either VBO or FBO (not both!).
 {

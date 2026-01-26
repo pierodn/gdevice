@@ -4,7 +4,9 @@
 #include "gpu/program.h"
 #include "type/scene/oop/node.h"
 
-#include "application/assets/worlds/planet1/render_sky.glsl.h"
+// TODO This should be added by the application
+#include "application/assets/worlds/planet1/render_sky.h"
+
 
 struct NodeState
 {
@@ -37,7 +39,7 @@ struct Scene : Node, Transform, Parent
 
     void Initialize()
     {
-        renderSkydome.Build(render_sky_glsl);
+        renderSkydome.Build(renderSkySource);
     }
 
     int Traverse( bool skipRendering = false )

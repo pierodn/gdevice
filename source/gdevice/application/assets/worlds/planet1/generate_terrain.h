@@ -1,22 +1,26 @@
-COMPUTE:
-#version 430
+#pragma once
+
+#include "gpu/program.h"
+
+char* generateTerrainSource =
+
+GLSL(COMPUTE, 430,
 
 uniform vec2  offset;
 uniform float size;
 
-// TODO: Make uniforms (?)
-int RES = 33;      //17	// NOTE change also into gdevice_parameters.h
-
-float SCALE = 130.0;
+int RES = 33;
 int OCTAVES = 11;
+float SCALE = 130.0;
 const vec3 worldScale = vec3(vec2(1.0/SCALE), SCALE);
 
 layout (binding=0, rgba32f) uniform writeonly image2D quartetsIU;
 layout (binding=1, rgba32f) uniform writeonly image2D gradientsIU;
 layout (binding=2, rgba32f) uniform writeonly image2D colorsIU;
 layout (binding=3, rgba32f) uniform writeonly image2D mixmapsIU;
+)
 
-
+GLSL_(
 
 // https://www.shadertoy.com/view/WlfSzX    
 vec4 noise(vec2 point) 
@@ -37,10 +41,11 @@ vec4 noise(vec2 point)
 	L = vec4(L.x, L.y-L.x, L.z-L.x, L.x-L.y-L.z+L.w);
 	return vec4(du*(L.yz + L.w*u.yx), L.x + L.y*u.x + L.z*u.y + L.w*u.x*u.y, 0.0 );
 }
+)
 
-//
+GLSL_(
+
 // Noise algebra
-//
 const vec4 unit = vec4(0.0, 0.0, 1.0, 0.0);
 const mat2 identity = mat2(1.0,0.0,0.0,1.0);
 vec4 noise(vec2 point, mat2 scale)  { vec4 n = noise(scale*point); n.xy *= scale; return n; }
@@ -57,7 +62,9 @@ vec4 saturate(vec4 n, float z1, float z2)   { return n.z < z1 ? z1*unit : n.z > 
 vec4 saturate(vec4 n)               { return saturate(n, 0.0, 1.0); }
 //float converge(float x0, float x1, float x) { return 1.0/(x + 1.0/(x0-x1)) + x1; } 
 vec4 saturate(vec4 n, vec4 a, vec4 b) { return n.z < a.z ? a : n.z >= b.z ? vec4(-b.xy, b.zw) : n; }
+)
 
+GLSL_(
 vec4 smoothStep(float h0, float h1, vec4 n) { n = vec4(n.xy, n.z - h0, 0.0)/(h1 - h0); n = saturate(n, 0.0, 1.0); return multiply(multiply(n,n), bias(-2.0 * n, +3.0)); }
 vec4 absolute(vec4 n, float zero)   { return n.z >= zero ? n : -n; }    
 vec4 invert(vec4 n)                 { float z = 1.0/(n.z + 1.0); return vec4(-z*z*n.xy, z, 0.0); }
@@ -71,6 +78,10 @@ vec4 exponent2(vec4 a)
    // TODO
    return vec4( exp2(a.z), 1.0, 1.0, 0.0 );
 }
+
+)
+
+GLSL_(
 
 vec4 harmonicVoronoi(vec2 point, float scale)
 {
@@ -109,9 +120,25 @@ vec4 fbm(vec2 p, int octaves,
     }
     return signal;
 }
+)
 
-vec4 fbm(vec2 p, int octaves) {
+GLSL_(
+
+vec4 fbm(vec2 p, int octaves)
+{
 	return fbm(p, octaves, 1.0, 0.5, mat2(1.0,0.0,0.0,1.0), 2.03*mat2(0.8,-0.6,0.6,0.8));
+}
+
+vec4 fbm(vec2 p, float scale)
+{
+    const mat2 M2 = mat2(0.8,-0.6,0.6,0.8);
+
+    vec4 f = vec4(0.0);
+    f += 0.5000*noise(p*SCALE); p = M2*p*2.01;
+    f += 0.2500*noise(p*SCALE); p = M2*p*2.02;
+    f += 0.1250*noise(p*SCALE); p = M2*p*2.03;
+    f += 0.0625*noise(p*SCALE);
+    return f/0.9375;
 }
     
 vec4 hybrid(vec2 point, int octaves, 
@@ -139,6 +166,10 @@ vec4 hybrid(vec2 point, int octaves,
     }
     return signal;
 }
+            
+)
+
+GLSL_(
                                                              
 struct Substance 
 {
@@ -153,21 +184,9 @@ Substance sMix(Substance s1, Substance s2, float a) {
     substance.mixmap = mix(s1.mixmap, s2.mixmap, a);
     return substance;
 }
-
-vec4 fbm(vec2 p, float scale)
-{
-    const mat2 M2 = mat2(0.8,-0.6,0.6,0.8);
-
-    vec4 f = vec4(0.0);
-    f += 0.5000*noise(p*SCALE); p = M2*p*2.01;
-    f += 0.2500*noise(p*SCALE); p = M2*p*2.02;
-    f += 0.1250*noise(p*SCALE); p = M2*p*2.03;
-    f += 0.0625*noise(p*SCALE);
-
-    return f/0.9375;
-}
-
-	
+)
+/*
+GLSL_(
 Substance getSubstance(vec4 t, vec3 scale)
 { 
     vec3 N = normalize(vec3(t.xy, 1.0));
@@ -206,19 +225,10 @@ Substance getSubstance(vec4 t, vec3 scale)
                          SAND;
 	return substance;
 }     
-	
-struct Vertex
-{
-	vec4 position;
-	vec4 gradient;
-	vec4 color;
-	vec4 mixmap;
-	
-	vec4 coarserPosition;
-	vec4 coarserGradient;
-	vec4 coarserColor;
-	vec4 coarserMixmap;
-};
+
+)
+
+GLSL_(
 
 // Version with domain warping
 vec4 terrain(vec4 U, vec4 V, int octaves, 
@@ -234,6 +244,25 @@ vec4 terrain(vec4 U, vec4 V, int octaves,
     t.y = t.x*U.y + t.y*V.y;
     return t;
 }
+)
+
+GLSL_(
+
+struct Vertex
+{
+	vec4 position;
+	vec4 gradient;
+	vec4 color;
+	vec4 mixmap;
+	
+	vec4 coarserPosition;
+	vec4 coarserGradient;
+	vec4 coarserColor;
+	vec4 coarserMixmap;
+};
+)
+
+GLSL_(
 
 Vertex getVertex(ivec2 ij)
 {		
@@ -249,7 +278,8 @@ Vertex getVertex(ivec2 ij)
     vec4 weight = vec4(0.0, 0.0, 0.17, 0.0);
     float scale0 = 1200*worldScale.x; 
     float frequency = 0.73;
-   
+    )
+
     // Domain warping  // NOTE: Must apply to gradient as well.
     float dwFrequency = 1.2; // 2.0
     float dwAmplitude = 0.2; // 1.0 // NOTE: Set to zero to disable
@@ -261,6 +291,9 @@ Vertex getVertex(ivec2 ij)
     dwPointU = vec4(dwPointU.xy + vec2(1.0, 0.0), dwPointU.z + point.x, 0.0);
     dwPointV = vec4(dwPointV.xy + vec2(0.0, 1.0), dwPointV.z + point.y, 0.0);
     vec2 dwPoint = vec2(dwPointU.z, dwPointV.z); 
+)
+
+GLSL_(
     vec4 c0 = terrain(dwPointU, dwPointV, shadowfreq-1,   signal, weight, scale0, frequency);
     vec4 t0 = terrain(dwPointU, dwPointV, 1,              signal, weight, scale0, frequency);
     vec4 c1 = terrain(dwPointU, dwPointV, terrainFreq-1,  signal, weight, scale0, frequency);
@@ -282,7 +315,9 @@ Vertex getVertex(ivec2 ij)
     t.xy *= scale1;
     //t.z *= scale1;
     t = 0.9*saturate(t, 0.2, 0.5) + 1.6*multiply(t, t1);
+)
 
+GLSL(
 	const float aa = 0.03, a0 = 2.0, a1 = 1.0;
 	c0 = aa * multiply(t, a0*smoothStep(0.25, 0.50, c0) + a1*smoothStep(0.40, 0.50, c0)); 
 	t0 = aa * multiply(t, a0*smoothStep(0.25, 0.50, t0) + a1*smoothStep(0.40, 0.50, t0)); 
@@ -321,7 +356,9 @@ Vertex getVertex(ivec2 ij)
 		substance.color  = vec4(1.0, 0.0, 0.0, 0.0);
 		substance.mixmap = vec4(1.0, 0.0, 0.0, 0.0);
 	}
+)
 
+GLSL_(
 	vec4 position = t1; // Here only z is actually used.
     vec4 gradient = vec4(t1.xy, t0.xy) * size; // Applying tile domain scale to gradient.
     vec4 color    = substance.color;
@@ -351,7 +388,11 @@ Vertex getVertex(ivec2 ij)
 	    coarserMixmap
 	);
 } 
-                 
+
+)
+           */
+
+GLSL_(
 
 layout( local_size_x = 9, local_size_y = 9 ) in; // Note: RES/2+1: 33 => 17, 17=>9
 
@@ -395,3 +436,5 @@ void main()
 		imageStore( mixmapsIU,   i3, v3.mixmap);
 	}
 }
+
+);

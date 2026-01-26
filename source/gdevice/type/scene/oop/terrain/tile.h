@@ -4,6 +4,8 @@
 #include "type/scene/oop/node.h"
 #include "application/assets/worlds/planet1/textures.h"
 
+#include "gpu/opengl/gloom.h"
+
 struct NodeTransform;
 
 struct Tile : public Node, Transform, Child, Geometry, Updatable, Renderable
