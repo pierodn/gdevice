@@ -1,7 +1,7 @@
 #pragma once
 
 //
-// OpenGL Unified Obtainer Node
+// Glink - OpenGL Dynamic linker
 // 
 
 #define GL_GLEXT_PROTOTYPES
@@ -70,24 +70,22 @@ PROC getProc( char* name )
 
 namespace GL
 { 
-/*
-	inline char* vendor()
+	inline char* GetVendor()
 	{
 		return (char*)glGetString(GL_VENDOR);
 	}
 
-    inline char* renderer()
+    inline char* GetRenderer()
 	{
         return (char*)glGetString(GL_RENDERER);
     }
-    */
 
-	float version()
+	float GetVersion()
 	{
 		return atof((char*)glGetString(GL_VERSION));
 	}
 
-	bool isExtensionSupported( const char *extension )
+	bool IsExtensionSupported( const char *extension )
 	{
 		char* s = (char*) glGetString(GL_EXTENSIONS);
 		while( (s=strstr2(s,extension)) ) {
@@ -133,7 +131,7 @@ namespace GL
 
 			if( supported == FirstTime )
 			{
-				supported = isExtensionSupported("GL_ARB_multitexture");
+				supported = IsExtensionSupported("GL_ARB_multitexture");
 						 
 				#if defined(_WIN32)
 				supported = supported
@@ -147,8 +145,8 @@ namespace GL
 				#endif
 
 				supported = supported 
-					&& isExtensionSupported("GL_ARB_texture_env_combine")
-					&& isExtensionSupported("GL_ARB_texture_env_dot3");
+					&& IsExtensionSupported("GL_ARB_texture_env_combine")
+					&& IsExtensionSupported("GL_ARB_texture_env_dot3");
 
                 if(Verbose)
                 {
@@ -215,7 +213,7 @@ namespace GL
 
 		if( supported == FirstTime )
 		{
-			supported = isExtensionSupported("GL_EXT_secondary_color" );
+			supported = IsExtensionSupported("GL_EXT_secondary_color" );
 		
 			#if defined(_WIN32)
 			supported = supported
@@ -255,7 +253,7 @@ namespace GL
 		static int supported = FirstTime;
 		if( supported == FirstTime )
         {
-			supported = isExtensionSupported( "WGL_EXT_swap_control" );
+			supported = IsExtensionSupported( "WGL_EXT_swap_control" );
 			#if defined(_WIN32)
 			supported = supported
 				&& (wglSwapIntervalEXT		= (PFNWGLEXTSWAPCONTROLPROC)	 getProc("wglSwapInterval",	"wglSwapIntervalEXT") )
@@ -355,8 +353,8 @@ namespace GL
 
 	        if( supported == FirstTime )
 	        {
-		        supported = GL::isExtensionSupported("GL_EXT_framebuffer_object") 
-			             || GL::isExtensionSupported("GL_ARB_framebuffer_object");
+		        supported = GL::IsExtensionSupported("GL_EXT_framebuffer_object") 
+			             || GL::IsExtensionSupported("GL_ARB_framebuffer_object");
 
 		        #if defined(_WIN32)
 		        supported = supported
@@ -510,9 +508,9 @@ namespace GL
 
 	        if( supported == FirstTime )
 	        {
-		        supported = GL::isExtensionSupported("GL_EXT_transform_feedback") 
-			             || GL::isExtensionSupported("GL_NV_transform_feedback");	// uguale a EXT?	
-				         //|| isExtensionSupported("GL_ARB_transform_feedback2"); // addictional functionalities
+		        supported = GL::IsExtensionSupported("GL_EXT_transform_feedback") 
+			             || GL::IsExtensionSupported("GL_NV_transform_feedback");	// uguale a EXT?	
+				         //|| IsExtensionSupported("GL_ARB_transform_feedback2"); // addictional functionalities
 
 		        #if defined(_WIN32)
 		        supported = supported
@@ -605,7 +603,7 @@ namespace GL
 	        if( supported == FirstTime )
 	        {
 		        // ?
-		        supported = GL::isExtensionSupported("GL_ARB_vertex_buffer_object");
+		        supported = GL::IsExtensionSupported("GL_ARB_vertex_buffer_object");
 
 		        #if defined(_WIN32)
 		        supported = supported
@@ -627,12 +625,6 @@ namespace GL
 	        }
 
 	        return supported;
-        }
-
-        void deallocate( uint& id )
-        {
-	        if( id ) glDeleteBuffers(1, &id);
-	        id = 0;
         }
     }
 }
@@ -767,12 +759,12 @@ namespace GL
 
             if( supported == FirstTime )
             {
-	            supported = GL::isExtensionSupported("GL_ARB_shader_objects");
+	            supported = GL::IsExtensionSupported("GL_ARB_shader_objects");
 
 	            supported = supported						 
-		            && GL::isExtensionSupported("GL_ARB_vertex_shader")
-		            && GL::isExtensionSupported("GL_ARB_fragment_shader")
-		            && GL::isExtensionSupported("GL_ARB_shading_language_100");
+		            && GL::IsExtensionSupported("GL_ARB_vertex_shader")
+		            && GL::IsExtensionSupported("GL_ARB_fragment_shader")
+		            && GL::IsExtensionSupported("GL_ARB_shading_language_100");
 
 	            #if defined(_WIN32)
 	            supported = supported
@@ -827,9 +819,9 @@ namespace GL
             if( supported == FirstTime )
             {
 	            supported = 
-		                GL::isExtensionSupported("GL_ARB_texture_float") 
-		            &&  GL::isExtensionSupported("GL_EXT_gpu_shader4")  // this should enable gl_vertexID
-		            &&  GL::version() >= 4.1
+		                GL::IsExtensionSupported("GL_ARB_texture_float") 
+		            &&  GL::IsExtensionSupported("GL_EXT_gpu_shader4")  // this should enable gl_vertexID
+		            &&  GL::GetVersion() >= 4.1
 		            && (glPatchParameteri =	(PFNGLPATCHPARAMETERIPROC) getProc("glPatchParameteri",	"glPatchParameteriARB"))
 	            ;
             }
@@ -843,9 +835,9 @@ namespace GL
             if( supported == FirstTime )
             {
 	            supported = 
-		                GL::isExtensionSupported("GL_ARB_compute_shader") 
-		            && (GL::isExtensionSupported("GL_ARB_shader_image_load_store") || GL::isExtensionSupported("GL_EXT_shader_image_load_store"))
-		            &&  GL::version() >= 4.3
+		                GL::IsExtensionSupported("GL_ARB_compute_shader") 
+		            && (GL::IsExtensionSupported("GL_ARB_shader_image_load_store") || GL::IsExtensionSupported("GL_EXT_shader_image_load_store"))
+		            &&  GL::GetVersion() >= 4.3
 		            && (glBindImageTexture			= (PFNGLBINDIMAGETEXTUREPROC)			getProc("glBindImageTexture",	"glBindImageTextureEXT"))
 		            && (glDispatchCompute			= (PFNGLDISPATCHCOMPUTEPROC)			getProc("glDispatchCompute"))
 		            && (glDispatchComputeIndirect	= (PFNGLDISPATCHCOMPUTEINDIRECTPROC)	getProc("glDispatchComputeIndirect"))
@@ -855,5 +847,138 @@ namespace GL
             return supported;
         }
     } // GLSL
+
+}
+
+
+
+
+
+namespace GL
+{
+    namespace GLSL
+    {
+        void Check(int requiredVersion = 4.3)
+	    {
+            DEBUG_TRACE(GL::GetRenderer());
+            DEBUG_TRACE(GL::GetVersion());
+            DEBUG_ASSERT(GL::GetVersion() >= requiredVersion);
+
+	        GL::Texturing::available();
+	        //GL::Texturing::textureNonPowerOfTwoAvailable();
+	        //GL::secondaryColorAvailable();
+	        GL::swapControlAvailable();
+	        GL::VBO::available();
+            GL::GLSL::available();
+	        GL::GLSL::tessellatorAvailable();
+	        GL::GLSL::computeAvailable();
+	        GL::MRT::available();
+
+            if( GL::swapControlAvailable() )
+            {
+                GL::swapControl(0); // TODO check
+            }
+
+            if(!Verbose) 
+            {
+                return;
+            }
+    
+		    if(true) 
+            {
+                int maxTextureUnits;
+			    glGetIntegerv(GL_MAX_TEXTURE_UNITS, &maxTextureUnits);
+                color(CMD_DARKGRAY, 0);
+                DEBUG_TRACE(maxTextureUnits);
+		    }
+
+		    if( GL::GLSL::available() ) 
+            {
+                int maxTextureImageUnits;
+			    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextureImageUnits);
+                color(CMD_DARKGRAY, 0);
+                DEBUG_TRACE(maxTextureImageUnits);
+		    }
+
+		    if(glEnableVertexAttribArray) 
+            {
+                int maxVertexAttributes;
+			    glGetIntegerv( GL_MAX_VERTEX_ATTRIBS, &maxVertexAttributes );
+                color(CMD_DARKGRAY, 0);
+                DEBUG_TRACE(maxVertexAttributes);
+		    }
+
+	        if( GL::GLSL::tessellatorAvailable() ) 
+            {
+                int maxPatchVertices;
+		        glGetIntegerv(GL_MAX_PATCH_VERTICES, &maxPatchVertices);
+                color(CMD_DARKGRAY, 0);
+                DEBUG_TRACE(maxPatchVertices);
+	        }
+
+		    if(true)
+            {
+			    int maxDrawBuffers;
+			    glGetIntegerv(GL_MAX_DRAW_BUFFERS, &maxDrawBuffers);
+                color(CMD_DARKGRAY, 0);
+                DEBUG_TRACE(maxDrawBuffers);
+		    }
+        } 
+    } // GLSL
+
+    // TODO void Link(int minimumVersion = 4.3)
+    void Initialize(int minimumVersion = 4.3)
+    {
+        GLSL::Check(minimumVersion);
+
+		glEnable(GL_TEXTURE_2D);
+		glEnable(GL_LIGHTING);
+		
+		glEnable(GL_DEPTH_TEST);
+		glClearDepth(1.0f); 
+		glDepthFunc(GL_LEQUAL);
+		
+		glShadeModel( GL_SMOOTH );	
+		glHint( GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST );
+        glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+
+		glDrawBuffer( GL_BACK );
+
+		glEnable(GL_COLOR_MATERIAL);
+		glColorMaterial( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE );
+
+		bool drawBackfaces = false;
+		(drawBackfaces ? glDisable : glEnable)( GL_CULL_FACE );
+
+		//GL::Texturing::unbind();
+            GL::Texturing::unbind(0);
+            GL::Texturing::unbind(1);
+            GL::Texturing::unbind(2);
+            glDisable(GL_BLEND);
+
+		glMatrixMode(GL_TEXTURE);
+		glLoadIdentity();
+		
+		// Reset VA state
+		glDisableClientState(GL_VERTEX_ARRAY);
+		glDisableClientState(GL_NORMAL_ARRAY);
+		glDisableClientState(GL_COLOR_ARRAY);
+		glDisableClientState(GL_SECONDARY_COLOR_ARRAY);
+		glDisableClientState(GL_INDEX_ARRAY);
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		glDisableClientState(GL_EDGE_FLAG_ARRAY);
+
+		// Reset VBO state
+        if( GL::VBO::available() ) 
+        {
+			//GL::VBO::unbind(GL_ARRAY_BUFFER);
+			//GL::VBO::unbind(GL_ELEMENT_ARRAY_BUFFER);
+            glBindBuffer( GL_ARRAY_BUFFER, 0 );
+            glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
+		}
+
+        //GL::UseProgram(0);
+        glUseProgram(0);
+	}
 
 }

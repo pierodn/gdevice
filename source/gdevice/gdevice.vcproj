@@ -224,11 +224,11 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\type\__noise.h"
+				RelativePath=".\__gdevice.h"
 				>
 			</File>
 			<File
-				RelativePath=".\os\application.h"
+				RelativePath=".\type\__noise.h"
 				>
 			</File>
 			<File
@@ -264,10 +264,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\gdevice.h"
-				>
-			</File>
-			<File
 				RelativePath=".\application\assets\worlds\planet1\generate_terrain.h"
 				>
 			</File>
@@ -276,15 +272,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\gpu\opengl\glink.h"
+				>
+			</File>
+			<File
 				RelativePath=".\gpu\opengl\gloom.h"
 				>
 			</File>
 			<File
 				RelativePath=".\type\glsl.h"
-				>
-			</File>
-			<File
-				RelativePath=".\gpu\opengl\gluon.h"
 				>
 			</File>
 			<File
@@ -320,10 +316,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\os\listener.h"
-				>
-			</File>
-			<File
 				RelativePath=".\os\mutex.h"
 				>
 			</File>
@@ -332,15 +324,15 @@
 				>
 			</File>
 			<File
-				RelativePath=".\type\scene\ecs\node.h"
-				>
-			</File>
-			<File
 				RelativePath=".\type\scene\node.h"
 				>
 			</File>
 			<File
 				RelativePath=".\type\scene\oop\node.h"
+				>
+			</File>
+			<File
+				RelativePath=".\type\scene\ecs\node.h"
 				>
 			</File>
 			<File
@@ -361,6 +353,10 @@
 			</File>
 			<File
 				RelativePath=".\os\profiler.h"
+				>
+			</File>
+			<File
+				RelativePath=".\cpu\program.h"
 				>
 			</File>
 			<File
@@ -416,11 +412,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\os\win32\window.h"
-				>
-			</File>
-			<File
-				RelativePath=".\os\window.h"
+				RelativePath=".\ui\window.h"
 				>
 			</File>
 		</Filter>
@@ -437,11 +429,11 @@
 			>
 		</Filter>
 		<File
-			RelativePath=".\type\scene\ecs\ECS_test.h"
+			RelativePath=".\__gdevice.cpp"
 			>
 		</File>
 		<File
-			RelativePath=".\gdevice.cpp"
+			RelativePath=".\type\scene\ecs\ECS_test.h"
 			>
 		</File>
 		<File

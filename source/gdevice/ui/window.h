@@ -1,25 +1,34 @@
 #pragma once
 
-#include "os/window.h" // ??
-#include "os/keyboard.h"
-#include "os/listener.h"
-#include "os/win32/timer.h" // ??
-#include "type/glsl.h"
-
-//#include "os/log.h"
+// TODO Linux, MacOS
+#include <windows.h>
+#include <stdio.h>		// vsprintf_s, va_list
+#pragma comment( lib, "opengl32.lib" ) // wglDeleteContext
 
 
-template<class Application>
+
+
+class Window;
+
+struct Listener
+{
+	virtual void OnOpen( Window& window ) = 0;
+	virtual void OnDraw( Window& window ) = 0;
+	virtual void OnSize( Window& window ) = 0;
+};
+
 class Window
 {
 public:
-	Listener<Application>* listener;
+	Listener* listener;
 
     bool isActive;
     //bool isIconified;
 	bool fullscreen;
-	vec2 windowedSize;
-	vec2 size;
+    struct Size {
+	    long x;
+	    long y;
+    } windowSize, clientSize;
 	int bits;
 
 	bool isPointerVisible;
@@ -27,55 +36,37 @@ public:
 	int mouseY;
 	int mouseWheel;
 
-	float mouseDeltaX()
-	{
-		static int previousMouseX = mouseX;
-		int delta = mouseX - previousMouseX;
-		previousMouseX = mouseX;
-		return float(delta)/size.x;
-	}
-
-	float mouseDeltaY()
-	{
-		static int previousMouseY = mouseY;
-		int delta = mouseY - previousMouseY;
-		previousMouseY = mouseY;
-		return float(delta)/size.y;
-	}
-
-	int mouseDeltaWheel()
-	{
-		static int previousWheel = mouseWheel;
-		int delta = mouseWheel - previousWheel;
-		previousWheel = mouseWheel;
-		return delta;
-	}
-
 private:
 	HWND	hWnd;
-	HDC		hDC; // TEMP?
+	HDC		hDC;
 	HGLRC	hRC;
 
 public:
 
-    Window( Listener<Application>* listener = 0 ) : hWnd(NULL), hDC(NULL), hRC(NULL) //
+    Window(long width = 640, long height = 480) : hWnd(NULL), hDC(NULL), hRC(NULL)
 	{
-        DEBUG_ASSERT(!listener); // TODO Windows without listener
 		this->listener = listener;
         isActive = false;
 		fullscreen = false;
 		isPointerVisible = false;
-		windowedSize = vec2(WINDOW_WIDTH, WINDOW_HEIGHT); 
-		bits = 32;
-		size = vec2(0,0);
+        windowSize.x = width;
+        windowSize.y = height;
+        clientSize.x = 0;
+        clientSize.y = 0;
+		bits = 32;	
 	}
 
 	~Window()
 	{
-		destroy();
+		Destroy();
 	}
 
-	bool create()
+    void SetListener(Listener* listener)
+	{
+		this->listener = listener;
+	}
+
+	bool Open()
 	{
         const bool resizeable = true;
         const char* name = "gdevice";
@@ -91,15 +82,24 @@ public:
 
         int	pixelFormat;
 		if( !(RegisterClass(&windowClass))
-         || !(hWnd = CreateWindow(name,0,dwStyle,0,0,windowedSize.x,windowedSize.y,0,0,0,0))
+         || !(hWnd = CreateWindow(name,0,dwStyle,0,0,windowSize.x,windowSize.y,0,0,0,0))
 		 || !(hDC = GetDC(hWnd))
 		 || !(pixelFormat = ChoosePixelFormat(hDC, &pfd))
 		 || !(SetPixelFormat(hDC, pixelFormat, &pfd))
 		 || !(hRC = wglCreateContext(hDC))
 		 || !(wglMakeCurrent(hDC, hRC)))
 		{
-            DEBUG_WARNING(GetLastErrorAsString());
-			destroy();
+            DWORD errorMessageID = ::GetLastError();
+            if(errorMessageID != 0) 
+            {
+                char* messageBuffer = "";
+                size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+                    NULL, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&messageBuffer, 0, NULL);
+                printf("Error: %.*s\n", size, messageBuffer);
+                LocalFree(messageBuffer);
+            }
+
+			Destroy();
 			return false;
 		}	
 
@@ -110,14 +110,12 @@ public:
         // Silent crash (no dialog)
         SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX);
         _set_abort_behavior(0, _WRITE_ABORT_MSG);
-
-        DEBUG_ASSERT(hRC);
 		return true;
 	}
 
-    int runPlainMessageLoop()
+    int RunDefaultMessageLoop()
     {
-        if(create()) 
+        if(Open()) 
         {
             MSG msg;
 		    while((GetMessage(&msg, hWnd, 0, 0) > 0) && (msg.message != WM_CLOSE)) 
@@ -132,98 +130,97 @@ public:
         return 0;
     }
 
-	void show()
+	void Show()
 	{
-		if( fullscreen ) {
-			goFullscreen();
-		} else {
-			goWindowed();
+		if(fullscreen)
+        {
+			ShowFullscreen();
+		} 
+        else 
+        {
+			ShowWindowed();
 		}
 	}
 
-	void goFullscreen()
+	void ShowFullscreen()
 	{
 		DEVMODE screen;
 		for( int mode=0; EnumDisplaySettings(NULL, mode, &screen); mode++ );
 		
 		ChangeDisplaySettings( &screen, CDS_FULLSCREEN );
-		windowedSize = size;
-		size = vec2( screen.dmPelsWidth, screen.dmPelsHeight );
+		windowSize = clientSize;
+		clientSize.x = screen.dmPelsWidth;
+        clientSize.y = screen.dmPelsHeight;
 
 		//SetWindowLongPtr( hWnd, GWL_EXSTYLE, WS_EX_APPWINDOW | WS_EX_TOPMOST );
 		SetWindowLongPtr( hWnd, GWL_STYLE, WS_POPUP | WS_VISIBLE );
-		SetWindowPos(     hWnd, HWND_TOPMOST, 0, 0, size.x, size.y, SWP_SHOWWINDOW );
+		SetWindowPos(     hWnd, HWND_TOPMOST, 0, 0, clientSize.x, clientSize.y, SWP_SHOWWINDOW );
 		//isChangeSuccessful = ChangeDisplaySettings(&fullscreenSettings, CDS_FULLSCREEN) == DISP_CHANGE_SUCCESSFUL;
 		//	ChangeDisplaySettings( &screen, CDS_FULLSCREEN );
 		ShowWindow( hWnd, SW_MAXIMIZE );
 	}
 
-	void goWindowed()
+	void ShowWindowed()
 	{
 		//ChangeDisplaySettings( NULL, 0 );
 
 		SetWindowLongPtr( hWnd, GWL_STYLE, WS_OVERLAPPEDWINDOW | WS_VISIBLE );
 		//ChangeDisplaySettings( NULL, CDS_RESET );
 
-		RECT rc = { 0, 0, windowedSize.x, windowedSize.y };
+		RECT rc = { 0, 0, windowSize.x, windowSize.y };
 		AdjustWindowRect( &rc, WS_OVERLAPPEDWINDOW, FALSE );   
-		size = vec2( rc.right-rc.left, rc.bottom-rc.top );
+		clientSize.x = rc.right-rc.left;
+        clientSize.y = rc.bottom-rc.top;
 
-		SetWindowPos( hWnd, HWND_NOTOPMOST, 0, 0, size.x, size.y, SWP_SHOWWINDOW );
+		SetWindowPos( hWnd, HWND_NOTOPMOST, 0, 0, clientSize.x, clientSize.y, SWP_SHOWWINDOW );
 
-		ChangeDisplaySettings( NULL, 0 ); //
+		ChangeDisplaySettings( NULL, 0 );
 		ShowWindow( hWnd, SW_RESTORE );
 	}
 
-	void togglePointer()
+	void TogglePointer()
 	{
-		setPointerVisibility( !isPointerVisible );
+		SetPointerVisibility( !isPointerVisible );
 	}
 
-	void setPointerVisibility( bool visibility )
+	void SetPointerVisibility( bool visibility )
 	{
 		this->isPointerVisible = visibility;
 		ShowCursor( visibility );
 	}
 
-
-	void setListener( Listener<Application>* listener )
+	void SetTitle(const char *format, ...)
 	{
-		this->listener = listener;
+		char buffer[1024] = "";
+
+		va_list ap;
+		va_start(ap, format);
+			vsprintf_s(buffer, format, ap);
+		va_end(ap);
+
+		SetWindowText(hWnd, buffer);
 	}
 
-	void setTitle( const char *format, ... )
+	void Destroy()
 	{
-		char buffer[1024];
-
-		if(format == NULL) {
-			strcpy(buffer, "") ;
-		} else {
-			va_list ap;
-			va_start(ap, format);
-				vsprintf(buffer, format, ap);
-			va_end(ap);
-		}
-
-		SetWindowText( hWnd, buffer );
-	}
-
-	void destroy()
-	{
-		if( hWnd ) {
-			if( hDC ) {
-				wglMakeCurrent( hDC, 0 );
-				if( hRC ) {
-					wglDeleteContext( hRC );
+		if(hWnd) 
+        {
+			if(hDC) 
+            {
+				wglMakeCurrent(hDC, 0);
+				if(hRC)
+                {
+					wglDeleteContext(hRC);
 				}
-				ReleaseDC( hWnd, hDC );
+				ReleaseDC(hWnd, hDC);
 			}
-			DestroyWindow( hWnd );
+			DestroyWindow(hWnd);
 		}
 
-		if( fullscreen ) {
-			ChangeDisplaySettings( NULL, 0 );
-			ShowCursor( TRUE );
+		if(fullscreen)
+        {
+			ChangeDisplaySettings(NULL, 0);
+			ShowCursor(TRUE);
 		}
 	}
 
@@ -237,12 +234,11 @@ public:
 	{
 		switch( uMsg )
 		{
-			
             case WM_NCCREATE:
 			case WM_CREATE:
                 break;
 
-			 case WM_ACTIVATE: 
+            case WM_ACTIVATE: 
                 isActive = LOWORD(wParam) != WA_INACTIVE;
 				//isIconified = HIWORD(wParam);
 				break;
@@ -256,39 +252,33 @@ public:
 					case SIZE_MAXIMIZED:
 					case SIZE_RESTORED:
 					{
-                        //DEBUG_RUN_ONCE(
                         static bool hasRanOnce = false;
                         if( !hasRanOnce )
                         {
-                            
-			                listener->onOpen(*this);
+			                listener->OnOpen(*this);
                             hasRanOnce = true;
                         }
-                        //);
                         
-						size = vec2(LOWORD(lParam), HIWORD(lParam));
-						listener->onSize(*this);
+						clientSize.x = LOWORD(lParam);
+                        clientSize.y = HIWORD(lParam);
+						listener->OnSize(*this);
 					}
 					return 0;
 				}
 				break;
 
 			case WM_PAINT:
-                DEBUG_ASSERT(listener);
 				{
-                    static Timer timer;
-                    listener->onDraw( *this, timer.elapsed() );
+                    listener->OnDraw(*this);
                     HDC hdc = GetDC(hWnd);
-				    SwapBuffers( hDC /*GetDC(hWnd)*/ );
+				    SwapBuffers(hDC);
 				}
 				return 0;
 
 			case WM_DISPLAYCHANGE:
-				DEBUG_CHECKPOINT_ONCE(WM_DISPLAYCHANGE);
 				break;
 
-		   case WM_DESTROY:
-				DEBUG_CHECKPOINT_ONCE(WM_DESTROY);
+		    case WM_DESTROY:
 				break;
 
 			case WM_CLOSE:
@@ -310,7 +300,7 @@ public:
 
 			case WM_LBUTTONDBLCLK:
 				fullscreen = !fullscreen;
-				show();
+				Show();
 				return 0;
 
 			case WM_MOUSEMOVE:
@@ -343,7 +333,6 @@ public:
 				return 0;
 	
 			case WM_MOVE:
-				//DEBUG_CHECKPOINT_ONCE(WM_MOVE);
 				return 0;
 
 			case WM_SYSCOMMAND:
@@ -365,14 +354,38 @@ public:
 		return DefWindowProc (hWnd, uMsg, wParam, lParam);
 	}
 
-	void close()
+    float GetMouseDeltaX()
 	{
-		PostMessage( hWnd, WM_CLOSE, 0, 0 );
+		static int previousMouseX = mouseX;
+		int delta = mouseX - previousMouseX;
+		previousMouseX = mouseX;
+		return float(delta)/clientSize.x;
 	}
 
-	void toogleFullscreen()
+	float GetMouseDeltaY()
 	{
-		PostMessage( hWnd, WM_LBUTTONDBLCLK, 0, 0 );
+		static int previousMouseY = mouseY;
+		int delta = mouseY - previousMouseY;
+		previousMouseY = mouseY;
+		return float(delta)/clientSize.y;
+	}
+
+	int GetMouseDeltaWheel()
+	{
+		static int previousWheel = mouseWheel;
+		int delta = mouseWheel - previousWheel;
+		previousWheel = mouseWheel;
+		return delta;
+	}
+
+	void Close()
+	{
+		PostMessage(hWnd, WM_CLOSE, 0, 0);
+	}
+
+	void ToggleFullscreen()
+	{
+		PostMessage(hWnd, WM_LBUTTONDBLCLK, 0, 0);
 	}
 
 };

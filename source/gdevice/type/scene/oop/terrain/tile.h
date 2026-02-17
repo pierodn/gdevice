@@ -150,7 +150,8 @@ struct Tile : public Node, Transform, Child, Geometry, Updatable, Renderable
 	    GL::Texturing::unbind(3);
 	    GL::Texturing::unbind(4);
 	    GL::Texturing::unbind(5);
-	    GL::UseProgram(0); // unbind
+	    //GL::UseProgram(0); // unbind
+            glUseProgram(0);
 
 	    GL::VBO::unbind( GL_ARRAY_BUFFER );
 	    GL::VBO::unbind( GL_ELEMENT_ARRAY_BUFFER );

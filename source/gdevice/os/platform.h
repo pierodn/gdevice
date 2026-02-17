@@ -188,7 +188,7 @@ inline void _CRITICAL(char* message, char* function, char* filename, int line)
 ///////////////////////////////////////////////////////////
 // String utilities
 ///////////////////////////////////////////////////////////
-
+/*
 char* GetLastErrorAsString()
 {
     char* buffer = NULL; // TODO Who will deallocate this buffer?
@@ -200,7 +200,7 @@ char* GetLastErrorAsString()
 #endif
     return buffer;
 }
-
+*/
 char* strstr2( char* src, const char* sub )
 {
 	for( int i; *src; src++ )

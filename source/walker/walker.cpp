@@ -2,12 +2,17 @@
 
 #define DEBUG_SHOW_GLSL_SOURCE	
 
+#include "ui/window.h"
+
 #include "application/assets/worlds/planet1/parameters.h" // CLIPMAP_WINDOW, TEXTURE_RANGE
 
 
+
 #include "os/platform.h"
-#include "os/application.h"
-#include "os/window.h"
+//#include "os/application.h"
+#include "cpu/program.h"
+
+#include "os/timer.h"
 #include "os/keyboard.h"
 
 #include "type/glsl.h"
@@ -19,8 +24,12 @@
 
 
 
-class Walker : gd::Application<Walker>
+class Walker : public Program, Listener
 {
+    Window window;
+
+
+
     dmat3 camera;
     double speedFactor;
 
@@ -29,9 +38,16 @@ class Walker : gd::Application<Walker>
     float time; 
     vec3 sun;
 
+
+
 public:
 
-	void onOpen(Window<Walker>& window)
+    Walker() : window(800, 600)
+    {
+        window.SetListener(this);
+    }
+
+	void OnOpen(Window& window)
     {
         GL::Initialize();
 
@@ -56,12 +72,12 @@ public:
 		Controls::GetInstance().ShowLegenda();
     }
 
-	void onSize(Window<Walker>& window)
+	void OnSize(Window& window)
     {
-        scene.nodeState.ProjectionMatrix = projection( window.size, FOV, NEAR_CLIP_PLANE, heightmap.GetVisibilityDistance() );
+        scene.nodeState.ProjectionMatrix = projection( vec2(window.clientSize.x, window.clientSize.y), FOV, NEAR_CLIP_PLANE, heightmap.GetVisibilityDistance() );
     }
 
-	void onDraw(Window<Walker>& window, double elapsed)
+	void OnDraw(Window& window)
     {
         ///////////////////////////////
         // Update scene by user input.
@@ -69,7 +85,7 @@ public:
 
         // TODO camera = transform(camera, window, ROTATION_SPEED);
 	        // Camera rotation
-	        dvec3 mouse_rotation     = dvec3(window.mouseDeltaY(), 0, window.mouseDeltaX());
+	        dvec3 mouse_rotation     = dvec3(window.GetMouseDeltaY(), 0, window.GetMouseDeltaX());
             dvec3 cursors_rotation   = dvec3(Key::cursorDeltaY(), 0, Key::cursorDeltaX()); // TODO window.HasFocus()
 	        dvec3 input_rotation     = double(!window.isPointerVisible) * mouse_rotation + 0.01 * cursors_rotation;
 	        camera.rotation   -= ROTATION_SPEED * input_rotation;		// counter-clockwise
@@ -92,6 +108,8 @@ public:
 
         // TODO
         // time = 
+        static Timer timer; 
+            float elapsed = timer.elapsed();
 	    float timeSpeed = (Key('E').isPressed() ? +1 : Key('R').isPressed() ? -1 : 0) * float(TIME_SPEED) * (speedFactor);
 	    time = fmod( time + timeSpeed*float(elapsed), 24.0f );
 	    sun = rotate((time-7)*360.0f/24.0f, 40.0f, 0.0f) * vec3(0.2, -0.8, 0.1);
@@ -113,7 +131,7 @@ public:
 	    ////////////////////////////
 	    // Rendering
 	    //
-        GL::SetViewport(window.size); // TODO GL::SetTarget<rgba>(window)
+        GL::SetViewport(vec2(window.clientSize.x, window.clientSize.y)); // TODO GL::SetTarget<rgba>(window)
         GL::ClearBuffer();
 
         scene.nodeState.ModelViewMatrix = mat4(1);
@@ -136,10 +154,10 @@ public:
 	    // 
 	    // Misc controls
 	    //
-	    speedFactor = clamp(speedFactor + window.mouseDeltaWheel()/200.0, 0.4, 31.6228);
-	    if(Key(ESCAPE).isJustPressed()) window.togglePointer();
-        if(Key('L').isJustPressed()) window.toogleFullscreen();
-	    if(Key('X').isPressed()) window.close();
+	    speedFactor = clamp(speedFactor + window.GetMouseDeltaWheel()/200.0, 0.4, 31.6228);
+	    if(Key(ESCAPE).isJustPressed()) window.TogglePointer();
+        if(Key('L').isJustPressed()) window.ToggleFullscreen();
+	    if(Key('X').isPressed()) window.Close();
 
         //
         // Show rendering state
@@ -162,7 +180,7 @@ public:
 		STR(camera.rotation, camera_rotation);
 
         // TODO FPS=%i%s CPU=%i%s GPU=%i%s
-	    window.setTitle("FPS=%i%s Debug=[%s] Speed=%.2fkmh (x%i) Time=%02i.%02i Location=(%s) Direction=(%s)", 
+	    window.SetTitle("FPS=%i%s Debug=[%s] Speed=%.2fkmh (x%i) Time=%02i.%02i Location=(%s) Direction=(%s)", 
 		    fps, fps<100 ? "  " : "",
             controls, 
 		    distance(camera.position, previous_pos) * METERS_PER_TILE*100/interval * 3600/1000,
@@ -176,23 +194,15 @@ public:
         // TODO DEBUG_TRACE_ONCE(renderer.verticesCount);
     }
 
-    int run() {
-        return window.runPlainMessageLoop();
+    int Run() 
+    {
+        return window.RunDefaultMessageLoop();
     }
-
-private:
-// TODO make private static functions for
-// - Updating the scene by using the user input
-// - Rendering the scene
-// - Display debug stuff
-// TODO make these functions tasks that can run in CPU or GPU as system functions over components.
-
-
 };
 
 
 
 int main()
 {
-    return Walker().run();
+    return Walker().Run();
 }
