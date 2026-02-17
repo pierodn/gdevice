@@ -224,10 +224,6 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\__gdevice.h"
-				>
-			</File>
-			<File
 				RelativePath=".\type\__noise.h"
 				>
 			</File>
@@ -308,11 +304,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\os\keyboard.h"
+				RelativePath=".\os\win32\keyboard.h"
 				>
 			</File>
 			<File
-				RelativePath=".\os\win32\keyboard.h"
+				RelativePath=".\os\keyboard.h"
 				>
 			</File>
 			<File
@@ -324,15 +320,15 @@
 				>
 			</File>
 			<File
-				RelativePath=".\type\scene\node.h"
-				>
-			</File>
-			<File
 				RelativePath=".\type\scene\oop\node.h"
 				>
 			</File>
 			<File
 				RelativePath=".\type\scene\ecs\node.h"
+				>
+			</File>
+			<File
+				RelativePath=".\type\scene\node.h"
 				>
 			</File>
 			<File
@@ -356,11 +352,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\cpu\program.h"
+				RelativePath=".\gpu\program.h"
 				>
 			</File>
 			<File
-				RelativePath=".\gpu\program.h"
+				RelativePath=".\cpu\program.h"
 				>
 			</File>
 			<File
@@ -384,11 +380,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\os\win32\thread.h"
+				RelativePath=".\os\thread.h"
 				>
 			</File>
 			<File
-				RelativePath=".\os\thread.h"
+				RelativePath=".\os\win32\thread.h"
 				>
 			</File>
 			<File
@@ -396,11 +392,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\os\win32\timer.h"
+				RelativePath=".\os\timer.h"
 				>
 			</File>
 			<File
-				RelativePath=".\os\timer.h"
+				RelativePath=".\os\win32\timer.h"
 				>
 			</File>
 			<File
@@ -428,10 +424,6 @@
 			Name="engines"
 			>
 		</Filter>
-		<File
-			RelativePath=".\__gdevice.cpp"
-			>
-		</File>
 		<File
 			RelativePath=".\type\scene\ecs\ECS_test.h"
 			>
