@@ -1,14 +1,20 @@
 COMPUTE:
 #version 430
+// ================================================================
+//  _____                   _          _____ _         _         
+// |     |___ _____ ___ _ _| |_ ___   |   __| |_ ___ _| |___ ___ 
+// |   --| . |     | . | | |  _| -_|  |__   |   | .'| . | -_|  _|
+// |_____|___|_|_|_|  _|___|_| |___|  |_____|_|_|__,|___|___|_|  
+//                 |_|     
 
 uniform vec2  offset;
 uniform float size;
 
 // TODO: Make uniforms (?)
-int RES = 33;      //17	// NOTE change also into gdevice_parameters.h
+const int RES = 33;      //17	// NOTE change also into gdevice_parameters.h
 
-float SCALE = 130.0;
-int OCTAVES = 11;
+const int SCALE = 130;
+const int OCTAVES = 11;
 const vec3 worldScale = vec3(vec2(1.0/SCALE), SCALE);
 
 layout (binding=0, rgba32f) uniform writeonly image2D quartetsIU;
@@ -18,7 +24,13 @@ layout (binding=3, rgba32f) uniform writeonly image2D mixmapsIU;
 
 
 
-// https://www.shadertoy.com/view/WlfSzX    
+//  _____     _         
+// |   | |___|_|___ ___ 
+// | | | | . | |_ -| -_|
+// |_|___|___|_|___|___|
+//
+// https://www.shadertoy.com/view/WlfSzX
+    
 vec4 noise(vec2 point) 
 {		
     vec2 i = floor(point);
@@ -29,11 +41,13 @@ vec4 noise(vec2 point)
 	
 	const float WIDTH = 0.3137; // 13.0
     vec4 L = vec4(0.0, 1.0, WIDTH, WIDTH + 1.0);	
-
+#if 0
+    L = fract(43758.5453123 * sin(L + dot(i, L.yz)));
+#else
     L = fract((L + dot(i, L.yz))*0.1731);
     L += L*(L + 1.0);
     L = fract(7.7771*L*L) - 0.5;
-
+#endif
 	L = vec4(L.x, L.y-L.x, L.z-L.x, L.x-L.y-L.z+L.w);
 	return vec4(du*(L.yz + L.w*u.yx), L.x + L.y*u.x + L.z*u.y + L.w*u.x*u.y, 0.0 );
 }
@@ -64,25 +78,20 @@ vec4 invert(vec4 n)                 { float z = 1.0/(n.z + 1.0); return vec4(-z*
 vec4 invert2(vec4 n)			    { return vec4(-n.xy, 1.0 - n.z, 0.0); }
 vec4 minus(float t, vec4 n)         { return vec4(-n.xy, t - n.z, 0.0); }
 vec4 tone(vec4 n, float t)			{ return smoothStep(0.0, 1.0, multiply(n, invert(bias(n,t))))*(1.0 + t); }
-vec4 harmonic(vec2 p)               { return bias(0.5*vec4(cos(p.x)*sin(p.y), sin(p.x)*cos(p.y), sin(p.x)*sin(p.y), 0.0), 0.5); }
 
-vec4 exponent2(vec4 a)
-{
-   // TODO
-   return vec4( exp2(a.z), 1.0, 1.0, 0.0 );
-}
+vec4 sinus(vec2 p)                  { return bias(0.5*vec4(cos(p.x)*sin(p.y), sin(p.x)*cos(p.y), sin(p.x)*sin(p.y), 0.0), 0.5); }
 
-vec4 harmonicVoronoi(vec2 point, float scale)
+vec4 sinvor(vec2 point, float scale)
 {
     point *= scale;
     
     const mat2 R1 = mat2( -0.7373, -0.6755, +0.6755, -0.7373 ); // 137.5077 (Golden Angle)
-    //const mat2 R2 = mat2( +0.3623, -0.9320, +0.9320, +0.3623 ); // 19.64390 (Ga/7)
-    //const mat2 R3 = mat2( -0.7159, -0.6981, +0.6981, -0.7159 ); // 27.50154 (Ga/5)
-    vec4 F1 = harmonic(point); 
-    vec4 F2 = harmonic(R1*point + R1[0]); F2.xy *= R1;
-    //vec4 F3 = harmonic(R2*point + R2[0]); F3.xy *= R2;
-    //vec4 F4 = harmonic(R3*point + R3[0]); F4.xy *= R3;
+    const mat2 R2 = mat2( +0.3623, -0.9320, +0.9320, +0.3623 ); // 19.64390 (Ga/7)
+    const mat2 R3 = mat2( -0.7159, -0.6981, +0.6981, -0.7159 ); // 27.50154 (Ga/5)
+    vec4 F1 = sinus(point); 
+    vec4 F2 = sinus(R1*point + R1[0]); F2.xy *= R1;
+    //vec4 F3 = sinus(R2*point + R2[0]); F3.xy *= R2;
+    //vec4 F4 = sinus(R3*point + R3[0]); F4.xy *= R3;
 
     const float k = 2.0;
     F1 = power(F1, -k) + power(F2, -k);
@@ -93,6 +102,12 @@ vec4 harmonicVoronoi(vec2 point, float scale)
 	result.xy *= scale;
     return result;
 }
+
+//  _____             _   _             _    _____                   _            _____     _   _         
+// |   __|___ ___ ___| |_|_|___ ___ ___| |  | __  |___ ___ _ _ _ ___|_|___ ___   |     |___| |_|_|___ ___ 
+// |   __|  _| .'|  _|  _| | . |   | .'| |  | __ -|  _| . | | | |   | | .'|   |  | | | | . |  _| | . |   |
+// |__|  |_| |__,|___|_| |_|___|_|_|__,|_|  |_____|_| |___|_____|_|_|_|__,|_|_|  |_|_|_|___|_| |_|___|_|_|
+//                                                                                                   
 
 vec4 fbm(vec2 p, int octaves, 
     float amplitude, // = 1.0,
@@ -126,8 +141,7 @@ vec4 hybrid(vec2 point, int octaves,
     float maxFrequency = 17.0;  // The lower, the rougher
     float maxWeight = 0.05;     // 1.00 - Low values reduce the spikes, reduce height, introduce artifacts
  				
-    for(int i=0; i<octaves; i++)
-    {
+    for(int i=0; i<octaves; i++) {
         vec4 noise = noise(point, scale);
         noise = bias(noise, offset) * pow(frequency, -H); 
         signal += weight; 
@@ -139,7 +153,13 @@ vec4 hybrid(vec2 point, int octaves,
     }
     return signal;
 }
-                                                             
+                              
+//   _____     _       _                   
+//  |   __|_ _| |_ ___| |_ ___ ___ ___ ___ 
+//  |__   | | | . |_ -|  _| .'|   |  _| -_|
+//  |_____|___|___|___|_| |__,|_|_|___|___|
+//     
+                                 
 struct Substance 
 {
 	vec4 color;
@@ -188,14 +208,17 @@ Substance getSubstance(vec4 t, vec3 scale)
     float o = 0.3 + 0.7*smoothstep(0.0, 0.1, N.x + h*h);
     float s = //some*(1.0-flow); //
         h*e*o;
+    // col = mix( col, 0.29*vec3(0.62,0.65,0.7), smoothstep( 0.1, 0.9, s ) );
 
-    Substance ROCK = { vec4(0.36, 0.28, 0.22, 0.00), vec4(1.00, 0.00, 0.00, 0.00) };
+    // ===================  Red   Green Blue  Spec  ===== Rock  Grit  Bran  Sand
+	Substance ROCK = { vec4(0.36, 0.28, 0.22, 0.00), vec4(1.00, 0.00, 0.00, 0.00) };
     Substance GRIT = { vec4(0.46, 0.38, 0.35, 0.00), vec4(0.00, 1.00, 0.00, 0.00) };
     Substance BRAN = { vec4(0.34, 0.26, 0.22, 0.00), vec4(0.00, 0.00, 1.0 + 2.0*more, 0.00) };
     Substance SAND = { vec4(0.75, 0.54, 0.45, 0.00), vec4(0.00, 0.00, 0.00, 1.1 + 0.2*more) };
 
     Substance grit = sMix(GRIT, BRAN, less);
     Substance sand = sMix(SAND, grit, flow);
+    //Substance bran = sMix(sand, BRAN, more*(1.0-flow));
     Substance bran = sMix(sand, BRAN, smoothstep(0.1, 0.9, s));
 
     Substance substance = 
@@ -204,8 +227,30 @@ Substance getSubstance(vec4 t, vec3 scale)
             N.z < 0.88 ? bran :
             N.z < 0.98 ? sand :
                          SAND;
+
+    //substance.color.r += pow(t.w, 0.25);
+
+#if 0  // Snow
+    float h = smoothstep(0.20, 0.40, height );
+    float e = smoothstep(1.0 - 0.5*h, 1.0 - 0.2*h, 1 - slope);
+    float o = 0.4 + 0.6*smoothstep(0.0, 0.1, h*h);
+    float s = h*e*o;
+    //col = mix( col, 0.29*vec3(0.62,0.65,0.7), smoothstep( 0.1, 0.9, s ) );
+    vec4 snow_color = 0.90*vec4(0.62, 0.65, 0.7, 0.0);
+    vec4 snow_mixmap = SAND.mixmap;
+    substance.color  = mix( substance.color,  snow_color,  0.0*smoothstep(0.01, 0.99, s) );
+    substance.mixmap = mix( substance.mixmap, snow_mixmap, 0.0*smoothstep(0.41, 0.99, s) );
+#endif
+
 	return substance;
-}     
+}
+
+//                             
+//   _____         _           
+//  |  |  |___ ___| |_ ___ _ _ 
+//  |  |  | -_|  _|  _| -_|_'_|
+//   \___/|___|_| |_| |___|_,_|
+//            
 	
 struct Vertex
 {
@@ -250,6 +295,7 @@ Vertex getVertex(ivec2 ij)
     float scale0 = 1200*worldScale.x; 
     float frequency = 0.73;
    
+#if 1 
     // Domain warping  // NOTE: Must apply to gradient as well.
     float dwFrequency = 1.2; // 2.0
     float dwAmplitude = 0.2; // 1.0 // NOTE: Set to zero to disable
@@ -266,28 +312,56 @@ Vertex getVertex(ivec2 ij)
     vec4 c1 = terrain(dwPointU, dwPointV, terrainFreq-1,  signal, weight, scale0, frequency);
     vec4 t1 = terrain(dwPointU, dwPointV, 1,              signal, weight, scale0, frequency);
 
-    // Domain warp
-    float scale1 = 1.0 * worldScale.x;
-    vec2 point1 = point*scale1;
-    float f = 0.4, a = 0.7;
-    vec4 nu = a * vec4(f,f,1,0) * fbm((point1.xy+0.000)*f, 5);
-    vec4 nv = a * vec4(f,f,1,0) * fbm((point1.yx+123.1)*f, 5);
-    vec4 u = vec4(nu.xy + vec2(1.0, 0.0), nu.z + point1.x, 0.0);
-    vec4 v = vec4(nv.xy + vec2(0.0, 1.0), nv.z + point1.y, 0.0);
+    #if 0
+		// Shattered rock 
+		float stepHeight = 771.0; // * (0.1+0.5*fbm((point + 0.000)*dwFrequency, 4).z);// * (0.1 + 0.9*tr4.z);
+        float hardness = 1.0*(1.0 + 0.5 + 0.5*fbm((point + 0.000)*dwFrequency*2.25, 4).z);// * (0.1 + 0.9*tr4.z);
+        t1 = smoothFloor(t1*stepHeight, hardness)/stepHeight;
+    #endif
 
-    vec2 uv = vec2(u.z,v.z);
-    vec4 t = 1.0*power( 0.8 * harmonicVoronoi(uv, 0.13), 2.0 );
-    t.x = t.x*u.x + t.y*v.x;
-    t.y = t.x*u.y + t.y*v.y;
-    t.xy *= scale1;
-    //t.z *= scale1;
-    t = 0.9*saturate(t, 0.2, 0.5) + 1.6*multiply(t, t1);
+    #if 1
+        // Triangular Base line 
+        float scale1 = 1333.0 * worldScale.x;
+        vec2 point1 = point*scale1;
+        // TODO: t2 = warp(t, 0.4, 0.7);
+        float f = 0.4, a = 0.7;
+        vec4 nu = a * vec4(f,f,1,0) * fbm((point1.xy+0.000)*f, 5);
+        vec4 nv = a * vec4(f,f,1,0) * fbm((point1.yx+123.1)*f, 5);
+        vec4 u = vec4(nu.xy + vec2(1.0, 0.0), nu.z + point1.x, 0.0);
+        vec4 v = vec4(nv.xy + vec2(0.0, 1.0), nv.z + point1.y, 0.0);
+        vec2 uv = vec2(u.z,v.z);
+        vec4 t = power(1.2*sinvor(uv, 0.5), 2.0);
+        t.x = t.x*u.x + t.y*v.x;
+        t.y = t.x*u.y + t.y*v.y;
+        t.xy *= scale1;
+        //t.z *= scale1.z;
+        t = saturate(t, 0.0, 0.2) + 0.5*multiply(t, t1);
 
-	const float aa = 0.03, a0 = 2.0, a1 = 1.0;
-	c0 = aa * multiply(t, a0*smoothStep(0.25, 0.50, c0) + a1*smoothStep(0.40, 0.50, c0)); 
-	t0 = aa * multiply(t, a0*smoothStep(0.25, 0.50, t0) + a1*smoothStep(0.40, 0.50, t0)); 
-	c1 = aa * multiply(t, a0*smoothStep(0.25, 0.50, c1) + a1*smoothStep(0.40, 0.50, c1)); 
-	t1 = aa * multiply(t, a0*smoothStep(0.25, 0.50, t1) + a1*smoothStep(0.40, 0.50, t1)); 
+		#if 0
+			t = 0.04 * multiply(t, 3.0*smoothStep(0.26, 0.50, t1) + 0.3*smoothStep(0.35, 0.50, t1)); 
+			c0 = t0 = c1 = t1 = t;
+        #else 
+			const float aa = 0.03, a0 = 2.0, a1 = 1.0;
+			c0 = aa * multiply(t, a0*smoothStep(0.25, 0.50, c0) + a1*smoothStep(0.40, 0.50, c0)); 
+			t0 = aa * multiply(t, a0*smoothStep(0.25, 0.50, t0) + a1*smoothStep(0.40, 0.50, t0)); 
+			c1 = aa * multiply(t, a0*smoothStep(0.25, 0.50, c1) + a1*smoothStep(0.40, 0.50, c1)); 
+			t1 = aa * multiply(t, a0*smoothStep(0.25, 0.50, t1) + a1*smoothStep(0.40, 0.50, t1)); 
+		#endif 
+    #endif
+
+#elif 1
+    float k = 0.2;
+    vec4 c0 = k * hybrid(point, shadowfreq-1,   signal, weight, scale0, frequency);
+    vec4 t0 = k * hybrid(point, 1,              signal, weight, scale0, frequency);
+    vec4 c1 = k * hybrid(point, terrainFreq-1,  signal, weight, scale0, frequency);
+    vec4 t1 = k * hybrid(point, 1,              signal, weight, scale0, frequency);
+#else
+    float k = 0.7;
+    vec4 c0 = k * fbm(point, shadowfreq*1-1);
+    vec4 t0 = k * fbm(point, shadowfreq*1);
+    vec4 c1 = k * fbm(point, terrainFreq*1-1);
+    vec4 t1 = k * fbm(point, terrainFreq*1);
+#endif
 
     // The domain scale is applied to gradient as well.
     //c0.xy *= -scale.xy;
@@ -305,6 +379,7 @@ Vertex getVertex(ivec2 ij)
 	
     t1.z *= worldScale.z;
     
+#if 1
 	// TODO insert samples
 	float w = 0.00133; 
 	vec2 c = vec2(0.00117);
@@ -317,10 +392,11 @@ Vertex getVertex(ivec2 ij)
 	if(x > 0) {
 		// TODO calculate derivatives
 		vec2 dxdy = vec2(0.0);
-		t0 = t1 = 0.1*vec4(dxdy, 17.0, 0.0);
+		t0 = t1 = 0.1*vec4(dxdy, 1.0, 0.0);
 		substance.color  = vec4(1.0, 0.0, 0.0, 0.0);
 		substance.mixmap = vec4(1.0, 0.0, 0.0, 0.0);
 	}
+#endif
 
 	vec4 position = t1; // Here only z is actually used.
     vec4 gradient = vec4(t1.xy, t0.xy) * size; // Applying tile domain scale to gradient.
@@ -352,6 +428,12 @@ Vertex getVertex(ivec2 ij)
 	);
 } 
                  
+//            _     
+//  _____ ___|_|___ 
+// |     | .'| |   |
+// |_|_|_|__,|_|_|_|
+//                 
+// Every execution generates a terrain quad.
 
 layout( local_size_x = 9, local_size_y = 9 ) in; // Note: RES/2+1: 33 => 17, 17=>9
 
