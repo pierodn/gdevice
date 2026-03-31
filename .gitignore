@@ -1,23 +1,15 @@
-# Compiled Object files
-*.o
-*.obj
-
 # Precompiled Headers
 *.pch
 
-# Compiled Static libraries
-*.lib
-
-# Executables
+# Binaries
+binaries
 *.exe
+
+# Project files
 *.suo
 *.user
 *.ncb
-asset/textures/terrain/output.bmp
+
+# Other products
 *.glsl.h
-source/*/bin
-source/*/obj
-source/*/Debug
-source/Debug
-source/ECS/Release
-source/Release
+output.bmp
