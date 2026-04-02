@@ -1,59 +1,12 @@
 #pragma once
 
-// TODO
-#if defined(WIN32)
-	//#include "platform/win32/win32window.h"
-    #define WIN32_LEAN_AND_MEAN
-    #define WIN32_EXTRA_LEAN
-    #include <windows.h>
-#elif defined(__APPLE__)
-    //#include "platform/apple/applewindow.h"
-#elif defined(linux) || defined(__linux) || defined(__linux__) || defined(__CYGWIN__)
-    //#include "platform/linux/linuxwindow.h"
-#else
-    #error unknown platform!
-#endif
+#include <os/compiler.h>
 
-//////////////////////////////////
-// Configuration
-#if defined(_DEBUG)
-	#pragma message(" -----> DEBUG")
-#endif
+// TODO assertions
+// TODO logging 
+// TODO performance
 
-#if defined(_CONSOLE)
-	#pragma message(" -----> CONSOLE")
-	#pragma comment(linker, "/SUBSYSTEM:CONSOLE")
-#else
-	#pragma comment(linker, "/SUBSYSTEM:WINDOWS")
-#endif
 
-#if defined(_MSC_VER)
-	#pragma comment( lib, "opengl32.lib" )
-	#pragma warning(disable: 4996) // unsafe(?) crt functions 
-	#pragma warning(disable: 4244) // conversion with possible loss of data
-	#pragma warning(disable: 4305) // truncation from double to float
-	#pragma warning(disable: 4309) // truncation of constant value
-	#pragma warning(disable: 4800) // forcing value to bool
-#elif
-	#error unknown compiler!
-#endif
-
-//
-// CRT Entry point
-// 
-int main();
-
-///////////////////
-//
-
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-#include <malloc.h>
-#include <assert.h>
-//#include <stdarg.h> 
-
-//#include "type/glsl.h"
 
 /////////////////////////////////////////
 // Console
@@ -118,6 +71,60 @@ inline void printf(unsigned int d)  { printf("%d", d); };
 inline void printf(float f)			{ printf("%.2f", f); };
 inline void printf(double f)		{ printf("%.4f", f); };
 inline void printf(void* x)			{ printf("%08X", x); };
+
+
+#include "os/timer.h"
+
+// TODO FIX
+// See http://preshing.com/20111203/a-c-profiling-module-for-multithreaded-apis/
+                               
+class Profiler
+{
+    Timer timer;
+    float expected;
+    char* function;
+    char* filename;
+    int   line;
+    bool  skip;
+    bool  verbose;
+
+public:
+    Profiler(float expected, char* function, char* filename, int line, bool skip = false, bool verbose = false)
+    {
+        this->expected = expected;
+        this->function = function;
+        this->filename = filename;
+        this->line = line;
+        this->skip = skip;
+        this->verbose = verbose;
+/*
+        if( skip ) return;
+
+        if( verbose ) {
+            _PRINT_PATH(function, filename, line); 
+            color(0, CMD_BROWN); printf("PROFILING"); 
+            color(CMD_DARKGRAY,0); printf(" expected=%f\n", expected); 
+            color(CMD_WHITE,0);  
+        }
+*/
+    }
+
+    ~Profiler() 
+    {
+        if( skip ) return;
+        
+        float elapsed = timer.elapsed();
+        bool exceeded = elapsed > expected;
+        if( verbose || exceeded ) {
+            _PRINT_PATH(function, filename, line); 
+            color(CMD_LIGHTGRAY,0); 
+            printf("elapsed ");
+            color(exceeded ? CMD_LIGHTRED : CMD_GREEN, 0); printf("%f\n", elapsed); 
+            color(CMD_WHITE,0);  
+        }
+    }    
+};
+
 
 /////////////////////////////////////////
 // Debug macros
@@ -201,6 +208,7 @@ char* GetLastErrorAsString()
     return buffer;
 }
 */
+
 char* strstr2( char* src, const char* sub )
 {
 	for( int i; *src; src++ )

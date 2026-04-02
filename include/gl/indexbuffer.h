@@ -2,7 +2,7 @@
 
 #include <type/cpu.h>
 #include <type/array.h>
-#include <glpp/texture.h>
+#include <gl/texture.h>
 
 
 // PROP 

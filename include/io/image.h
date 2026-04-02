@@ -1,6 +1,6 @@
 #pragma once
 
-#include <glpp/texture.h>
+#include <gl/texture.h>
 
 namespace IO
 {

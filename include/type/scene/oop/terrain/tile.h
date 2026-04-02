@@ -1,8 +1,10 @@
 #pragma once
 
-#include <glpp/program.h>
-#include <glpp/glpp.h>
+#include <gl/program.h>
+#include <gl/glpp.h>
+
 #include <type/scene/oop/node.h>
+
 #include "textures.h"
 
 

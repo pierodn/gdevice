@@ -1,6 +1,6 @@
 #pragma once
 
-#include <glsl.h>
+#include <gl/glsl.h>
 
 typedef char				int8;
 typedef short				int16;

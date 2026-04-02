@@ -1,6 +1,6 @@
 #pragma once
 
-#include <os/platform.h>
+//#include <io/diagnostics.h>
 /*
 #ifdef _OPENMP
 

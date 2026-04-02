@@ -1,7 +1,8 @@
 #pragma once
 
 #include "controls.h"
-#include <glpp/program.h>
+#include <gl/program.h>
+
 #include <type/scene/oop/node.h>
 
 // TODO This should be added by the application

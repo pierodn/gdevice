@@ -75,7 +75,15 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath=".\type\array.h"
+				>
+			</File>
+			<File
 				RelativePath=".\include\glpp\cacheable.h"
+				>
+			</File>
+			<File
+				RelativePath=".\gl\cacheable.h"
 				>
 			</File>
 			<File
@@ -83,7 +91,35 @@
 				>
 			</File>
 			<File
+				RelativePath=".\type\scene\oop\terrain\clipmap.h"
+				>
+			</File>
+			<File
+				RelativePath=".\os\compiler.h"
+				>
+			</File>
+			<File
+				RelativePath=".\type\cpu.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ut\diagnostics.h"
+				>
+			</File>
+			<File
+				RelativePath=".\type\scene\ecs\ECS_test.h"
+				>
+			</File>
+			<File
+				RelativePath=".\type\scene\ecs\entity.h"
+				>
+			</File>
+			<File
 				RelativePath=".\application\assets\worlds\planet1\generate_terrain.h"
+				>
+			</File>
+			<File
+				RelativePath=".\gl\GL.H"
 				>
 			</File>
 			<File
@@ -95,6 +131,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\gl\glext.h"
+				>
+			</File>
+			<File
 				RelativePath=".\include\glink.h"
 				>
 			</File>
@@ -103,7 +143,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\gl\glpp.h"
+				>
+			</File>
+			<File
+				RelativePath=".\gl\glsl.h"
+				>
+			</File>
+			<File
 				RelativePath=".\include\glsl.h"
+				>
+			</File>
+			<File
+				RelativePath=".\type\glsl_tests.h"
 				>
 			</File>
 			<File
@@ -111,7 +163,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\type\scene\oop\terrain\heightmap.h"
+				>
+			</File>
+			<File
+				RelativePath=".\io\image.h"
+				>
+			</File>
+			<File
 				RelativePath=".\include\gdfw\image.h"
+				>
+			</File>
+			<File
+				RelativePath=".\gl\indexbuffer.h"
 				>
 			</File>
 			<File
@@ -123,7 +187,27 @@
 				>
 			</File>
 			<File
+				RelativePath=".\os\keyboard.h"
+				>
+			</File>
+			<File
 				RelativePath=".\include\gdfw\keyboard.h"
+				>
+			</File>
+			<File
+				RelativePath=".\gl\link.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ut\logging.h"
+				>
+			</File>
+			<File
+				RelativePath=".\io\model.h"
+				>
+			</File>
+			<File
+				RelativePath=".\os\mutex.h"
 				>
 			</File>
 			<File
@@ -131,11 +215,15 @@
 				>
 			</File>
 			<File
-				RelativePath=".\type\scene\ecs\node.h"
+				RelativePath=".\type\scene\oop\node.h"
 				>
 			</File>
 			<File
 				RelativePath=".\type\scene\node.h"
+				>
+			</File>
+			<File
+				RelativePath=".\type\scene\ecs\node.h"
 				>
 			</File>
 			<File
@@ -155,6 +243,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\gl\program.h"
+				>
+			</File>
+			<File
 				RelativePath=".\include\glpp\program.h"
 				>
 			</File>
@@ -167,7 +259,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\type\scene\oop\scene.h"
+				>
+			</File>
+			<File
 				RelativePath=".\include\glpp\texture.h"
+				>
+			</File>
+			<File
+				RelativePath=".\gl\texture.h"
 				>
 			</File>
 			<File
@@ -175,11 +275,27 @@
 				>
 			</File>
 			<File
+				RelativePath=".\os\thread.h"
+				>
+			</File>
+			<File
 				RelativePath=".\include\gdfw\thread.h"
 				>
 			</File>
 			<File
+				RelativePath=".\type\scene\oop\terrain\tile.h"
+				>
+			</File>
+			<File
+				RelativePath=".\os\timer.h"
+				>
+			</File>
+			<File
 				RelativePath=".\include\gdfw\timer.h"
+				>
+			</File>
+			<File
+				RelativePath=".\gl\vertexbuffer.h"
 				>
 			</File>
 			<File
@@ -188,6 +304,10 @@
 			</File>
 			<File
 				RelativePath=".\include\gdfw\window.h"
+				>
+			</File>
+			<File
+				RelativePath=".\os\window.h"
 				>
 			</File>
 		</Filter>

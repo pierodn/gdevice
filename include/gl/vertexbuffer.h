@@ -1,7 +1,7 @@
 #pragma once
 
-#include <glsl.h>
-#include <glpp/cacheable.h>
+#include <gl/glsl.h>
+#include <gl/cacheable.h>
 
 struct VertexBuffer : Cacheable // this will be used as either VBO or FBO (not both!).
 {

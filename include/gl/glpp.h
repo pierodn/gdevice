@@ -6,11 +6,11 @@
 // C++ Objects for OpenGL (Gluon, Glam, Glamourus)
 // 
 
-#include <glink.h>
-#include <glpp/cacheable.h>
-#include <glpp/Texture.h>
-#include <glpp/VertexBuffer.h>
-#include <glpp/IndexBuffer.h>
+#include <gl/link.h>
+#include <gl/cacheable.h>
+#include <gl/Texture.h>
+#include <gl/VertexBuffer.h>
+#include <gl/IndexBuffer.h>
 
 namespace GL
 { 

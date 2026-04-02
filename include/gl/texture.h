@@ -58,7 +58,7 @@
 // Texture 3D has width>0, height>0, depth>0
 
 
-#include <glpp/cacheable.h>
+#include <gl/cacheable.h>
 
 
 template<class T> 

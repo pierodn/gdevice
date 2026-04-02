@@ -2,17 +2,21 @@
 
 #define DEBUG_SHOW_GLSL_SOURCE	
 
-#include "gdfw/window.h"
+#include <ut/diagnostics.h>
+#include <os/window.h>
+#include <os/timer.h>
+#include <os/keyboard.h>
+#include <gl/glsl.h>
 
 #include "parameters.h" // CLIPMAP_WINDOW, TEXTURE_RANGE
 
-#include "os/platform.h"
+#include <type/scene/oop/scene.h>
+#include <type/scene/oop/terrain/heightmap.h>
 
-#include "gdfw/timer.h"
-#include "gdfw/keyboard.h"
-#include "glsl.h"
-#include "type/scene/oop/scene.h"
-#include "type/scene/oop/terrain/heightmap.h"
+
+
+int     VIEW_FOV             = 90;
+double  VIEW_NEARCLIPPLAN    = 0.0001; // TODO Derive from FarClipPlan and from Z buffer bits
 
 
 
@@ -62,7 +66,7 @@ public:
 
 	void OnSize(Window& window)
     {
-        scene.nodeState.ProjectionMatrix = projection( vec2(window.clientSize.x, window.clientSize.y), FOV, NEAR_CLIP_PLANE, heightmap.GetVisibilityDistance() );
+        scene.nodeState.ProjectionMatrix = projection( vec2(window.clientSize.x, window.clientSize.y), VIEW_FOV, VIEW_NEARCLIPPLAN, heightmap.GetVisibilityDistance() );
     }
 
 	void OnDraw(Window& window)

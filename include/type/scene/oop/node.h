@@ -1,11 +1,12 @@
 #pragma once
 
 
-#include <glsl.h>
+#include <gl/glsl.h>
+#include <gl/texture.h>
+#include <gl/vertexbuffer.h>
+#include <gl/indexbuffer.h>
+
 #include <type/array.h>
-#include <glpp/texture.h>
-#include <glpp/vertexbuffer.h>
-#include <glpp/indexbuffer.h>
 
 
 struct Node

@@ -2,8 +2,8 @@
 
 
 #include <type/array.h>
-#include <glink.h>
-#include <glpp/cacheable.h>
+#include <gl/link.h>
+#include <gl/cacheable.h>
 
 #define GLSL_(source) #source
 #define GLSL(type, version, source) "\n" #type ":\n#version " #version "\n" #source "\n"

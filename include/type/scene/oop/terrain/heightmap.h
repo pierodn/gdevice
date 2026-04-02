@@ -1,9 +1,10 @@
 #pragma once
 
-#include <gdfw/thread.h>
-#include <gdfw/mutex.h>
+#include <os/thread.h>
+#include <os/mutex.h>
+#include <gl/program.h>
+
 #include <type/scene/oop/terrain/clipmap.h>
-#include <glpp/program.h>
 
 // TODO this should be a configuration to the generic Heightmap instance
 #include "shaders/generate_terrain.glsl.h"

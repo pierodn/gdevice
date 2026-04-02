@@ -13,7 +13,7 @@
 // 7. Save as BMP (CTRL+S)
 /////////////////////////////////////////////////////////
 
-#include <gdfw/image.h>
+#include <io/image.h>
 
 #define TEXTURE_PATH "./assets/textures/"
 #define MAX_MIPMAPS 10
