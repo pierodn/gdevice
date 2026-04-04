@@ -72,7 +72,7 @@ struct Tile : public Node, Transform, Child, Geometry, Updatable, Renderable
 	    for( int i=0; i<Controls::CONTROLCOUNT; i++ ) 
 	    {
 		    int size = Controls::GetInstance().literals[i].size() <=1 ? 2 : Controls::GetInstance().literals[i].size();
-		    renderer->SetUniform(Controls::GetInstance().literals[i][0], Controls::GetInstance().values[Controls::Bindings[i]] % size); 
+		    renderer->SetUniform(Controls::GetInstance().literals[i][0], Controls::GetInstance().keyCounters[Controls::Bindings[i]] % size); 
 	    }
     	
 	    renderer->SetUniform("quartetsTU",  0); GL::Texturing::bind( 0, vbo.quartets );
@@ -120,7 +120,7 @@ struct Tile : public Node, Transform, Child, Geometry, Updatable, Renderable
 	    renderer->SetUniform("AbsoluteTime",	float(Timer::absoluteTime()) );
 
         const int HeightBlendView = 2;
-        if( Controls::GetInstance().values[Controls::Bindings[Controls::DEBUGMODE]] == HeightBlendView )
+        if( Controls::GetInstance().keyCounters[Controls::Bindings[Controls::DEBUGMODE]] == HeightBlendView )
         {
             renderer->SetUniform("defaultColorR", vec4(1.0, 0.0, 0.0, 0.0));
             renderer->SetUniform("defaultColorG", vec4(0.0, 1.0, 0.0, 0.0));

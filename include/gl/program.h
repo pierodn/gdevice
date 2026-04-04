@@ -1,16 +1,15 @@
 #pragma once
 
-
-#include <type/array.h>
 #include <gl/link.h>
 #include <gl/cacheable.h>
+#include <vector>
 
 #define GLSL_(source) #source
 #define GLSL(type, version, source) "\n" #type ":\n#version " #version "\n" #source "\n"
 
 typedef Cacheable Shader;
 
-struct Program : public Array<Shader>, Cacheable
+struct Program : public std::vector<Shader>, Cacheable
 {
     Program()
 	{
@@ -19,9 +18,10 @@ struct Program : public Array<Shader>, Cacheable
 
 	~Program() 
 	{ 
-		for( int i=0; i<length; i++ )
+		for( unsigned int i = 0; i < size(); i++ )
 		{
-			array[i].deallocate();
+			at(i).deallocate();
+            //delete at(i);
 		}
 	}
 
@@ -55,9 +55,9 @@ public:
         {
             ASSERT(shaders[i]);
 
-            Cacheable& shader = push().tail();
-            shader.id = shaders[i];
-            shader.deallocator = &Program::deallocateShader;        
+            Shader shader(shaders[i], &Program::deallocateShader);
+            push_back(shader);
+
             AttachShaderToProgram(id, shader.id ); 
         }
 
@@ -71,6 +71,12 @@ public:
         // TODO ASSERT program is bound
         //ASSERT(GetCurrentProgramId() == id); // FIX
         SetUniform(id, name, value);
+    }
+
+    template<class T> 
+    void SetUniform(const std::string& name, T value)
+    {
+        SetUniform(id, (char*)name.c_str(), value);
     }
 
     void Use()

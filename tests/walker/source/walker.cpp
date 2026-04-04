@@ -47,7 +47,7 @@ public:
 	    heightmap.setLODs(CLIPMAPS_COUNT);
         heightmap.Initialize();
 
-        scene.children.push(&heightmap);
+        scene.children.push_back(&heightmap);
         scene.transform.rotation = vec3(-90, 0, 0);
         scene.Initialize();
 

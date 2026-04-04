@@ -1,6 +1,7 @@
 #pragma once
 
-#include <type/array.h>
+#include <vector>
+#include <string>
 
 #define F1			VK_F1
 #define F2			VK_F2
@@ -35,15 +36,15 @@ struct Controls
 						GAMMA, CONTRAST, UNSATURATE, TINT, VIGNETTING, 
 						CONTROLCOUNT };
 
-	int* values;
-	Array<char*> literals[CONTROLCOUNT];
+	int* keyCounters; // Dependency on Key::getCounters()
+    std::vector<std::string> literals[CONTROLCOUNT];
 
 	void GetStatusString(char* string)
 	{
 		for( int i=0; i<CONTROLCOUNT; i++ )
 		{
 			int size = literals[i].size();
-			int value = values[Bindings[i]] % (size <= 1 ? 2 : size);
+			int value = keyCounters[Bindings[i]] % (size <= 1 ? 2 : size);
 
 			string[i]  =	size <= 0 ?	'?' :
 							size == 1 ?	(value == 0 ? '-' : literals[i][0][0] ) :
@@ -63,14 +64,14 @@ struct Controls
 			if( fxx ) printf("F%i%s", Bindings[i] - VK_F1 + 1, fx ? " " : "");
 				 else printf( "%c  ", Bindings[i] );
 
-			printf(" => %s", literals[i][0] );
+            printf(" => %s", literals[i][0].c_str() );
 
 			if( literals[i].size() > 1 )
 			{
 				printf("\t[Off, ");
-				for( int j=1; j<literals[i].size(); j++ ) 
+				for( unsigned int j=1; j<literals[i].size(); j++ ) 
 				{
-					printf("%s", (literals[i])[j]);
+					printf("%s", (literals[i])[j].c_str());
 					if( j<literals[i].size()-1 ) printf(", ");
 				}
 				printf("]");
@@ -89,56 +90,60 @@ struct Controls
 private:
     Controls()
     {
-        literals[WIREFRAME]	    .push("Wireframe");
-        literals[DEBUGMODE]	    .push("DebugMode").push("Color").push("HeightBlend").push("Normal").push("Light");
-		literals[DIFFUSE]		.push("Diffuse");		// Direct light: Lambertian (classic or some other)
-        literals[SPECULAR]		.push("Specular");		// Direct light: Specular (classic or PBR)
+        literals[WIREFRAME]	    .push_back("Wireframe");
+        literals[DEBUGMODE]	    .push_back("DebugMode");
+        literals[DEBUGMODE]	    .push_back("Color");
+        literals[DEBUGMODE]	    .push_back("HeightBlend");
+        literals[DEBUGMODE]	    .push_back("Normal");
+        literals[DEBUGMODE]	    .push_back("Light");
+		literals[DIFFUSE]		.push_back("Diffuse");		// Direct light: Lambertian (classic or some other)
+        literals[SPECULAR]		.push_back("Specular");		// Direct light: Specular (classic or PBR)
 
-        literals[FRESNEL]		.push("Fresnel");		// Ambient light: fresnel
-		literals[SKY]			.push("Sky");			// Ambient light: sky
-        literals[INDIRECT]		.push("Indirect");		// Ambient light: direct light bouncing back
-		literals[SCATTERING]	.push("Scattering");	// Light scattering
+        literals[FRESNEL]		.push_back("Fresnel");		// Ambient light: fresnel
+		literals[SKY]			.push_back("Sky");			// Ambient light: sky
+        literals[INDIRECT]		.push_back("Indirect");		// Ambient light: direct light bouncing back
+		literals[SCATTERING]	.push_back("Scattering");	// Light scattering
 
-		literals[TESSELLATOR]	.push("Tessellator");	// Micropolygons
-		literals[BUMPS]	        .push("Bumps");
-		literals[SHADOWS]		.push("Shadows");		// Low-Frequency lambertian filter
-        literals[PBR]			.push("PBR");
+		literals[TESSELLATOR]	.push_back("Tessellator");	// Micropolygons
+		literals[BUMPS]	        .push_back("Bumps");
+		literals[SHADOWS]		.push_back("Shadows");		// Low-Frequency lambertian filter
+        literals[PBR]			.push_back("PBR");
 
-        literals[HEATMAP]		.push("Heatmap");
+        literals[HEATMAP]		.push_back("Heatmap");
 
-		literals[GAMMA]			.push("Gamma");
-		literals[CONTRAST]		.push("Contrast");
-		literals[UNSATURATE]	.push("Unsaturate");
-		literals[TINT]			.push("Tint");
-		literals[VIGNETTING]	.push("Vignetting");
+		literals[GAMMA]			.push_back("Gamma");
+		literals[CONTRAST]		.push_back("Contrast");
+		literals[UNSATURATE]	.push_back("Unsaturate");
+		literals[TINT]			.push_back("Tint");
+		literals[VIGNETTING]	.push_back("Vignetting");
 
 		//
 		// default values
 		//
-        values = Key::getCounters(); // TODO fix
+        keyCounters = Key::getCounters(); // TODO fix
 
-		values[Bindings[WIREFRAME]]	    = 0;
-        values[Bindings[DEBUGMODE]]	    = 0;
-		values[Bindings[DIFFUSE]]		= 1;
-        values[Bindings[SPECULAR]]		= 1;
+		keyCounters[Bindings[WIREFRAME]]	= 0;
+        keyCounters[Bindings[DEBUGMODE]]	= 0;
+		keyCounters[Bindings[DIFFUSE]]		= 1;
+        keyCounters[Bindings[SPECULAR]]		= 1;
         
-        values[Bindings[FRESNEL]]		= 1;
-		values[Bindings[SKY]]			= 1;
-        values[Bindings[INDIRECT]]		= 1;
-		values[Bindings[SCATTERING]]	= 1;
+        keyCounters[Bindings[FRESNEL]]		= 1;
+		keyCounters[Bindings[SKY]]			= 1;
+        keyCounters[Bindings[INDIRECT]]		= 1;
+		keyCounters[Bindings[SCATTERING]]	= 1;
         
-		values[Bindings[TESSELLATOR]]	= 1;
-		values[Bindings[BUMPS]]         = 1;
-		values[Bindings[SHADOWS]]		= 1;
-		values[Bindings[PBR]]			= 0;
+		keyCounters[Bindings[TESSELLATOR]]	= 1;
+		keyCounters[Bindings[BUMPS]]        = 1;
+		keyCounters[Bindings[SHADOWS]]		= 1;
+		keyCounters[Bindings[PBR]]			= 0;
 
-        values[Bindings[HEATMAP]]		= 1;
+        keyCounters[Bindings[HEATMAP]]		= 1;
 		
-		values[Bindings[GAMMA]]			= 1;
-		values[Bindings[CONTRAST]]		= 0;
-		values[Bindings[UNSATURATE]]	= 0;
-		values[Bindings[TINT]]			= 0;
-		values[Bindings[VIGNETTING]]	= 1;
+		keyCounters[Bindings[GAMMA]]		= 1;
+		keyCounters[Bindings[CONTRAST]]		= 0;
+		keyCounters[Bindings[UNSATURATE]]	= 0;
+		keyCounters[Bindings[TINT]]			= 0;
+		keyCounters[Bindings[VIGNETTING]]	= 1;
 	}
 };
 

@@ -151,6 +151,13 @@ template<class T, int N> union vec
 };
 
 // Component-wise operations
+
+#pragma push_macro("scalar")
+#pragma push_macro("var")
+#pragma push_macro("out")
+#pragma push_macro("in")
+#pragma push_macro("foreach")
+
 #define scalar const T& 
 #define var(type) type<T,N>
 #define out(type) template<class T, int N> inline type<T,N>
@@ -1309,3 +1316,11 @@ vec4 unpack( const float x )
 #if defined(_MSC_VER) 
     //#pragma warning(pop) 
 #endif
+
+
+
+#pragma pop_macro("scalar")
+#pragma pop_macro("var")
+#pragma pop_macro("out")
+#pragma pop_macro("in")
+#pragma pop_macro("foreach")

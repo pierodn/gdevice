@@ -1,7 +1,6 @@
 #pragma once
 
 #include <gl/glsl.h>
-//#include <type/array.h>
 
 // NOTE
 //   Allocation/deallocation to video memory

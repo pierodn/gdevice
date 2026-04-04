@@ -52,9 +52,9 @@
 				OmitFramePointers="true"
 				WholeProgramOptimization="false"
 				AdditionalIncludeDirectories="..\..\include"
-				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;"
+				PreprocessorDefinitions="WIN32;__DEBUG__;_CONSOLE;"
 				MinimalRebuild="false"
-				ExceptionHandling="0"
+				ExceptionHandling="1"
 				RuntimeLibrary="3"
 				StructMemberAlignment="1"
 				BufferSecurityCheck="false"
@@ -149,7 +149,7 @@
 				OmitFramePointers="true"
 				WholeProgramOptimization="false"
 				AdditionalIncludeDirectories="..\..\include"
-				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;"
+				PreprocessorDefinitions="WIN32;__DEBUG__;_CONSOLE;"
 				MinimalRebuild="false"
 				ExceptionHandling="1"
 				RuntimeLibrary="2"
@@ -241,10 +241,6 @@
 		</File>
 		<File
 			RelativePath=".\source\shaders\generate_terrain.h"
-			>
-		</File>
-		<File
-			RelativePath=".\source\shaders\noise.h"
 			>
 		</File>
 		<File

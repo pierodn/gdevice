@@ -143,7 +143,7 @@ struct Clipmap : public Node, Transform, Parent, Child
 
 	void updateChildren( bool bx, bool by )
 	{
-		children.reset();
+		children.clear();
 
 		// Part of the nested clipmap which is always present in lod==0
 		int n1 = (CLIPMAP_SIZE - CLIPMAP_KERNEL +1)/2;			// 4 // 6
@@ -152,58 +152,58 @@ struct Clipmap : public Node, Transform, Parent, Child
 		if( lod==0 ) {
 			for( int y=n1; y<=n2; y++ )
 			for( int x=n1; x<=n2; x++ )
-				children.push( &tiles[x + y*CLIPMAP_SIZE] );
+				children.push_back( &tiles[x + y*CLIPMAP_SIZE] );
 		}
 
 		if( lod==0 ||  bx ) {
 			for( int y=n1; y<=n2; y++ )
-				children.push( &tiles[n2+1 + y*CLIPMAP_SIZE] );
+				children.push_back( &tiles[n2+1 + y*CLIPMAP_SIZE] );
 		}
 		if( lod==0 ||  bx ||  by ) {
-			children.push( &tiles[n2+1 + (n2+1)*CLIPMAP_SIZE] );
+			children.push_back( &tiles[n2+1 + (n2+1)*CLIPMAP_SIZE] );
 		}
 		if( lod==0 ||         by ) {
 			for( int x=n1; x<=n2; x++ )
-				children.push( &tiles[x + (n2+1)*CLIPMAP_SIZE] );
+				children.push_back( &tiles[x + (n2+1)*CLIPMAP_SIZE] );
 		}
 
 		if( lod==0 || !bx ||  by ) {
-			children.push( &tiles[n1-1 + (n2+1)*CLIPMAP_SIZE] );
+			children.push_back( &tiles[n1-1 + (n2+1)*CLIPMAP_SIZE] );
 		}
 
 		if( lod==0 || !bx ) {
 			for( int y=n1; y<=n2; y++ )
-				children.push( &tiles[n1-1 + y*CLIPMAP_SIZE] );
+				children.push_back( &tiles[n1-1 + y*CLIPMAP_SIZE] );
 		}
 
 		if( lod==0 || !bx || !by ) {
-			children.push( &tiles[n1-1 + (n1-1)*CLIPMAP_SIZE] );
+			children.push_back( &tiles[n1-1 + (n1-1)*CLIPMAP_SIZE] );
 		}
 
 		if( lod==0 ||        !by ) {
 			for( int x=n1; x<=n2; x++ )
-				children.push( &tiles[x + (n1-1)*CLIPMAP_SIZE] );
+				children.push_back( &tiles[x + (n1-1)*CLIPMAP_SIZE] );
 		}
 
 		if( lod==0 ||  bx || !by ) {
-			children.push( &tiles[n2+1 + (n1-1)*CLIPMAP_SIZE] );
+			children.push_back( &tiles[n2+1 + (n1-1)*CLIPMAP_SIZE] );
 		}
 
 		for( int y=2+CLIPMAP_BUFFERING; y<=n1-2; y++ )
 		for( int x=2+CLIPMAP_BUFFERING; x<=CLIPMAP_SIZE-2-CLIPMAP_BUFFERING-1; x++ )
-			children.push( &tiles[x + y*CLIPMAP_SIZE] );
+			children.push_back( &tiles[x + y*CLIPMAP_SIZE] );
 
 		for( int y=n1-1; y<=n2+1; y++ )
 		for( int x=2+CLIPMAP_BUFFERING; x<=n1-2; x++ )
-			children.push( &tiles[x + y*CLIPMAP_SIZE] );
+			children.push_back( &tiles[x + y*CLIPMAP_SIZE] );
 
 		for( int y=n1-1; y<=n2+1; y++ )
 		for( int x=n2+2; x<=CLIPMAP_SIZE-2-CLIPMAP_BUFFERING-1; x++ )
-			children.push( &tiles[x + y*CLIPMAP_SIZE] );
+			children.push_back( &tiles[x + y*CLIPMAP_SIZE] );
 
 		for( int y=n2+2; y<=CLIPMAP_SIZE-2-CLIPMAP_BUFFERING-1; y++ )
 		for( int x=2+CLIPMAP_BUFFERING; x<=CLIPMAP_SIZE-2-CLIPMAP_BUFFERING-1; x++ )
-			children.push( &tiles[x + y*CLIPMAP_SIZE] );
+			children.push_back( &tiles[x + y*CLIPMAP_SIZE] );
 	}
 
 };

@@ -1,12 +1,11 @@
 #pragma once
 
 #include <type/cpu.h>
-#include <type/array.h>
 #include <gl/texture.h>
 
 
 // PROP 
-// struct IndexBuffer : Array<ivec2>, Cacheable
+// struct IndexBuffer : std::vector<ivec2>, Cacheable
 
 
 struct IndexBuffer : public Cacheable

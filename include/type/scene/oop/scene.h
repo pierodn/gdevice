@@ -1,6 +1,9 @@
 #pragma once
 
 #include "controls.h"
+
+#include <vector>
+
 #include <gl/program.h>
 
 #include <type/scene/oop/node.h>
@@ -14,11 +17,11 @@ struct NodeState
 	mat4 ProjectionMatrix;
     mat4 inverseRotationMatrix; // TODO inverseCameraRotationMatrix;
 	mat4 ModelViewMatrix;
-	Array<mat4> ModelViewMatrixStack;   
+    std::vector<mat4> ModelViewMatrixStack;   
 
     NodeState()
     {
-		ModelViewMatrixStack.allocate(2000,100);
+		ModelViewMatrixStack.reserve(4096);
     }
 };
 
@@ -54,7 +57,7 @@ struct Scene : Node, Transform, Parent
         Transform* pTransform = dynamic_cast<Transform*>(&node);
         if (pTransform) 
         {
-            nodeState.ModelViewMatrixStack.push( nodeState.ModelViewMatrix );
+            nodeState.ModelViewMatrixStack.push_back( nodeState.ModelViewMatrix );
 	        nodeState.ModelViewMatrix *= TransformationMatrix( pTransform->transform );
         }
 
@@ -93,7 +96,7 @@ struct Scene : Node, Transform, Parent
         Parent* pParent = dynamic_cast<Parent*>(&node);
         if( pParent )
         {
-	        for( int i=0; i<pParent->children.size(); i++ )
+	        for( unsigned int i=0; i<pParent->children.size(); i++ )
 	        {
                 Node* childAsNode = dynamic_cast<Node*>(pParent->children[i]);
                 if(childAsNode) 
@@ -105,7 +108,8 @@ struct Scene : Node, Transform, Parent
 
         if (pTransform) 
         {
-            nodeState.ModelViewMatrix = nodeState.ModelViewMatrixStack.pop();
+            nodeState.ModelViewMatrix = nodeState.ModelViewMatrixStack.back();
+            nodeState.ModelViewMatrixStack.pop_back();
         }
 
         return vertexCount;
@@ -119,7 +123,7 @@ struct Scene : Node, Transform, Parent
         for(int i = Controls::GAMMA; i <= Controls::VIGNETTING; i++)
         {
 		    int size = Controls::GetInstance().literals[i].size() <= 1 ? 2 : Controls::GetInstance().literals[i].size();
-		    renderSkydome.SetUniform( Controls::GetInstance().literals[i][0], Controls::GetInstance().values[Controls::Bindings[i]] % size );    
+		    renderSkydome.SetUniform( Controls::GetInstance().literals[i][0], Controls::GetInstance().keyCounters[Controls::Bindings[i]] % size );    
         }
 
 	    renderSkydome.SetUniform("viewport",	                GL::GetViewport() );

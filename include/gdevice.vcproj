@@ -75,15 +75,15 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\type\array.h"
-				>
-			</File>
-			<File
-				RelativePath=".\include\glpp\cacheable.h"
+				RelativePath=".\gl\__indexbuffer.h"
 				>
 			</File>
 			<File
 				RelativePath=".\gl\cacheable.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\glpp\cacheable.h"
 				>
 			</File>
 			<File
@@ -119,11 +119,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\gl\GL.H"
+				RelativePath=".\include\gl\GL.H"
 				>
 			</File>
 			<File
-				RelativePath=".\include\gl\GL.H"
+				RelativePath=".\gl\GL.H"
 				>
 			</File>
 			<File
@@ -147,11 +147,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\gl\glsl.h"
+				RelativePath=".\include\glsl.h"
 				>
 			</File>
 			<File
-				RelativePath=".\include\glsl.h"
+				RelativePath=".\gl\glsl.h"
 				>
 			</File>
 			<File
@@ -167,15 +167,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\io\image.h"
-				>
-			</File>
-			<File
 				RelativePath=".\include\gdfw\image.h"
 				>
 			</File>
 			<File
-				RelativePath=".\gl\indexbuffer.h"
+				RelativePath=".\io\image.h"
 				>
 			</File>
 			<File
@@ -183,15 +179,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\gl\indexbuffer.h"
+				>
+			</File>
+			<File
 				RelativePath=".\platforms\inspector.h"
 				>
 			</File>
 			<File
-				RelativePath=".\os\keyboard.h"
+				RelativePath=".\include\gdfw\keyboard.h"
 				>
 			</File>
 			<File
-				RelativePath=".\include\gdfw\keyboard.h"
+				RelativePath=".\os\keyboard.h"
 				>
 			</File>
 			<File
@@ -207,15 +207,15 @@
 				>
 			</File>
 			<File
-				RelativePath=".\os\mutex.h"
-				>
-			</File>
-			<File
 				RelativePath=".\include\gdfw\mutex.h"
 				>
 			</File>
 			<File
-				RelativePath=".\type\scene\oop\node.h"
+				RelativePath=".\os\mutex.h"
+				>
+			</File>
+			<File
+				RelativePath=".\type\scene\ecs\node.h"
 				>
 			</File>
 			<File
@@ -223,7 +223,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\type\scene\ecs\node.h"
+				RelativePath=".\type\scene\oop\node.h"
 				>
 			</File>
 			<File
@@ -263,11 +263,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\include\glpp\texture.h"
+				RelativePath=".\gl\texture.h"
 				>
 			</File>
 			<File
-				RelativePath=".\gl\texture.h"
+				RelativePath=".\include\glpp\texture.h"
 				>
 			</File>
 			<File

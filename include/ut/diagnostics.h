@@ -133,7 +133,7 @@ public:
     #define CRITICAL(message)     _CRITICAL((message), __FUNCTION__, __FILE__, __LINE__)
 
 // NOTE: Enabling DEBUG macros for RELEASE too, makes it not crash. TODO: Fix bug.
-#if defined(_DEBUG)
+#if defined(__DEBUG__)
     #define DEBUG_PRINT                 printf
     #define DEBUG_ASSERT(statement)     (void)((statement) || (__ASSERT(#statement, __FUNCTION__, __FILE__, __LINE__),0))
     #define DEBUG_CHECKPOINT_AUTO       _PRINT_PATH(__FUNCTION__, __FILE__, __LINE__); color(CMD_WHITE,CMD_CYAN); printf(__COUNTER__); color(15,0);

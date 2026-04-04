@@ -6,7 +6,7 @@
 #include <gl/vertexbuffer.h>
 #include <gl/indexbuffer.h>
 
-#include <type/array.h>
+#include <vector> 
 
 
 struct Node
@@ -18,7 +18,7 @@ struct Node
 struct Child;
 struct Parent 
 {
-	Array<Child*> children;
+    std::vector<Child*> children;
     virtual ~Parent() {};
 };
 
