@@ -22,7 +22,11 @@ struct Cacheable
 	bool videomem_invalidated;
 	bool hostmem_invalidated;
 
-    Cacheable() : id(0), deallocator(NULL), videomem_invalidated(true), hostmem_invalidated(true)
+    Cacheable(int _id = 0, void (*_deallocator)(uint&) = NULL) 
+        : id(_id), 
+          deallocator(_deallocator), 
+          videomem_invalidated(true), 
+          hostmem_invalidated(true)
 	{
 	}
 

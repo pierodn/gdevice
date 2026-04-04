@@ -65,8 +65,8 @@ public:
 	void setLODs( int lods )
 	{
 		int d = lods - children.size();
-		for(; d>0; d-- ) children.push( new Clipmap(this, children.size(), tileRes, &ibo, &generator, &renderer) );
-		for(; d<0; d++ ) { delete children[children.size()-1]; children.pop(); }
+		for(; d>0; d-- ) children.push_back( new Clipmap(this, children.size(), tileRes, &ibo, &generator, &renderer) );
+		for(; d<0; d++ ) delete children[children.size()-1];
 	}
 
     long GetVisibilityDistance()
@@ -78,7 +78,7 @@ public:
 	float moveAt(dmat3 camera) 
     {
         int coarsestLODToBeUpdated = -1; // TODO: Use.
-        for( int lod = 0; lod<children.size(); lod++ )
+        for( unsigned int lod = 0; lod<children.size(); lod++ )
         {
             Clipmap* clipmap = (Clipmap*)children[lod];
 			if( clipmap->move(-camera.position.xy) ) 
