@@ -209,16 +209,6 @@ char* GetLastErrorAsString()
 }
 */
 
-char* strstr2( char* src, const char* sub )
-{
-	for( int i; *src; src++ )
-	{
-		for( i=0; src[i]==sub[i] && src[i]; i++ ); 
-		if( !sub[i] ) return src;
-	}
-	return NULL;
-}
-
 #if !defined(CONSOLE)
 	int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	{

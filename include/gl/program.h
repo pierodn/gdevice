@@ -38,10 +38,9 @@ private:
     }
 
 public:
-    void Build(char* source)
+    void Build(const std::string& source)
     {
-        ASSERT(source != NULL);
-        ASSERT(strlen(source) < MAX_PROGRAM_SOURCE_LENGTH);
+        ASSERT(source.size() < MAX_PROGRAM_SOURCE_LENGTH);
         ASSERT(id == 0);
 
         id = glCreateProgram();
@@ -100,44 +99,44 @@ public:
     }
 
 private:
-    int BuildShaders(const char* source, int* shaders)
+    int BuildShaders(const std::string& source, int* shaders)
     {
         DEBUG_PATH;
 
-        const char* shaderTypes[] = { "VERTEX", "CONTROL", "EVALUATION", "GEOMETRY", "FRAGMENT", "COMPUTE" };
-        const int   shaderTypeCodes[] = { GL_VERTEX_SHADER, GL_TESS_CONTROL_SHADER, GL_TESS_EVALUATION_SHADER, GL_GEOMETRY_SHADER, GL_FRAGMENT_SHADER, GL_COMPUTE_SHADER };
-        int shadersCount = sizeof(shaderTypeCodes)/sizeof(int);
+        const char* ShaderTypeNames[] = { "VERTEX", "CONTROL", "EVALUATION", "GEOMETRY", "FRAGMENT", "COMPUTE" };
+        const int   ShaderTypeCodes[] = { GL_VERTEX_SHADER, GL_TESS_CONTROL_SHADER, GL_TESS_EVALUATION_SHADER, GL_GEOMETRY_SHADER, GL_FRAGMENT_SHADER, GL_COMPUTE_SHADER };
+        int ShadersCount = sizeof(ShaderTypeCodes)/sizeof(int);
 
         int shaderIndex = 0;
-        for( int i=0; i<shadersCount; i++ )
+        for( int i=0; i<ShadersCount; i++ )
         {
-            char* shaderPosition = strstr2( (char*)source, shaderTypes[i]);
-            if(shaderPosition == NULL) continue;
-            
-            shaderPosition += strlen(shaderTypes[i]);
-            DEBUG_ASSERT(*shaderPosition == ':');
+            size_t shaderPosition = source.find(ShaderTypeNames[i]);
+            if(shaderPosition == std::string::npos)
+            {
+                continue;
+            }
+
+            shaderPosition += strlen(ShaderTypeNames[i]);
+            DEBUG_ASSERT(source[shaderPosition] == ':');
             shaderPosition++;
 
             // Find next shader (if any) to compute the current shader length in characters.
-	        int shaderLenght = 0;
-	        for( int j=i+1; j<shadersCount; j++ )
+            size_t shaderLenght = std::string::npos;
+	        for( int j=i+1; j<ShadersCount; j++ )
 	        {
-                char* nextShaderPosition = strstr2( (char*)source, shaderTypes[j]);
-                if(nextShaderPosition != NULL)
+                size_t nextShaderPosition = source.find(ShaderTypeNames[j]);
+                if(nextShaderPosition != std::string::npos)
                 {
 		            shaderLenght = nextShaderPosition - shaderPosition;
 		            break;
                 }
 	        }
 
-	        if( shaderLenght==0 )
-	        {
-		        shaderLenght = strlen(shaderPosition);
-	        }
-		
-            color(CMD_YELLOW, 0); DEBUG_PRINT("%s ", shaderTypes[i]);
+            std::string shaderSource = source.substr(shaderPosition, shaderLenght);
+ 
+            color(CMD_YELLOW, 0); DEBUG_PRINT("%s ", ShaderTypeNames[i]);
 
-	        int shaderId = CompileShader(shaderPosition, shaderLenght, shaderTypeCodes[i]);
+	        int shaderId = CompileShader(shaderSource, ShaderTypeCodes[i]);
             DEBUG_ASSERT(shaderId);
 
             shaders[shaderIndex++] = shaderId;
@@ -149,47 +148,42 @@ private:
         return shaderIndex;
     }
 
-    void PrintSource(char* source, int length, int focusLine = -1)
+    void PrintSource(const std::string& source, int focusLineNumber = -1)
 	{
-        ASSERT( length <= MAX_PROGRAM_SOURCE_LENGTH );
+        ASSERT(source.size() <= MAX_PROGRAM_SOURCE_LENGTH);
 
-        char buffer[MAX_PROGRAM_SOURCE_LENGTH];
-        strncpy(buffer, source, length);
-
-        char* p = buffer;
-        char lineText[256];
-        for(int line = 2; *p; line++) 
+        size_t p = 0;
+        for(int lineNumber = 2; p<=source.size(); lineNumber++) 
 		{
-	        char* nIndex = strstr2(p, "\n");
-	        if(nIndex == NULL) break;
-
-            if((focusLine < 0) || (focusLine >= 0) && (focusLine-6 <= line) && (line <= focusLine+3)) 
+            size_t nIndex = p;
+            while(nIndex < source.size() && source.at(nIndex) != '\n') nIndex++;
+            if(nIndex >= source.size()) {
+                break;
+            }
+            
+            if((focusLineNumber < 0)
+                || (focusLineNumber >= 0) && (focusLineNumber-6 <= lineNumber) && (lineNumber <= focusLineNumber+3)) 
             { 
-	            int length = nIndex - p;			
-	            strncpy(lineText, p, length);
-	            lineText[length] = 0;
+                std::string lineText = source.substr(p, nIndex-p);
 
-                if(line == focusLine) {
+                if(lineNumber == focusLineNumber) {
                     color(CMD_WHITE, CMD_RED); 
                 } else {
                     color(CMD_LIGHTGRAY, 0); 
                 }
-	            printf("%i: %s\n", line, lineText);
+                printf("%i: %s\n", lineNumber, lineText.c_str());
             }
 
 	        p = nIndex + 1;
         }
     }
 
-    int CompileShader(char* source, int len, int type)
+    int CompileShader(const std::string& source, int type)
     {
-        for(; *source>0 && *source<=' '; source++) len--;
-
-        ASSERT(*source);
-        ASSERT(len >= 0);
-
         GLint shaderId = glCreateShader( type );
-        glShaderSource(shaderId, 1, (const char**)&source, &len );
+        const char* shader_cstr = source.c_str();
+        int shader_length = source.size();
+        glShaderSource(shaderId, 1, &shader_cstr, &shader_length );
         glCompileShader(shaderId);
 
         int successful = 0;
@@ -228,7 +222,7 @@ private:
 			ASSERT(line > 0);
 
             #if defined(DEBUG_SHOW_GLSL_SOURCE)
-	            PrintSource( source, len, line ); 
+	            PrintSource( source, line ); 
                 printf("\n");
             #endif
 

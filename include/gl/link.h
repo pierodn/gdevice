@@ -87,18 +87,16 @@ namespace GL
 
 	bool IsExtensionSupported( const char *extension )
 	{
-		char* s = (char*) glGetString(GL_EXTENSIONS);
-		while( (s=strstr2(s,extension)) ) {
-			s += strlen(extension);
-			if( *s==' ' || *s == '\0' ) break;
-		}
+        std::string extensions = (char*) glGetString(GL_EXTENSIONS);
+
+        bool found = (extensions.find(extension) != std::string::npos);
 
         if(Verbose)
         {
             color(CMD_DARKGRAY, 0);
-		    DEBUG_PRINT(TAB32 ": %s\n", extension, s ? "OK" : "MISSING" );
+		    DEBUG_PRINT(TAB32 ": %s\n", extension, found ? "OK" : "MISSING" );
         }
-		return (bool)s;
+		return found;
 	}
 /*
 	inline char* error()
