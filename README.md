@@ -1,17 +1,17 @@
-Gdevice is a lightweight **parallel computing framework** designed to run CPU and GPU programs seamlessly, maximizing general-purpose computational power within real-time C++ applications.
+Commercial general-purpose engines are powerful but often difficult to master and optimize, while the most efficient ones are typically proprietary.
+Gdevice is a lightweight **parallel computing framework** for real-time C++ applications, designed to unify CPU and GPU execution. It is provided as a viable alternative, in form of a modular, open-source playground for experimental 3D rendering, composed of independent, reusable components, and it includes a 3D engine example.
 
 Dependencies: 
 - C++
-- Visual Studio 2008
 - OpenGL 4.5
 - Windows
 
 The demo includes several core 3D engine features:
-- Scene graph
-- Rendering
-- Processing
 - Procedural generation
 - Terrain LOD
+- Scenegraph
+- Rendering
+- Processing
 
 ### Motivation
 This project revisits and simplifies many best practices commonly used in professional environments, aiming to explore fundamental design questions such as:
