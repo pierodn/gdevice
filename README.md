@@ -1,5 +1,6 @@
 Commercial general-purpose engines are powerful but often difficult to master and optimize, while the most efficient ones are typically proprietary.
-Gdevice is a lightweight **parallel computing framework** for real-time C++ applications, designed to unify CPU and GPU execution. It is provided as a viable alternative, in form of a modular, open-source playground for experimental 3D rendering, composed of independent, reusable components, and it includes a 3D engine example.
+
+Gdevice is a lightweight **parallel computing framework** for real-time C++ applications, designed to unify CPU and GPU execution. It aims to provide a viable alternative in the form of a modular, open-source framework for experimental 3D rendering, built from independent and reusable components, and includes an example 3D engine for large open worlds with seamless real-time streaming.
 
 Dependencies: 
 - C++
