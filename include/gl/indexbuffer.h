@@ -2,13 +2,14 @@
 
 #include <type/cpu.h>
 #include <gl/texture.h>
+#include <gl/buffer.h>
 
 
 // PROP 
 // struct IndexBuffer : std::vector<ivec2>, Cacheable
 
 
-struct IndexBuffer : public Cacheable
+struct IndexBuffer : public Buffer
 {
 	int index_size;
 	uint8* array;

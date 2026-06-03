@@ -77,7 +77,7 @@ struct Impostor
 };
 
 class Renderer;
-struct Updatable : Cacheable
+struct Updatable : Buffer
 {
     virtual void Update() = 0;
     virtual ~Updatable() {};

@@ -1,15 +1,15 @@
 #pragma once
 
 #include <gl/link.h>
-#include <gl/cacheable.h>
+#include <gl/buffer.h>
 #include <vector>
 
 #define GLSL_(source) #source
 #define GLSL(type, version, source) "\n" #type ":\n#version " #version "\n" #source "\n"
 
-typedef Cacheable Shader;
+typedef Buffer Shader;
 
-struct Program : public std::vector<Shader>, Cacheable
+struct Program : public std::vector<Shader>, Buffer
 {
     Program()
 	{

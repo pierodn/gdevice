@@ -58,11 +58,11 @@
 // Texture 3D has width>0, height>0, depth>0
 
 
-#include <gl/cacheable.h>
+#include <gl/Buffer.h>
 
 
 template<class T> 
-struct Texture : public Cacheable
+struct Texture : public Buffer
 {
 	// TODO when this leaves
 	// Cacheable vbo;	// when binded with GL::Texturing::bind() (possibily PBO-copying from TBO counterpart, if exists)

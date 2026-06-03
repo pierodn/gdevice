@@ -7,7 +7,7 @@
 // 
 
 #include <gl/link.h>
-#include <gl/cacheable.h>
+#include <gl/buffer.h>
 #include <gl/Texture.h>
 #include <gl/VertexBuffer.h>
 #include <gl/IndexBuffer.h>
@@ -22,13 +22,13 @@ namespace GL
 	        id = 0;
         }
 
-        void create( Cacheable& buffer )
+        void create( Buffer& buffer )
         {
 	        glGenBuffers( 1, &buffer.id );
 	        buffer.deallocator = deallocate;
         }
 
-        void bind( Cacheable& buffer, int type )//=GL_ARRAY_BUFFER )
+        void bind( Buffer& buffer, int type )//=GL_ARRAY_BUFFER )
         {
 	        glBindBuffer( type, buffer.id );
         }
@@ -49,7 +49,7 @@ namespace GL
 	        }
         }
 
-        void allocate( Cacheable& buffer, int size, void* data = NULL, int type = GL_ARRAY_BUFFER, int usage = GL_STATIC_DRAW )
+        void allocate( Buffer& buffer, int size, void* data = NULL, int type = GL_ARRAY_BUFFER, int usage = GL_STATIC_DRAW )
         {
 	        glBindBuffer( type, buffer.id );
 	        glBufferData( type, size, data, usage );
@@ -61,7 +61,7 @@ namespace GL
 	        }
         }
 
-        void update( Cacheable& buffer, int size, void* data = NULL, int type = GL_ARRAY_BUFFER, int usage = GL_STATIC_DRAW )
+        void update( Buffer& buffer, int size, void* data = NULL, int type = GL_ARRAY_BUFFER, int usage = GL_STATIC_DRAW )
         {
 	        if( buffer.videomem_invalidated )
 	        {
@@ -106,7 +106,7 @@ namespace GL
             VBO::bind( ibo, GL_ELEMENT_ARRAY_BUFFER );
         }
 
-        void upload( Cacheable& buffer, int offset, int size, void* data, int type = GL_ARRAY_BUFFER )
+        void upload( Buffer& buffer, int offset, int size, void* data, int type = GL_ARRAY_BUFFER )
         {
 	        glBindBuffer( type, buffer.id );
 	        glBufferSubData( type, offset, size, data );

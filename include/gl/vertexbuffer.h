@@ -1,9 +1,9 @@
 #pragma once
 
 #include <gl/glsl.h>
-#include <gl/cacheable.h>
+#include <gl/Buffer.h>
 
-struct VertexBuffer : Cacheable // this will be used as either VBO or FBO (not both!).
+struct VertexBuffer : Buffer // this will be used as either VBO or FBO (not both!).
 {
 	Texture<vec4> quartets;
 	Texture<vec4> gradients;

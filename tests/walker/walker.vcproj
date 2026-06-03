@@ -224,6 +224,10 @@
 			>
 		</Filter>
 		<File
+			RelativePath=".\source\shaders\___generate_terrain.h"
+			>
+		</File>
+		<File
 			RelativePath=".\source\ui\charset.h"
 			>
 		</File>
@@ -237,10 +241,6 @@
 		</File>
 		<File
 			RelativePath=".\source\shaders\generate_terrain.glsl"
-			>
-		</File>
-		<File
-			RelativePath=".\source\shaders\generate_terrain.h"
 			>
 		</File>
 		<File

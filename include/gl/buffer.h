@@ -13,7 +13,7 @@
 //   If invalidated then it means the copy in video memory requires to be updated.
 
 
-struct Cacheable
+struct Buffer
 {
 	uint id;
 	void (*deallocator)(uint&);
@@ -21,7 +21,7 @@ struct Cacheable
 	bool videomem_invalidated;
 	bool hostmem_invalidated;
 
-    Cacheable(int _id = 0, void (*_deallocator)(uint&) = NULL) 
+    Buffer(int _id = 0, void (*_deallocator)(uint&) = NULL) 
         : id(_id), 
           deallocator(_deallocator), 
           videomem_invalidated(true), 
@@ -29,7 +29,7 @@ struct Cacheable
 	{
 	}
 
-    virtual ~Cacheable()
+    virtual ~Buffer()
     {
 		deallocate();
     }
