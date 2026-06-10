@@ -1,15 +1,47 @@
-# Precompiled Headers
-*.pch
-
-# Binaries
-binaries
-*.exe
-
-# Project files
+# Visual Studio / IDE
+.vs/
 *.suo
 *.user
 *.ncb
+*.vcxproj.user
+*.sdf
+*.opensdf
 
-# Other products
+# Build outputs
+binaries/
+bin/
+obj/
+Debug/
+Release/
+*.exe
+*.dll
+*.lib
+*.pdb
+*.ilk
+*.obj
+*.idb
+*.ipch
+
+# Tools / generated files
 *.glsl.h
 output.bmp
+bin2c.exe
+bin2c.pdb
+bin2c.obj
+bin2c.ilk
+temp/
+artifacts/
+
+# Package managers
+packages/
+*.nupkg
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Editor settings
+.vscode/
+
+# Notes
+# Repository currently contains committed binaries in /binaries. Consider removing them from history or using Git LFS / Releases.

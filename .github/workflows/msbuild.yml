@@ -13,12 +13,15 @@ on:
 
 env:
   # Path to the solution file relative to the root of the project.
-  SOLUTION_FILE_PATH: ./source/gdevice.sln
+  SOLUTION_FILE_PATH: ./gdevice.sln
 
   # Configuration type to build.
   # You can convert this to a build matrix if you need coverage of multiple configuration types.
   # https://docs.github.com/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
   BUILD_CONFIGURATION: Release
+
+  # Ensure platform is Win32 for this solution
+  BUILD_PLATFORM: Win32
 
 permissions:
   contents: read
@@ -41,4 +44,20 @@ jobs:
       working-directory: ${{env.GITHUB_WORKSPACE}}
       # Add additional options to the MSBuild command line here (like platform or verbosity level).
       # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
-      run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.SOLUTION_FILE_PATH}}
+          run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:Platform=${{env.BUILD_PLATFORM}} ${{env.SOLUTION_FILE_PATH}}
+
+        - name: Create walker artifact ZIP
+          shell: powershell
+          run: |
+            New-Item -ItemType Directory -Path artifacts -Force | Out-Null
+            $files = @()
+            foreach ($p in @('binaries\\release\\walker.exe','binaries\\release\\walker.pdb','binaries\\debug\\walker.exe','binaries\\debug\\walker.pdb')) { if (Test-Path $p) { $files += $p } }
+            if (Test-Path 'tests\\walker') { $files += (Get-ChildItem -Path 'tests\\walker' -Recurse | ForEach-Object { $_.FullName }) }
+            if ($files.Count -eq 0) { Write-Host 'No walker files found to archive'; Exit 0 }
+            Compress-Archive -Path $files -DestinationPath 'artifacts\\walker-artifacts.zip' -Force
+
+        - name: Upload walker ZIP
+          uses: actions/upload-artifact@v4
+          with:
+            name: walker-artifacts-zip
+            path: artifacts/walker-artifacts.zip

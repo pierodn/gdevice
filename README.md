@@ -1,8 +1,40 @@
+# gdevice
+
 Commercial general-purpose engines are powerful but often difficult to master and optimize, while the most efficient ones are typically proprietary.
 
 Gdevice is a lightweight **parallel computing framework** for real-time C++ applications, designed to unify CPU and GPU execution. It aims to provide a viable alternative in the form of a modular, open-source framework for experimental 3D rendering, built from independent and reusable components, and includes an example 3D engine for large open worlds with seamless real-time streaming.
 
-Dependencies: 
+## Core Technical Pillars
+
+### 1. GPU-Based Geometry Clipmaps
+The engine implements a sophisticated terrain LOD (Level of Detail) system called **Geometry Clipmaps**.
+- **Nested Grids:** It uses a series of nested concentric grids (LODs) that center around the camera.
+- **Toroidal Scrolling:** As the camera moves, the clipmaps "scroll" toroidally. Instead of regenerating the whole mesh, it only updates the "new" regions of the terrain, making it extremely efficient for large-scale environments.
+- **Tile-Based Management:** The terrain is divided into tiles (managed by `Clipmap.h` and `Heightmap.h`).
+
+### 2. Procedural & Hybrid Generation
+The terrain is dynamically generated or modified on the GPU:
+- **GLSL Shaders:** Heavy GPU acceleration is used for terrain generation, computing heights, gradients, and textures on the fly (e.g., `generate_terrain.glsl`).
+- **Bin2C Tooling:** A custom tool (`bin2c`) compiles GLSL shaders into C headers, embedding the shader source directly into the executable for zero-dependency deployment.
+
+### 3. GLSL-like Math Library (`glsl.h`)
+The project includes a specialized header that implements a **GLSL-like math library for C++**.
+- It provides `vec2`, `vec3`, `mat4`, and other types with syntax identical to GLSL.
+- Includes operator overloading and common functions like `mix`, `clamp`, and `fract`, allowing math logic to be shared or easily ported between CPU and GPU.
+
+### 4. Hybrid Scene Management (ECS vs. OOP)
+The architecture supports both traditional and modern scene management:
+- **OOP:** A traditional Object-Oriented Scene Graph (nodes, parents, children).
+- **ECS:** A modern Entity Component System implementation.
+The current `walker` demo primarily uses the OOP approach, while the presence of ECS suggests a transition toward a more data-oriented design.
+
+### 5. Platform & Performance Focus
+- **Win32/C++:** Highly optimized for Windows, utilizing SSE (Streaming SIMD Extensions) for math operations and Multi-threading (`os/thread.h`).
+- **Memory Efficiency:** It uses specialized `VertexBuffer` and `IndexBuffer` abstractions that manage textures for data storage (using textures to store vertex attributes like gradients and mixmaps).
+
+## Project Details
+
+### Dependencies:
 - C++
 - OpenGL 4.5
 - Windows
@@ -45,3 +77,6 @@ Thank you!
 ![Terrain2](https://github.com/user-attachments/assets/743756f9-2791-404a-8d45-71192bc4f742)
 ![Terrain3](https://github.com/user-attachments/assets/6a7091ea-22c6-4d0d-9846-e164404d735c)
 ![Sunset](https://github.com/user-attachments/assets/4c3a4106-feac-41e2-befa-4f71630435ca)
+
+## Getting Started
+See [BUILD.md](BUILD.md) for build instructions.
