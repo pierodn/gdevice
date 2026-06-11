@@ -8,14 +8,12 @@ GDevice aims to occupy the middle ground providing a lightweight, open-source ec
 
 ## Core Technical Pillars
 
-### 1. GPU-Based Geometry Clipmaps
-The engine implements a sophisticated terrain LOD (Level of Detail) system called **Geometry Clipmaps**.
-- **Nested Grids:** It uses a series of nested concentric grids (LODs) that center around the camera.
-- **Toroidal Scrolling:** As the camera moves, the clipmaps "scroll" toroidally. Instead of regenerating the whole mesh, it only updates the "new" regions of the terrain, making it extremely efficient for large-scale environments.
-- **Tile-Based Management:** The terrain is divided into tiles (managed by `Clipmap.h` and `Heightmap.h`).
+### 1. GPU-Based terrain LOD system
+The engine implements a sophisticated terrain LOD (Level of Detail) system that uses nested grids and closely resembles the known Geometry Clipmaps but it's not.
+It allows **Infinite terrain steaming** and **smooth transitions** in its GPU-based incarnation.
 
-### 2. Procedural & Hybrid Generation
-The terrain is dynamically generated or modified on the GPU:
+### 2. Procedural Generation
+The terrain is dynamically generated on the GPU:
 - **GLSL Shaders:** Heavy GPU acceleration is used for terrain generation, computing heights, gradients, and textures on the fly (e.g., `generate_terrain.glsl`).
 - **Bin2C Tooling:** A custom tool (`bin2c`) compiles GLSL shaders into C headers, embedding the shader source directly into the executable for zero-dependency deployment.
 
@@ -24,11 +22,11 @@ The project includes a specialized header that implements a **GLSL-like math lib
 - It provides `vec2`, `vec3`, `mat4`, and other types with syntax identical to GLSL.
 - Includes operator overloading and common functions like `mix`, `clamp`, and `fract`, allowing math logic to be shared or easily ported between CPU and GPU.
 
-### 4. Hybrid Scene Management (ECS vs. OOP)
+### 4. Scene Management
 The architecture supports both traditional and modern scene management:
 - **OOP:** A traditional Object-Oriented Scene Graph (nodes, parents, children).
 - **ECS:** A modern Entity Component System implementation.
-The current `walker` demo primarily uses the OOP approach, while the presence of ECS suggests a transition toward a more data-oriented design.
+The current `walker` demo primarily uses the OOP approach, while the transition to ECS is planned for a more data-oriented design.
 
 ### 5. Platform & Performance Focus
 - **Win32/C++:** Highly optimized for Windows, utilizing SSE (Streaming SIMD Extensions) for math operations and Multi-threading (`os/thread.h`).
