@@ -1,8 +1,10 @@
 # gdevice
 
-Commercial general-purpose engines are powerful but often difficult to master and optimize, while the most efficient ones are typically proprietary.
+The 3D engine landscape is divided between:
+- Commercial engines that power successful games but remain proprietary.
+- Open-source engines that demonstrate impressive technology but often struggle to help developers to reach production maturity. 
 
-Gdevice is a lightweight **parallel computing framework** for real-time C++ applications, designed to unify CPU and GPU execution. It aims to provide a viable alternative in the form of a modular, open-source framework for experimental 3D rendering, built from independent and reusable components, and includes an example 3D engine for large open worlds with seamless real-time streaming.
+GDevice aims to occupy the middle ground providing a lightweight, open-source ecosystem of modular and reusable components for real-time C++ applications, designed to unify CPU and GPU execution. It provides developers with a flexible foundation for building their own engine stack without starting from zero, while serving as a platform for experimental 3D rendering. The project includes an example 3D engine for large open worlds with seamless real-time streaming and procedurally generated content at run-time.
 
 ## Core Technical Pillars
 
