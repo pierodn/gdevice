@@ -1,36 +1,33 @@
-# gdevice
+# Gdevice
 
 The 3D engine landscape is broadly divided into two categories:
-- Proprietary in-house engines, which power successful games but are used exclusively within the studios that develop thems.
-- Proprietary general-purpose engines, which showcase impressive technology and are available to all developers, but often face challenges in helping the developer achieving full production maturity across diverse use cases
+- Proprietary in-house engines, which power successful games but are used exclusively within the studios that develop them.
+- Proprietary general-purpose engines, which showcase impressive technology and are available to all developers, but often face challenges in helping the developer achieving full production maturity across diverse use cases.
 
 GDevice aims to occupy a middle ground providing a lightweight, open-source ecosystem of modular and reusable components for real-time C++ applications, designed to unify CPU and GPU execution. It provides developers with a flexible foundation for building their own engine stack without starting from zero, while serving as a platform for experimental 3D rendering. The project includes an example 3D engine for large open worlds with seamless real-time streaming and procedurally generated content at run-time.
 
 ## Core Technical Pillars
 
-### 1. GPU-Based terrain LOD system
-The engine implements a sophisticated terrain LOD (Level of Detail) system that uses nested grids and closely resembles the known Geometry Clipmaps but it's not.
-It allows **Infinite terrain steaming** and **smooth transitions** in its GPU-based incarnation.
+### 1. Terrain LOD system
+The engine implements a sophisticated terrain LOD (Level of Detail) system based on nested grids, conceptually similar to Geometry Clipmaps but independently designed.
+It enables **Infinite terrain streaming** and **smooth level transitions** in its GPU-based implementation.
 
 ### 2. Procedural Generation
-The terrain is dynamically generated on the GPU:
-- **GLSL Shaders:** Heavy GPU acceleration is used for terrain generation, computing heights, gradients, and textures on the fly (e.g., `generate_terrain.glsl`).
-- **Bin2C Tooling:** A custom tool (`bin2c`) compiles GLSL shaders into C headers, embedding the shader source directly into the executable for zero-dependency deployment.
+The terrain is dynamically generated on the GPU, computing heights, gradients and textures in real time.
 
-### 3. GLSL-like Math Library (`glsl.h`)
-The project includes a specialized header that implements a **GLSL-like math library for C++**.
-- It provides `vec2`, `vec3`, `mat4`, and other types with syntax identical to GLSL.
-- Includes operator overloading and common functions like `mix`, `clamp`, and `fract`, allowing math logic to be shared or easily ported between CPU and GPU.
+### 3. GLSL-like Math Library for C++
+The engine provides `vec2`, `vec3`, `mat4`, and related types with syntax closely matching GLSL, including operator overloading and common functions like `mix`, `clamp`, and `fract`. This design allows math logic to be easily shared or ported between CPU and GPU.
 
 ### 4. Scene Management
-The architecture supports both traditional and modern scene management:
-- **OOP:** A traditional Object-Oriented Scene Graph (nodes, parents, children).
-- **ECS:** A modern Entity Component System implementation.
-The current `walker` demo primarily uses the OOP approach, while the transition to ECS is planned for a more data-oriented design.
+The current `walker` demo primarily uses an object-oriented approach to scene management, while a transition to an ECS (Entity Component System) architecture is planned for a more data-oriented design.
 
-### 5. Platform & Performance Focus
-- **Win32/C++:** Highly optimized for Windows, utilizing SSE (Streaming SIMD Extensions) for math operations and Multi-threading (`os/thread.h`).
-- **Memory Efficiency:** It uses specialized `VertexBuffer` and `IndexBuffer` abstractions that manage textures for data storage (using textures to store vertex attributes like gradients and mixmaps).
+### 5. Rendering
+A **quasi physically-based rendering (PBR)** pipeline is implemented, along with **global illumination** and **atmospheric scattering**. 
+
+### 6. Platform & Performance Focus
+- Highly optimized for Windows, leveraging SSE (Streaming SIMD Extensions) for math operations and Multi-threading.
+- It uses specialized `VertexBuffer` and `IndexBuffer` abstractions, which also support textures-based data storage (e.g. storing vertex attributes such as gradients and blend maps in textures).
+- A custom tool compiles GLSL shaders into C headers, embedding the shader source directly into the executable for zero-dependency deployment.
 
 ## Project Details
 
@@ -38,13 +35,6 @@ The current `walker` demo primarily uses the OOP approach, while the transition 
 - C++
 - OpenGL 4.5
 - Windows
-
-The demo includes several core 3D engine features:
-- Procedural generation
-- Terrain LOD
-- Scenegraph
-- Rendering
-- Processing
 
 ### Motivation
 This project revisits and simplifies many best practices commonly used in professional environments, aiming to explore fundamental design questions such as:
