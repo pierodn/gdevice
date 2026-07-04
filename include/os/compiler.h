@@ -10,7 +10,7 @@
 #elif defined(linux) || defined(__linux) || defined(__linux__) || defined(__CYGWIN__)
     //#include "platform/linux/linuxwindow.h"
 #else
-    #error unknown platform!
+    //#error unknown platform!
 #endif
 
 //////////////////////////////////

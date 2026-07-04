@@ -8,14 +8,11 @@ Prerequisites
 -------------
 - Windows 10/11
 - Visual Studio (2008+) with C++ workload or MSBuild + Windows SDK
-- NuGet CLI (optional if no packages)
 
 Quick build (Developer Command Prompt or PowerShell)
 --------------------------------------------------
-1. From repository root:
-   nuget restore .\gdevice.sln
-2. Build with MSBuild (Release, Win32):
-   msbuild /m /p:Configuration=Release /p:Platform=Win32 .\gdevice.sln
+1. Build with MSBuild (Release, Win32):
+   msbuild /m /p:Configuration=Release /p:Platform=Win32 .\gdevice.2008.sln
 
 Notes
 -----
@@ -26,12 +23,7 @@ Notes
 
 CI
 --
-The GitHub Actions workflow (.github/workflows/msbuild.yml) currently sets SOLUTION_FILE_PATH to ./source/gdevice.sln; change it to ./gdevice.sln to match this repo.
-
-Troubleshooting
----------------
-- If NuGet restore fails, open the solution in Visual Studio and let it restore packages automatically.
-- If linking fails, ensure the Windows SDK and C++ build tools appropriate for the VS version are installed.
+The GitHub Actions workflow (.github/workflows/msbuild.yml) currently sets SOLUTION_FILE_PATH to ./source/gdevice.2008.sln; change it to ./gdevice.2008.sln to match this repo.
 
 Next recommended steps
 ----------------------

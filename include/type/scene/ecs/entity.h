@@ -7,25 +7,69 @@
 namespace gd
 {
     typedef unsigned long long Entity;
+/*    typedef void (*EntityDestroyerFn)(Entity);
 
+    inline std::vector<EntityDestroyerFn>& GetEntityDestroyers()
+    {
+        static std::vector<EntityDestroyerFn> destroyers;
+        return destroyers;
+    }
+*/
     Entity CreateEntity()
     {
         static Entity nextID = 0;
         return nextID++;
     }
 
-    void DestroyEntity(Entity entity)
+    // Replacement for typeid(T) or std::type_index 
+    template<typename T>
+    size_t GetTypeID()
     {
-        // TODO Remove components
+        static size_t id = 0;
+        return id++;
     }
 
+
+
+
+
+
+    // 
+    template <typename T>
+    std::map<Entity, std::vector<T>>& GetComponentsMap();
+
+    template <typename T>
+    void RemoveComponents(Entity entity)
+    {
+        GetComponentsMap<T>().erase(entity);
+    }
+/*
+    template <typename T>
+    struct RegisterComponentDestroyer
+    {
+        RegisterComponentDestroyer()
+        {
+            GetEntityDestroyers().push_back(&RemoveComponents<T>);
+        }
+    };
+*/
     template <typename T>
     std::map<Entity, std::vector<T>>& GetComponentsMap()
     {
+        //static RegisterComponentDestroyer<T> registerDestroyer;
         static std::map<Entity, std::vector<T>> componentsMap;
         return componentsMap;
     }
-
+/*
+    void DestroyEntity(Entity entity)
+    {
+        std::vector<EntityDestroyerFn>& destroyers = GetEntityDestroyers();
+        for (size_t i = 0; i < destroyers.size(); ++i)
+        {
+            destroyers[i](entity);
+        }
+    }
+*/
     template <typename T>
     std::vector<T>& GetComponents(Entity node)
     {

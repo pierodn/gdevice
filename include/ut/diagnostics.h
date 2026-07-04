@@ -1,6 +1,7 @@
 #pragma once
 
 #include <os/compiler.h>
+#include <gl/glsl.h>
 
 // TODO assertions
 // TODO logging 

@@ -4,7 +4,7 @@ The 3D engine landscape is broadly divided into two categories:
 - Proprietary in-house engines, which power successful games but are used exclusively within the studios that develop them.
 - Proprietary general-purpose engines, which showcase impressive technology and are available to all developers, but often face challenges in helping the developer achieving full production maturity across diverse use cases.
 
-GDevice aims to occupy a middle ground providing a lightweight, open-source ecosystem of modular and reusable components for real-time C++ applications, designed to unify CPU and GPU execution. It provides developers with a flexible foundation for building their own engine stack without starting from zero, while serving as a platform for experimental 3D rendering. The project includes an example 3D engine for large open worlds with seamless real-time streaming and procedurally generated content at run-time.
+GDevice aims to occupy a middle ground by providing a lightweight, open-source ecosystem of modular and reusable components for real-time C++ applications, designed to unify CPU and GPU execution, and become a flexible foundation for building an engine stack without starting from zero. The project includes an example 3D engine for large open worlds with seamless real-time streaming and procedurally generated content at run-time.
 
 ## Core Technical Pillars
 
@@ -67,6 +67,13 @@ Thank you!
 ![Terrain2](https://github.com/user-attachments/assets/743756f9-2791-404a-8d45-71192bc4f742)
 ![Terrain3](https://github.com/user-attachments/assets/6a7091ea-22c6-4d0d-9846-e164404d735c)
 ![Sunset](https://github.com/user-attachments/assets/4c3a4106-feac-41e2-befa-4f71630435ca)
+
+## Documentation
+
+- **[CONTEXT.md](CONTEXT.md)** - Project vision, technical philosophy, architecture decisions, and historical context
+- **[AGENTS.md](AGENTS.md)** - Guidelines for AI agents contributing to this repository
+- **[BUILD.md](BUILD.md)** - Build instructions and environment setup
+- **[ROADMAP.md](ROADMAP.md)** - Future plans and milestones
 
 ## Getting Started
 See [BUILD.md](BUILD.md) for build instructions.
