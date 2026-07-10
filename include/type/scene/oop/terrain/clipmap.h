@@ -46,22 +46,12 @@ struct Clipmap : public Node, Transform, Parent, Child
 
             tile.generator = generator;
             tile.renderer = renderer;
-			tile.vbo = new VertexBuffer();
 			VertexBuffer& vbo = *tile.vbo;
 			vbo.init( tileRes );
 			vbo.mixmaps.scale.st = tileSize;
 
 			tile.ibo = ibo;
 			tile.parent = this;
-		}
-	}
-
-	~Clipmap()
-	{
-		for(int i=0; i<CLIPMAP_SIZE; i++)
-		for(int j=0; j<CLIPMAP_SIZE; j++)
-        {
-			delete getTile(i,j).vbo;
 		}
 	}
 

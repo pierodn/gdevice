@@ -13,9 +13,15 @@ struct NodeTransform;
 struct Tile : public Node, Transform, Child, Geometry, Updatable, Renderable
 {
     vec4 tileID;
+	VertexBuffer vertexBuffer;
 
     Program* generator;
     Program* renderer;
+
+	Tile() : generator(NULL), renderer(NULL)
+	{
+		vbo = &vertexBuffer;
+	}
 
     void Update()
     {
@@ -38,6 +44,7 @@ struct Tile : public Node, Transform, Child, Geometry, Updatable, Renderable
 
         // TODO generator->Run(vbo->quartets.size/2.0 + 1.0);
         glDispatchCompute( vbo->quartets.size.x/2 + 1, vbo->quartets.size.y/2 + 1, 1 );
+		glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
     }
 
     void Render(NodeState& nodeState, SceneState& sceneState)

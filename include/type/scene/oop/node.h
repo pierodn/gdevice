@@ -46,16 +46,14 @@ struct Transform
 struct Geometry 
 {
 	// TODO Material*		material; // TerrainMaterial by default
-    // TODO Abstract vertex attribute => so to allow other configurations.
-    // TODO VAO => stores the state of vertex attributes for performance.
+	// TODO Abstract vertex attribute => so to allow other configurations.
+	// TODO VAO => stores the state of vertex attributes for performance.
+	// Geometry borrows its buffers. Their owner must outlive the geometry node.
 	VertexBuffer*	vbo;
 	IndexBuffer*	ibo;
 
     Geometry() : vbo(NULL), ibo(NULL) {}
-    virtual ~Geometry() 
-    {
-        // TODO delete vbo, ibo
-    };
+    virtual ~Geometry() {};
 };
 
 // TODO typedef int RenderTarget;

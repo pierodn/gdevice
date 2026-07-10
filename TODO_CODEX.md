@@ -60,7 +60,7 @@ production-ready positioning will feel earned.
 
 ## Recommended Order of Work
 
-1. Fix LOD lifetime, ownership, and GPU synchronization issues.
+1. [x] Fix LOD lifetime, ownership, and GPU synchronization issues.
 2. Repair CI so it builds `gdevice.2008.sln` and produces a reproducible
    `walker` artifact.
 3. Add CPU-only checks for clipmap scrolling, tile invalidation, and math.
