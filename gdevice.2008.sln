@@ -4,9 +4,6 @@ Microsoft Visual Studio Solution File, Format Version 10.00
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bin2c", "bin2c\bin2c.vcproj", "{D7D13141-3B21-4A7F-B57B-79B7BBF0404B}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gdevice", "include\gdevice.vcproj", "{4C5E1C57-34D7-46A4-AD34-2D86D74176E9}"
-	ProjectSection(ProjectDependencies) = postProject
-		{D7D13141-3B21-4A7F-B57B-79B7BBF0404B} = {D7D13141-3B21-4A7F-B57B-79B7BBF0404B}
-	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "walker", "tests\walker\walker.vcproj", "{36B6109E-76A8-4081-A1F0-C1868B33CF5C}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -14,7 +11,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "walker", "tests\walker\walk
 		{4C5E1C57-34D7-46A4-AD34-2D86D74176E9} = {4C5E1C57-34D7-46A4-AD34-2D86D74176E9}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cpu_tests", "tests\cpu\cpu_tests.vcproj", "{A89B6D8A-5D21-4B60-900E-02F8130D8CA1}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tests", "tests\tests.vcproj", "{A89B6D8A-5D21-4B60-900E-02F8130D8CA1}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4C5E1C57-34D7-46A4-AD34-2D86D74176E9} = {4C5E1C57-34D7-46A4-AD34-2D86D74176E9}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

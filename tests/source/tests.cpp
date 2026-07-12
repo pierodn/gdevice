@@ -1,8 +1,7 @@
 #include <stdio.h>
+#include <string.h>
 
-#include <parameters.h>
-#include <type/cpu.h>
-#include <type/scene/oop/terrain/clipmap_logic.h>
+#include <gdevice.h>
 
 
 int failures = 0;
@@ -17,6 +16,11 @@ void Expect(bool condition, const char* expression, int line)
 }
 
 #define EXPECT(expression) Expect((expression), #expression, __LINE__)
+
+void TestPublicApi()
+{
+	EXPECT(strcmp(GdeviceName(), "gdevice") == 0);
+}
 
 void TestClipmapScroll()
 {
@@ -68,16 +72,17 @@ void TestCpuMath()
 
 int main()
 {
+	TestPublicApi();
 	TestClipmapScroll();
 	TestClipmapQuadrants();
 	TestCpuMath();
 
 	if (failures != 0)
 	{
-		printf("%d CPU test(s) failed.\n", failures);
+		printf("%d test(s) failed.\n", failures);
 		return 1;
 	}
 
-	printf("CPU tests passed.\n");
+	printf("Tests passed.\n");
 	return 0;
 }
