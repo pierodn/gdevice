@@ -6,7 +6,6 @@
 #endif
 
 // TODO Turn into a std::vector<GLubyte> that contains the pre-compiled binary of the shader.
-// TODO Rename as "shic" (shader intermediate code / shader compiler) 
 
 int main(int argc, char **argv) 
 {
