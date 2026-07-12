@@ -2,6 +2,7 @@
 
 #include <type/scene/oop/node.h>
 #include <type/scene/oop/terrain/tile.h>
+#include <type/scene/oop/terrain/clipmap_logic.h>
 
 
 struct Clipmap : public Node, Transform, Parent, Child
@@ -57,20 +58,15 @@ struct Clipmap : public Node, Transform, Parent, Child
 
 	bool move( dvec2 location )
 	{
-		transform.position.x = scrollValue( location.x, 2*tileSize );
-		transform.position.y = scrollValue( location.y, 2*tileSize );
+		ClipmapScroll scroll = CalculateClipmapScroll(
+			location.x, location.y, previousLocation.x, previousLocation.y,
+			tileSize, CLIPMAP_ODDITY);
+		transform.position.xy = scroll.position;
+		quadrantInCoarserTile = scroll.quadrantInCoarserTile;
 
-		bool bx = transform.position.x >= tileSize;
-		bool by = transform.position.y >= tileSize;
-        quadrantInCoarserTile = int(bx) + int(by)*2;
- 
-		transform.position.xy /= tileSize;
-		transform.position.xy -= float(CLIPMAP_ODDITY);
-
-		int di = -(tileValue(location.x, 2*tileSize) - tileValue(previousLocation.x, 2*tileSize))*2;
-		int dj = -(tileValue(location.y, 2*tileSize) - tileValue(previousLocation.y, 2*tileSize))*2;
-
-		bool invalidation = di!=0 || dj!=0;
+		int di = scroll.deltaI;
+		int dj = scroll.deltaJ;
+		bool invalidation = scroll.invalidated;
 
 		if( invalidation )
         {

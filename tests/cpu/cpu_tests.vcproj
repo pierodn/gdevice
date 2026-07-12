@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioProject
+	ProjectType="Visual C++"
+	Version="9.00"
+	Name="cpu_tests"
+	ProjectGUID="{A89B6D8A-5D21-4B60-900E-02F8130D8CA1}"
+	RootNamespace="cpu_tests"
+	Keyword="Win32Proj"
+	TargetFrameworkVersion="0"
+	>
+	<Platforms>
+		<Platform Name="Win32"/>
+	</Platforms>
+	<Configurations>
+		<Configuration
+			Name="Debug|Win32"
+			OutputDirectory="..\..\binaries\debug"
+			IntermediateDirectory="..\..\binaries\debug\cpu_tests"
+			ConfigurationType="1"
+			CharacterSet="2"
+			>
+			<Tool Name="VCCLCompilerTool" AdditionalIncludeDirectories="..\..\include;..\walker\source" Optimization="0" RuntimeLibrary="3" WarningLevel="3" DebugInformationFormat="4"/>
+			<Tool Name="VCLinkerTool" OutputFile="$(OutDir)\cpu_tests.exe" GenerateDebugInformation="true" TargetMachine="1"/>
+		</Configuration>
+		<Configuration
+			Name="Release|Win32"
+			OutputDirectory="..\..\binaries\release"
+			IntermediateDirectory="..\..\binaries\release\cpu_tests"
+			ConfigurationType="1"
+			CharacterSet="2"
+			>
+			<Tool Name="VCCLCompilerTool" AdditionalIncludeDirectories="..\..\include;..\walker\source" Optimization="2" RuntimeLibrary="2" WarningLevel="3"/>
+			<Tool Name="VCLinkerTool" OutputFile="$(OutDir)\cpu_tests.exe" TargetMachine="1"/>
+		</Configuration>
+	</Configurations>
+	<Files>
+		<Filter Name="source">
+			<File RelativePath=".\source\cpu_tests.cpp"/>
+		</Filter>
+	</Files>
+</VisualStudioProject>
