@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdlib.h>
+
 #include <type/cpu.h>
 #include <gl/texture.h>
 #include <gl/buffer.h>
@@ -47,14 +49,14 @@ struct IndexBuffer : public Buffer
 
 	~IndexBuffer() 
 	{
-		delete[] array;
+		free(array);
 		delete[] lods;
 	}
 
 	void clear()
 	{
 		//index_size = 0;
-		delete[] array;
+		free(array);
 		array = NULL;
 		length = 0;
 		allocated = 0;

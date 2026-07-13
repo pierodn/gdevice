@@ -2,6 +2,7 @@
 
 #include <type/scene/oop/node.h>
 #include <type/scene/oop/terrain/tile.h>
+// #include <type/scene/oop/terrain/clipmap_logic.h>
 
 
 struct Clipmap : public Node, Transform, Parent, Child
@@ -46,22 +47,12 @@ struct Clipmap : public Node, Transform, Parent, Child
 
             tile.generator = generator;
             tile.renderer = renderer;
-			tile.vbo = new VertexBuffer();
 			VertexBuffer& vbo = *tile.vbo;
 			vbo.init( tileRes );
 			vbo.mixmaps.scale.st = tileSize;
 
 			tile.ibo = ibo;
 			tile.parent = this;
-		}
-	}
-
-	~Clipmap()
-	{
-		for(int i=0; i<CLIPMAP_SIZE; i++)
-		for(int j=0; j<CLIPMAP_SIZE; j++)
-        {
-			delete getTile(i,j).vbo;
 		}
 	}
 
@@ -81,7 +72,17 @@ struct Clipmap : public Node, Transform, Parent, Child
 		int dj = -(tileValue(location.y, 2*tileSize) - tileValue(previousLocation.y, 2*tileSize))*2;
 
 		bool invalidation = di!=0 || dj!=0;
+/*
+		ClipmapScroll scroll = CalculateClipmapScroll(
+			location.x, location.y, previousLocation.x, previousLocation.y,
+			tileSize, CLIPMAP_ODDITY);
+		transform.position.xy = scroll.position;
+		quadrantInCoarserTile = scroll.quadrantInCoarserTile;
 
+		int di = scroll.deltaI;
+		int dj = scroll.deltaJ;
+		bool invalidation = scroll.invalidated;
+*/
 		if( invalidation )
         {
 			scrollTiles( di, dj, location );

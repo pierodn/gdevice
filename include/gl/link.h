@@ -671,6 +671,7 @@ namespace GL
 	extern PFNGLBINDIMAGETEXTUREPROC		pglBindImageTexture;
 	extern PFNGLDISPATCHCOMPUTEPROC			pglDispatchCompute;
 	extern PFNGLDISPATCHCOMPUTEINDIRECTPROC pglDispatchComputeIndirect;
+    extern PFNGLMEMORYBARRIERPROC           pglMemoryBarrier;
 	#define glCreateShader					pglCreateShader
 	#define glShaderSource					pglShaderSource
 	#define glCompileShader					pglCompileShader
@@ -707,6 +708,7 @@ namespace GL
 	#define glBindImageTexture				pglBindImageTexture
 	#define glDispatchCompute				pglDispatchCompute
 	#define glDispatchComputeIndirect		pglDispatchComputeIndirect
+    #define glMemoryBarrier         		pglMemoryBarrier
 	PFNGLCREATESHADERPROC					glCreateShader = 0;
 	PFNGLSHADERSOURCEPROC					glShaderSource = 0;
 	PFNGLCOMPILESHADERPROC					glCompileShader = 0;
@@ -743,6 +745,7 @@ namespace GL
 	PFNGLBINDIMAGETEXTUREPROC				pglBindImageTexture = 0;
 	PFNGLDISPATCHCOMPUTEPROC				pglDispatchCompute = 0;
 	PFNGLDISPATCHCOMPUTEINDIRECTPROC		pglDispatchComputeIndirect = 0;
+    PFNGLMEMORYBARRIERPROC             		pglMemoryBarrier = 0;
 #endif
 
 
@@ -839,6 +842,7 @@ namespace GL
 		            && (glBindImageTexture			= (PFNGLBINDIMAGETEXTUREPROC)			getProc("glBindImageTexture",	"glBindImageTextureEXT"))
 		            && (glDispatchCompute			= (PFNGLDISPATCHCOMPUTEPROC)			getProc("glDispatchCompute"))
 		            && (glDispatchComputeIndirect	= (PFNGLDISPATCHCOMPUTEINDIRECTPROC)	getProc("glDispatchComputeIndirect"))
+                    && (glMemoryBarrier			    = (PFNGLMEMORYBARRIERPROC)			    getProc("glMemoryBarrier"))
 	            ;
             }
 

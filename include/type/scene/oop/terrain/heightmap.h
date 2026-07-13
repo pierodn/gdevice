@@ -66,7 +66,12 @@ public:
 	{
 		int d = lods - children.size();
 		for(; d>0; d-- ) children.push_back( new Clipmap(this, children.size(), tileRes, &ibo, &generator, &renderer) );
-		for(; d<0; d++ ) delete children[children.size()-1];
+		for(; d<0; d++ )
+		{
+			Child* child = children.back();
+			children.pop_back();
+			delete child;
+		}
 	}
 
     long GetVisibilityDistance()

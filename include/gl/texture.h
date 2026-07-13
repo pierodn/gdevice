@@ -127,7 +127,7 @@ struct Texture : public Buffer
             }
 		}	
 
-		if( array ) delete array;
+		if( array ) delete[] array;
 		array = temp;
 		origin = 0;
 		size.x = width;
