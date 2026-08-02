@@ -104,12 +104,15 @@ void main()
         else
         {
         	vec4 t = vec4(1.0);
-			if(scale <= 1.0) 
+			
+            if(scale <= 1.0) 
 			{
-				// Tessellate by POV distance
-				vec4 ox = tileOffset.x + vec4( position[0].x, position[1].x, position[2].x, position[3].x );
-				vec4 oy = tileOffset.y + vec4( position[0].y, position[1].y, position[2].y, position[3].y );
-				vec4 oz = vec4(povZ)   + vec4( position[0].z, position[1].z, position[2].z, position[3].z );
+                vec3 camera = vec3(tileOffset.xy, povZ);
+
+				// Tessellate by camera distance
+				vec4 ox = camera.x + vec4(position[0].x, position[1].x, position[2].x, position[3].x);
+				vec4 oy = camera.y + vec4(position[0].y, position[1].y, position[2].y, position[3].y);
+				vec4 oz = camera.z + vec4(position[0].z, position[1].z, position[2].z, position[3].z);
                 vec4 d = pow(ox*ox + oy*oy + oz*oz, vec4(0.5));
 
                 float e0 = tessellationKernelStart * (kernelSize-1);
@@ -118,15 +121,18 @@ void main()
                 d = pow(d, vec4(tessellationVanishPower));
                 d = 1.0 - d;
                 t = 1.0 + 63.0 * Tessellator * 1.0 * tessellationMaxLevel * d;
-                t = mix(t.yxwz, t.zyxw, 0.5);
+                //t = mix(t.yxwz, t.zyxw, 0.5);
+                t = mix(t.xxyz, t.wyzw, 0.5);
 			}
 			
             gl_TessLevelOuter[0] = t.x;
             gl_TessLevelOuter[1] = t.y;
             gl_TessLevelOuter[2] = t.z;
             gl_TessLevelOuter[3] = t.w;
-            gl_TessLevelInner[0] = mix(t.x, t.z, 0.5);
-            gl_TessLevelInner[1] = mix(t.y, t.w, 0.5);
+            //gl_TessLevelInner[0] = mix(t.x, t.z, 0.5);
+            //gl_TessLevelInner[1] = mix(t.y, t.w, 0.5);
+            gl_TessLevelInner[0] = mix(t.y, t.w, 0.5);
+            gl_TessLevelInner[1] = mix(t.x, t.z, 0.5);
         }
     }
 
@@ -274,7 +280,8 @@ void main()
 
     vec3 dH = vec3(gradient.xy, 0.0);
     
-    float dist4nce = length(vec3(tileOffset, povZ) + position);
+    vec3 camera = vec3(tileOffset, povZ);
+    float dist4nce = length(camera + position);
     float displacementAmount = 1.0 - smoothstep(0.0, 1.0*tessellationKernelRange*(kernelSize-1), dist4nce);
     if( displacementAmount > 0.0 ) // && color.a == 0.0 ) // Only for non water surfaces
     { 

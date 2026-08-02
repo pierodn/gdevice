@@ -1,6 +1,11 @@
 #pragma once
 
-#include <math.h>
+#include <cmath>
+
+// Avoid recursivity.
+unsigned char sqrt(unsigned char x) {
+    return static_cast<unsigned char>(sqrt(static_cast<double>(x)));
+}
 #undef min
 #undef max
 

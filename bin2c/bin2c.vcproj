@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="bin2c"
 	ProjectGUID="{D7D13141-3B21-4A7F-B57B-79B7BBF0404B}"
 	RootNamespace="source"
@@ -84,8 +84,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="..\binaries\release"
-			IntermediateDirectory="..\binaries\release\temp"
+			OutputDirectory="..\..\binaries\release"
+			IntermediateDirectory="..\..\binaries\release\temp\bin2c"
 			ConfigurationType="1"
 			CharacterSet="2"
 			WholeProgramOptimization="1"

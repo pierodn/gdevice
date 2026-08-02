@@ -52,8 +52,8 @@ CONTROL:
 // * Displace mapping
 
 uniform vec2  tileOffset;
-uniform float scale;
 uniform float povZ;
+uniform float scale;
 uniform float kernelSize;
 uniform int   Tessellator = 1;
 uniform float tessellationKernelStart;
@@ -106,10 +106,12 @@ void main()
         	vec4 t = vec4(1.0);
 			if(scale <= 1.0) 
 			{
+                vec3 camera = vec3(tileOffset.x, tileOffset.y, -povZ);
+
 				// Tessellate by POV distance
-				vec4 ox = tileOffset.x + vec4( position[0].x, position[1].x, position[2].x, position[3].x );
-				vec4 oy = tileOffset.y + vec4( position[0].y, position[1].y, position[2].y, position[3].y );
-				vec4 oz = vec4(povZ)   + vec4( position[0].z, position[1].z, position[2].z, position[3].z );
+				vec4 ox = camera.x + vec4( position[0].x, position[1].x, position[2].x, position[3].x );
+				vec4 oy = camera.y + vec4( position[0].y, position[1].y, position[2].y, position[3].y );
+				vec4 oz = camera.z + vec4( position[0].z, position[1].z, position[2].z, position[3].z );
                 vec4 d = pow(ox*ox + oy*oy + oz*oz, vec4(0.5));
 
                 float e0 = tessellationKernelStart * (kernelSize-1);

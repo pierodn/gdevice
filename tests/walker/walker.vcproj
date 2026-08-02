@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="walker"
 	ProjectGUID="{36B6109E-76A8-4081-A1F0-C1868B33CF5C}"
 	RootNamespace="walker"
@@ -118,7 +118,7 @@
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="..\..\binaries\release"
-			IntermediateDirectory="..\..\binaries\release\temp"
+			IntermediateDirectory="..\..\binaries\release\temp\walker"
 			ConfigurationType="1"
 			WholeProgramOptimization="1"
 			>
@@ -228,6 +228,10 @@
 			>
 		</File>
 		<File
+			RelativePath=".\source\shaders\___render_terrain.h"
+			>
+		</File>
+		<File
 			RelativePath=".\source\ui\charset.h"
 			>
 		</File>
@@ -257,10 +261,6 @@
 		</File>
 		<File
 			RelativePath=".\source\shaders\render_terrain.glsl"
-			>
-		</File>
-		<File
-			RelativePath=".\source\shaders\render_terrain.h"
 			>
 		</File>
 		<File
