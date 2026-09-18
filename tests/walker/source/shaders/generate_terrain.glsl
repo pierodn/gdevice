@@ -13,7 +13,7 @@ uniform float size;
 // TODO: Make uniforms (?)
 const int RES = 33;      //17	// NOTE change also into gdevice_parameters.h
 
-const int SCALE = 130;
+const int SCALE = 230;
 const int OCTAVES = 11;
 const vec3 worldScale = vec3(vec2(1.0/SCALE), SCALE);
 
@@ -381,7 +381,7 @@ Vertex getVertex(ivec2 ij)
     
 #if 1
 	// TODO insert samples
-	float w = 0.00133; 
+	float w = 0.0013333; 
 	vec2 c = vec2(0.00117);
 	//vec2 a = c - w;
 	//vec2 b = c + w;
@@ -392,7 +392,7 @@ Vertex getVertex(ivec2 ij)
 	if(x > 0) {
 		// TODO calculate derivatives
 		vec2 dxdy = vec2(0.0);
-		t0 = t1 = 0.1*vec4(dxdy, 1.0, 0.0);
+		t0 = t1 = 0.9*vec4(dxdy, 1.0, 0.0);
 		substance.color  = vec4(1.0, 0.0, 0.0, 0.0);
 		substance.mixmap = vec4(1.0, 0.0, 0.0, 0.0);
 	}

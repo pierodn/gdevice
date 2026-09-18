@@ -18,24 +18,28 @@ out vec3 position;
 
 void main() 
 {	
-	// Model-space vertex position in plane XY
+	// Convert vertex ID into tile XY position.
 	vec2 p = vec2( gl_VertexID % tileSize, gl_VertexID / tileSize );		
 	
-	// Get the quartet
+	// Get the corresponding height quartet.
+    // The quartet contains this height and the coarser (LOD+1) heights 
+    // that will be used for smooth LOD transitions.
 	vec4 qu	= textureLod( quartetsTU, (p.xy + 0.5)/tileSize, 0 );
 
-	// Compute blend factor (with LOD+1, in [kernelSize-2, kernelSize-1])
+	// Compute blend factor between this LOD and the coarser LOD (LOD+1).
+    // The blending happens at the peripheric tiles between this LOD and LOD+1.
 	float blend = 0.0;		
 	vec2 offset = tileOffset + p/(tileSize-1);
 	float chebyshev = max(abs(offset.x), abs(offset.y));
 	blend = smoothstep(kernelSize-2, kernelSize-1, chebyshev);	
 	
-	// Blend position with coarser vertex position.
-	p = mix(p, p-mod(p,2), blend);
+	// Blend this vertex XY position with coarser (LOD+1) vertex XY positions.
+	p = mix(p, p - mod(p,2), blend);
 	
-	// Blend height with coarser vertex height.
+	// Blend this vertex height with the coarser vertex heights.
 	float height = mix(mix(qu.x, qu.y, blend), mix(qu.z, qu.w, blend), blend);
 	
+    // Compose this vertex position as blended position (XY, height).
 	position = vec3(p/(tileSize-1), height);
 }
 
